@@ -1,0 +1,14 @@
+This directory contains reST exports of jupyter notebooks, so that the static 
+notebooks can be included in the documentation.
+
+reST files in this directory are placed inline using the 'include' directive.
+To create these files, download the notebook as reST (requires pandoc). 
+Image links (for plots) must be hand-edited. Plot images should be renamed and 
+put in the '_static/notebook_plots/' directory.
+
+If sphinx generates a lot of errors that look like the following, this may be 
+caused by C function calls being parsed as reST. Pointer notation looks like 
+emphasis/strong start-strings. To fix it, change the '.. parsed-literal::' to 
+the non-parsed version '::'.
+	WARNING: Inline emphasis start-string without end-string.
+	WARNING: Inline strong start-string without end-string.
