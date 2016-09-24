@@ -19,7 +19,7 @@ Enrich2 runs on Python 2.7 and requires the following packages:
 * [Statsmodels](http://statsmodels.sourceforge.net/) version 0.6.1 or higher
 * [matplotlib](http://matplotlib.org/) version 1.4.3 or higher
 
-The configuration GUI requires [Tkinter](https://docs.python.org/2/library/tkinter.html). Building a local copy of the documentation requires [Sphinx](http://sphinx-doc.org/) version 1.4.0 or higher.
+The configuration GUI requires [Tkinter](https://docs.python.org/2/library/tkinter.html). Building a local copy of the documentation requires [Sphinx](http://sphinx-doc.org/).
 
 We recommend using a scientific Python distribution such as [Anaconda](https://store.continuum.io/cshop/anaconda/) or [Enthought Canopy](https://www.enthought.com/products/canopy/) to install and manage dependencies. PyTables may not be installed when using the default settings for your distribution. If you encounter errors, check that the `tables` module is present. 
 
