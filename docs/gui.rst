@@ -10,6 +10,14 @@ Configuring your analysis
 
 The Enrich2 installer places the graphical user interface (GUI) entry point in your path. Type ``enrich_gui`` from the command line to launch the program. 
 
+.. error:: Mac OS X users running the Enrich2 GUI in a virtualenv may encounter the following error::
+
+        2016-10-10 12:34:56.789 python[12345:12345678] -[NSApplication _setup:]: unrecognized selector sent to instance 0x12345abcd
+
+    This is caused by an interaction between Tkinter and the `matplotlib backend <http://matplotlib.org/faq/usage_faq.html#what-is-a-backend>`_. To fix the issue, edit (or create) the "~/.matplotlib/matplotlibrc" file and add the line::
+
+        backend: TkAgg
+
 .. note:: Once you have created your configuration file, you can also run the program in command line mode. Type ``enrich_cmd --help`` for usage and a list of command line options.
 
 .. image:: _static/gui_screenshots/empty.png
