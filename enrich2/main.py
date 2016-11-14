@@ -35,7 +35,7 @@ from enrich2.storemanager import available_scoring_methods, available_logr_metho
 from enrich2.gui.configurator import Configurator
 
 #: Name of the driver script. Used for logging output.
-driver_name = os.path.basename(sys.argv[0])
+DRIVER_NAME = os.path.basename(sys.argv[0])
 
 
 #: Format string for log entries (console or file).
@@ -110,23 +110,23 @@ def main_cmd():
     try:
         cfg = json.load(open(args.config, "U"))
     except IOError:
-        raise IOError("Failed to open '{}' [{}]".format(args.config, driver_name))
+        raise IOError("Failed to open '{}' [{}]".format(args.config, DRIVER_NAME))
     except ValueError:
-        raise ValueError("Improperly formatted .json file [{}]".format(driver_name))
+        raise ValueError("Improperly formatted .json file [{}]".format(DRIVER_NAME))
 
     # identify config file type and create the object
     if config_check.is_experiment(cfg):
-        logging.info("Detected an Experiment config file", extra={'oname' : driver_name})
+        logging.info("Detected an Experiment config file", extra={'oname' : DRIVER_NAME})
         obj = Experiment()
     elif config_check.is_selection(cfg):
-        logging.info("Detected a Selection config file", extra={'oname' : driver_name})
+        logging.info("Detected a Selection config file", extra={'oname' : DRIVER_NAME})
         obj = Selection()
     elif config_check.is_seqlib(cfg):
         seqlib_type = config_check.seqlib_type(cfg)
-        logging.info("Detected a {} config file".format(seqlib_type), extra={'oname' : driver_name})
+        logging.info("Detected a {} config file".format(seqlib_type), extra={'oname' : DRIVER_NAME})
         obj = globals()[seqlib_type]()
     else:
-        raise ValueError("Unrecognized .json config [{}]".format(driver_name))
+        raise ValueError("Unrecognized .json config [{}]".format(DRIVER_NAME))
 
     # set analysis options
     obj.force_recalculate = args.force_recalculate
@@ -149,7 +149,7 @@ def main_cmd():
     try:
         obj.validate()
     except ValueError, e:
-        logging.error("Invalid settings: {}".format(e), extra={'oname' : driver_name})
+        logging.error("Invalid settings: {}".format(e), extra={'oname' : DRIVER_NAME})
     else:
         # open HDF5 files for the object and all child objects
         obj.store_open(children=True)
@@ -162,11 +162,11 @@ def main_cmd():
         try:
             obj.make_plots()
         except Exception, e:
-            logging.warning("Calculations completed, but plotting failed: {}".format(e), extra={'oname' : driver_name})
+            logging.warning("Calculations completed, but plotting failed: {}".format(e), extra={'oname' : DRIVER_NAME})
         try:
             obj.write_tsv()
         except Exception, e:
-            logging.warning("Calculations completed, but tsv output failed: {}".format(e), extra={'oname' : driver_name})
+            logging.warning("Calculations completed, but tsv output failed: {}".format(e), extra={'oname' : DRIVER_NAME})
 
         # clean up
         obj.store_close(children=True)
