@@ -19,7 +19,7 @@
 
 
 from __future__ import print_function
-import argparse
+from argparse import ArgumentParser, RawDescriptionHelpFormatter
 import logging
 import json
 import sys
@@ -89,14 +89,17 @@ def main_cmd():
 
     """
     # build description string based on available methods
-    desc_string = "Command-line driver for Enrich2." + \
+    desc_string = "Command-line driver for Enrich2 v{}".format(__version__) + \
         "\n\nscoring methods:\n" + \
-        "\n".join(["  {:22}{}".format(k, v) for k, v in available_scoring_methods.items()]) + \
+        "\n".join(["  {:22}{}".format(k, v) for k, v in
+                   available_scoring_methods.items()]) + \
         "\n\nlog ratio methods:\n" + \
-        "\n".join(["  {:22}{}".format(k, v) for k, v in available_logr_methods.items()]) 
+        "\n".join(["  {:22}{}".format(k, v) for k, v in
+                   available_logr_methods.items()])
 
     # create parser and add description
-    parser = argparse.ArgumentParser(description=desc_string, formatter_class=argparse.RawDescriptionHelpFormatter)
+    parser = ArgumentParser(description=desc_string,
+                            formatter_class=RawDescriptionHelpFormatter)
 
     # add command line arguments
     parser.add_argument("config", help="JSON configuration file")
