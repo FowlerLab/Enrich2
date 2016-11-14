@@ -35,6 +35,15 @@ from enrich2.overlap import OverlapSeqLib
 from enrich2.storemanager import available_scoring_methods, available_logr_methods
 from enrich2.gui.configurator import Configurator
 
+
+__author__ = "Alan F Rubin"
+__copyright__ = "Copyright 2016, Alan F Rubin"
+__license__ = "GPLv3"
+__version__ = "1.0.0"
+__maintainer__ = "Alan F Rubin"
+__email__ = "alan.rubin@wehi.edu.au"
+
+
 #: Name of the driver script. Used for logging output.
 DRIVER_NAME = os.path.basename(sys.argv[0])
 
