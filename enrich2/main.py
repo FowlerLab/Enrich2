@@ -96,7 +96,7 @@ def main_cmd():
                    LOGR_METHODS.items()])
 
     # create parser and add description
-    parser = ArgumentParser(description=desc_string,
+    parser = ArgumentParser(prog="Enrich2", description=desc_string,
                             formatter_class=RawDescriptionHelpFormatter)
 
     # add command line arguments
@@ -107,9 +107,8 @@ def main_cmd():
                         choices=LOGR_METHODS.keys())
 
     # add support for semantic version checking
-    parser.add_argument("--version", dest="display_version",
-                        action="store_true", default=False,
-                        help="display version number and exit")
+    parser.add_argument("--version", action="version",
+                        version="%(prog)s {}".format(__version__))
 
     # add analysis options
     parser.add_argument("--log", metavar="FILE", dest="log_file",
@@ -131,11 +130,6 @@ def main_cmd():
                         help="override the config file's output directory")
 
     args = parser.parse_args()
-
-    # special case to display the version number and exit
-    if args.display_version:
-        print("v{}".format(__version__), file=sys.stdout)
-        sys.exit()
 
     # start the logs
     start_logging(args.log_file, logging.DEBUG)
