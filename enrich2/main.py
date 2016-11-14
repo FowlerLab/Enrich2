@@ -134,20 +134,25 @@ def main_cmd():
     try:
         cfg = json.load(open(args.config, "U"))
     except IOError:
-        raise IOError("Failed to open '{}' [{}]".format(args.config, DRIVER_NAME))
+        raise IOError("Failed to open '{}' [{}]".format(
+            args.config, DRIVER_NAME))
     except ValueError:
-        raise ValueError("Improperly formatted .json file [{}]".format(DRIVER_NAME))
+        raise ValueError("Improperly formatted .json file [{}]".format(
+            DRIVER_NAME))
 
     # identify config file type and create the object
     if config_check.is_experiment(cfg):
-        logging.info("Detected an Experiment config file", extra={'oname' : DRIVER_NAME})
+        logging.info("Detected an Experiment config file",
+                     extra={'oname': DRIVER_NAME})
         obj = Experiment()
     elif config_check.is_selection(cfg):
-        logging.info("Detected a Selection config file", extra={'oname' : DRIVER_NAME})
+        logging.info("Detected a Selection config file",
+                     extra={'oname': DRIVER_NAME})
         obj = Selection()
     elif config_check.is_seqlib(cfg):
         seqlib_type = config_check.seqlib_type(cfg)
-        logging.info("Detected a {} config file".format(seqlib_type), extra={'oname' : DRIVER_NAME})
+        logging.info("Detected a %s config file", seqlib_type,
+                     extra={'oname': DRIVER_NAME})
         if seqlib_type == "BarcodeSeqLib":
             obj = BarcodeSeqLib()
         elif seqlib_type == "BcidSeqLib":
@@ -159,7 +164,8 @@ def main_cmd():
         elif seqlib_type == "OverlapSeqLib":
             obj = OverlapSeqLib()
         else:
-            raise ValueError("Unrecognized SeqLib type '{}'".format(seqlib_type), extra={'oname' : DRIVER_NAME})
+            raise ValueError("Unrecognized SeqLib type '{}' [{}]".format(
+                seqlib_type, DRIVER_NAME))
     else:
         raise ValueError("Unrecognized .json config [{}]".format(DRIVER_NAME))
 
@@ -183,25 +189,28 @@ def main_cmd():
     # make sure objects are valid
     try:
         obj.validate()
-    except ValueError, e:
-        logging.error("Invalid settings: {}".format(e), extra={'oname' : DRIVER_NAME})
+    except ValueError:
+        logging.exception("Invalid configuration",
+                          extra={'oname': DRIVER_NAME})
     else:
         # open HDF5 files for the object and all child objects
         obj.store_open(children=True)
 
         # perform the analysis
         obj.calculate()
-        
+
         # generate desired output
         obj.make_plots()
         try:
             obj.make_plots()
-        except Exception, e:
-            logging.warning("Calculations completed, but plotting failed: {}".format(e), extra={'oname' : DRIVER_NAME})
+        except Exception:
+            logging.exception("Calculations completed, but plotting failed.",
+                              extra={'oname': DRIVER_NAME})
         try:
             obj.write_tsv()
-        except Exception, e:
-            logging.warning("Calculations completed, but tsv output failed: {}".format(e), extra={'oname' : DRIVER_NAME})
+        except Exception:
+            logging.exception("Calculations completed, but TSV ouput failed.",
+                              extra={'oname': DRIVER_NAME})
 
         # clean up
         obj.store_close(children=True)
