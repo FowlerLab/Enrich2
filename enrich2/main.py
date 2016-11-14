@@ -32,7 +32,7 @@ from enrich2.barcodeid import BcidSeqLib
 from enrich2.barcodevariant import BcvSeqLib
 from enrich2.basic import BasicSeqLib
 from enrich2.overlap import OverlapSeqLib
-from enrich2.storemanager import available_scoring_methods, available_logr_methods
+from enrich2.storemanager import SCORING_METHODS, LOGR_METHODS
 from enrich2.gui.configurator import Configurator
 
 
@@ -71,16 +71,14 @@ def start_logging(log_file, log_level):
         logging.basicConfig(level=log_level, format=LOG_FORMAT)
 
 
-
 def main_gui():
     """
     Entry point for GUI.
-    
+
     """
     start_logging(None, logging.DEBUG)
     app = Configurator()
     app.mainloop()
-
 
 
 def main_cmd():
@@ -92,10 +90,10 @@ def main_cmd():
     desc_string = "Command-line driver for Enrich2 v{}".format(__version__) + \
         "\n\nscoring methods:\n" + \
         "\n".join(["  {:22}{}".format(k, v) for k, v in
-                   available_scoring_methods.items()]) + \
+                   SCORING_METHODS.items()]) + \
         "\n\nlog ratio methods:\n" + \
         "\n".join(["  {:22}{}".format(k, v) for k, v in
-                   available_logr_methods.items()])
+                   LOGR_METHODS.items()])
 
     # create parser and add description
     parser = ArgumentParser(description=desc_string,
@@ -103,17 +101,30 @@ def main_cmd():
 
     # add command line arguments
     parser.add_argument("config", help="JSON configuration file")
-    parser.add_argument("scoring_method", help="scoring method", choices=available_scoring_methods.keys())
-    parser.add_argument("logr_method", help="log ratio method", choices=available_logr_methods.keys())
+    parser.add_argument("scoring_method", help="scoring method",
+                        choices=SCORING_METHODS.keys())
+    parser.add_argument("logr_method", help="log ratio method",
+                        choices=LOGR_METHODS.keys())
 
     # add analysis options
-    parser.add_argument("--log", dest="log_file", metavar="FILE", help="path to log file")
-    parser.add_argument("--no-plots", help="don't make plots", dest="plots_requested", action="store_false", default=True)
-    parser.add_argument("--no-tsv", help="don't generate tsv files", dest="tsv_requested", action="store_false", default=True)
-    parser.add_argument("--recalculate", help="force recalculation", dest="force_recalculate", action="store_true", default=False)
-    parser.add_argument("--component-outliers", help="calculate component outlier stats", dest="component_outliers", action="store_true", default=False)
-    parser.add_argument("--output-dir", help="override the config file's output directory", dest="output_dir_override", metavar="DIR")
-    
+    parser.add_argument("--log", metavar="FILE", dest="log_file",
+                        help="path to log file")
+    parser.add_argument("--no-plots", dest="plots_requested",
+                        action="store_false", default=True,
+                        help="don't make plots")
+    parser.add_argument("--no-tsv", dest="tsv_requested",
+                        action="store_false", default=True,
+                        help="don't generate tsv files")
+    parser.add_argument("--recalculate", dest="force_recalculate",
+                        action="store_true", default=False,
+                        help="force recalculation")
+    parser.add_argument("--component-outliers", dest="component_outliers",
+                        action="store_true", default=False,
+                        help="calculate component outlier stats")
+    parser.add_argument("--output-dir", metavar="DIR",
+                        dest="output_dir_override",
+                        help="override the config file's output directory")
+
     args = parser.parse_args()
 
     # start the logs
