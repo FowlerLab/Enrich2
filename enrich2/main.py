@@ -27,9 +27,10 @@ import os.path
 import enrich2.config_check as config_check
 from enrich2.experiment import Experiment
 from enrich2.selection import Selection
-from enrich2.basic import BasicSeqLib
-from enrich2.barcodevariant import BcvSeqLib
 from enrich2.barcode import BarcodeSeqLib
+from enrich2.barcodeid import BcidSeqLib
+from enrich2.barcodevariant import BcvSeqLib
+from enrich2.basic import BasicSeqLib
 from enrich2.overlap import OverlapSeqLib
 from enrich2.storemanager import available_scoring_methods, available_logr_methods
 from enrich2.gui.configurator import Configurator
@@ -124,7 +125,18 @@ def main_cmd():
     elif config_check.is_seqlib(cfg):
         seqlib_type = config_check.seqlib_type(cfg)
         logging.info("Detected a {} config file".format(seqlib_type), extra={'oname' : DRIVER_NAME})
-        obj = globals()[seqlib_type]()
+        if seqlib_type == "BarcodeSeqLib":
+            obj = BarcodeSeqLib()
+        elif seqlib_type == "BcidSeqLib":
+            obj = BcidSeqLib()
+        elif seqlib_type == "BcvSeqLib":
+            obj = BcvSeqLib()
+        elif seqlib_type == "BasicSeqLib":
+            obj = BasicSeqLib()
+        elif seqlib_type == "OverlapSeqLib":
+            obj = OverlapSeqLib()
+        else:
+            raise ValueError("Unrecognized SeqLib type '{}'".format(seqlib_type), extra={'oname' : DRIVER_NAME})
     else:
         raise ValueError("Unrecognized .json config [{}]".format(DRIVER_NAME))
 
