@@ -35,6 +35,9 @@ DEFAULT_MAX_MUTATIONS = 10
 #: Regular expression that matches a single amino acid substitution in HGVS_ format.
 re_protein = re.compile("(?P<match>p\.(?P<pre>[A-Z][a-z][a-z])(?P<pos>-?\d+)(?P<post>[A-Z][a-z][a-z]))")
 
+#: Regular expression that matches a single nucleotide substitution (coding or noncoding) in HGVS_ format.
+re_nucleotide = re.compile("(?P<match>[nc]\.(?P<pos>-?\d+)(?P<pre>[ACGT])>(?P<post>[ACGT]))")
+
 #: Regular expression that matches a single coding nucleotide substitution in HGVS_ format.
 re_coding = re.compile("(?P<match>c\.(?P<pos>-?\d+)(?P<pre>[ACGT])>(?P<post>[ACGT]) \(p\.\S+\))")
 
