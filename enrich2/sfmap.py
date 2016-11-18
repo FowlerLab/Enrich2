@@ -16,6 +16,7 @@
 #  along with Enrich2.  If not, see <http://www.gnu.org/licenses/>.
 
 from __future__ import print_function
+from __future__ import absolute_import
 import logging
 import numpy as np
 import matplotlib.pyplot as plt
@@ -24,6 +25,8 @@ from matplotlib.patches import Circle
 from matplotlib.lines import Line2D
 from matplotlib.gridspec import GridSpec
 from .plots import plot_cmaps, plot_colors
+from six.moves import range
+from six.moves import zip
 
 
 #: List of amino acids in row order for sequence-function maps.
@@ -257,10 +260,10 @@ def sfmap_axes(df, ax, style, wt, df_se=None, tall=False, colors=None,
     # add marks on wild type positions
     wt = list(wt)
     if tall:
-        wt_xy = zip((list(df.columns).index(x) for x in wt), 
-                     reversed(xrange(len(wt))))
+        wt_xy = list(zip((list(df.columns).index(x) for x in wt), 
+                     reversed(list(range(len(wt))))))
     else:
-        wt_xy = zip(xrange(len(wt)), (list(df.index).index(x) for x in wt))
+        wt_xy = list(zip(list(range(len(wt))), (list(df.index).index(x) for x in wt)))
     for x, y in wt_xy:
         ax.add_patch(Circle((x + 0.5, y + 0.5), .1666, fill=True, 
                             facecolor="black", edgecolor="none", alpha=0.5)) 
@@ -272,8 +275,8 @@ def sfmap_axes(df, ax, style, wt, df_se=None, tall=False, colors=None,
         # rescale the SE's onto 0 .. 0.98
         # rescaling onto 0 .. 1.0 causes the corners to look funny
         masked_se = masked_se / vmax_se * 0.98
-        for x in xrange(len(df.index)):
-            for y in xrange(len(df.columns)):
+        for x in range(len(df.index)):
+            for y in range(len(df.columns)):
                 value = masked_se[x, y]
                 if value and value >= 0.02:   # not masked, above threshold
                     corner_dist = (1. - value) / 2.

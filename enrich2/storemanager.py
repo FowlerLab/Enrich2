@@ -16,6 +16,7 @@
 #  along with Enrich2.  If not, see <http://www.gnu.org/licenses/>.
 
 from __future__ import print_function
+from __future__ import absolute_import
 import os
 import logging
 import pandas as pd
@@ -273,7 +274,7 @@ class StoreManager(object):
         """
         Make sure the *value* is valid and set it.
         """
-        if value in available_scoring_methods.keys():
+        if value in list(available_scoring_methods.keys()):
             self._scoring_method = value
         else:
             raise ValueError("Invalid setting for scoring_method [{}]".format(self.name))
@@ -396,7 +397,7 @@ class StoreManager(object):
         """
         Make sure the *value* is valid and set it.
         """
-        if value in available_logr_methods.keys():
+        if value in list(available_logr_methods.keys()):
             self._logr_method = value
         else:
             raise ValueError("Invalid setting '{}' for log-ratio method [{}]".format(value, self.name))
@@ -648,7 +649,7 @@ class StoreManager(object):
         Returns:
             bool: True if the key exists in the HDF5 store, else False.
         """
-        if key in self.store.keys():
+        if key in list(self.store.keys()):
             logging.info("Found existing '{}'".format(key), extra={'oname' : self.name})
             return True
         else:
@@ -661,7 +662,7 @@ class StoreManager(object):
 
         This method really needs a better name.
         """
-        if destination in self.store.keys():
+        if destination in list(self.store.keys()):
             # need to remove the current destination table because we are using append
             # append is required because it takes the "min_itemsize" argument, and put doesn't
             logging.info("Overwriting existing '{}'".format(destination), extra={'oname' : self.name})

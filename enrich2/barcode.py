@@ -16,6 +16,7 @@
 #  along with Enrich2.  If not, see <http://www.gnu.org/licenses/>.
 
 from __future__ import print_function
+from __future__ import absolute_import
 import re
 import logging
 from .seqlib import SeqLib

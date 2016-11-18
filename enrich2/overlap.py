@@ -16,6 +16,7 @@
 #  along with Enrich2.  If not, see <http://www.gnu.org/licenses/>.
 
 from __future__ import print_function
+from __future__ import absolute_import
 import pandas as pd
 import numpy as np
 import logging
@@ -26,6 +27,7 @@ from .plots import overlap_merge_plot
 from .seqlib import SeqLib
 from .variant import VariantSeqLib
 from .fqread import read_fastq_multi, split_fastq_path, FQRead
+from six.moves import range
 
 class OverlapSeqLib(VariantSeqLib):
     """
@@ -191,7 +193,7 @@ class OverlapSeqLib(VariantSeqLib):
 
         mismatches = 0
         first = True
-        for i in xrange(self.overlap_length):
+        for i in range(self.overlap_length):
             a = self.fwd_start - 1 + i
             b = len(rev) - self.rev_start - self.overlap_length + i + 1
             try:
@@ -238,7 +240,7 @@ class OverlapSeqLib(VariantSeqLib):
                 else:   # count everything
                     df_dict = dict()
 
-                    self.merge_mismatches = pd.DataFrame(data=0, index=[x + self.fwd_start + self.wt.dna_offset for x in xrange(0, self.overlap_length)], columns=["resolved", "unresolved", "first"])
+                    self.merge_mismatches = pd.DataFrame(data=0, index=[x + self.fwd_start + self.wt.dna_offset for x in range(0, self.overlap_length)], columns=["resolved", "unresolved", "first"])
 
                     logging.info("Counting variants", extra={'oname' : self.name})
                     for fwd, rev in read_fastq_multi([self.forward, self.reverse]):

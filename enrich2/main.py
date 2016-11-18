@@ -19,6 +19,7 @@
 
 
 from __future__ import print_function
+from __future__ import absolute_import
 import argparse
 import logging
 import json
@@ -90,8 +91,8 @@ def main_cmd():
 
     # add command line arguments
     parser.add_argument("config", help="JSON configuration file")
-    parser.add_argument("scoring_method", help="scoring method", choices=available_scoring_methods.keys())
-    parser.add_argument("logr_method", help="log ratio method", choices=available_logr_methods.keys())
+    parser.add_argument("scoring_method", help="scoring method", choices=list(available_scoring_methods.keys()))
+    parser.add_argument("logr_method", help="log ratio method", choices=list(available_logr_methods.keys()))
 
     # add analysis options
     parser.add_argument("--log", dest="log_file", metavar="FILE", help="path to log file")
@@ -148,7 +149,7 @@ def main_cmd():
     # make sure objects are valid
     try:
         obj.validate()
-    except ValueError, e:
+    except ValueError as e:
         logging.error("Invalid settings: {}".format(e), extra={'oname' : driver_name})
     else:
         # open HDF5 files for the object and all child objects
@@ -161,11 +162,11 @@ def main_cmd():
         obj.make_plots()
         try:
             obj.make_plots()
-        except Exception, e:
+        except Exception as e:
             logging.warning("Calculations completed, but plotting failed: {}".format(e), extra={'oname' : driver_name})
         try:
             obj.write_tsv()
-        except Exception, e:
+        except Exception as e:
             logging.warning("Calculations completed, but tsv output failed: {}".format(e), extra={'oname' : driver_name})
 
         # clean up

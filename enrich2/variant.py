@@ -16,6 +16,7 @@
 #  along with Enrich2.  If not, see <http://www.gnu.org/licenses/>.
 
 from __future__ import print_function
+from __future__ import absolute_import
 import re
 import sys
 from .aligner import Aligner
@@ -28,6 +29,7 @@ import os.path
 from .plots import counts_plot
 from matplotlib.backends.backend_pdf import PdfPages
 from .constants import WILD_TYPE_VARIANT, SYNONYMOUS_VARIANT, CODON_TABLE, AA_CODES
+from six.moves import range
 
 #: Default number of maximum mutation. Must be set to avoid data frame performance errors.
 DEFAULT_MAX_MUTATIONS = 10
@@ -270,7 +272,7 @@ class VariantSeqLib(SeqLib):
 
         .. warning:: Using the :py:class:`~seqlib.aligner.Aligner` dramatically increases runtime.
         """
-        if variant_dna in self.aligner_cache.keys():
+        if variant_dna in list(self.aligner_cache.keys()):
             return self.aligner_cache[variant_dna]
 
         mutations = list()
@@ -324,7 +326,7 @@ class VariantSeqLib(SeqLib):
                 return None
         else:
             mutations = list()
-            for i in xrange(len(variant_dna)):
+            for i in range(len(variant_dna)):
                 if variant_dna[i] != self.wt.dna_seq[i]:
                     mutations.append((i, "{pre}>{post}".format(pre=self.wt.dna_seq[i], post=variant_dna[i])))
                     if len(mutations) > self.filters['max mutations']:
@@ -343,7 +345,7 @@ class VariantSeqLib(SeqLib):
         mutation_strings = list()
         if self.is_coding():
             variant_protein = ""
-            for i in xrange(0, len(variant_dna), 3):
+            for i in range(0, len(variant_dna), 3):
                 try:
                     variant_protein += CODON_TABLE[variant_dna[i:i + 3]]
                 except KeyError: # garbage codon due to indel, X, or N

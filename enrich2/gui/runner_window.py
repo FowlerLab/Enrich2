@@ -16,15 +16,16 @@
 #  along with Enrich2.  If not, see <http://www.gnu.org/licenses/>.
 
 from __future__ import print_function
-import Tkinter as tk
-import ttk
-import tkSimpleDialog
-import tkMessageBox
+from __future__ import absolute_import
+import six.moves.tkinter as tk
+import six.moves.tkinter_ttk
+import six.moves.tkinter_tksimpledialog
+import six.moves.tkinter_messagebox
 import sys
 import logging
 
 
-class RunnerSavePrompt(tkSimpleDialog.Dialog):
+class RunnerSavePrompt(six.moves.tkinter_tksimpledialog.Dialog):
     """
     Dialog box for prompting the user to save before running.
     """
@@ -34,14 +35,14 @@ class RunnerSavePrompt(tkSimpleDialog.Dialog):
         self.dialog_text = tk.StringVar()
         self.dialog_text.set("Would you like to save your config changes?")
 
-        tkSimpleDialog.Dialog.__init__(self, parent_window, title)
+        six.moves.tkinter_tksimpledialog.Dialog.__init__(self, parent_window, title)
 
 
     def body(self, master):
-        frame = ttk.Frame(master, padding=(12, 6, 12, 6))
+        frame = six.moves.tkinter_ttk.Frame(master, padding=(12, 6, 12, 6))
         frame.pack()
 
-        dialog_text_label = ttk.Label(frame, textvariable=self.dialog_text)
+        dialog_text_label = six.moves.tkinter_ttk.Label(frame, textvariable=self.dialog_text)
         dialog_text_label.grid(column=0, row=0, sticky="nsew")
 
 
@@ -50,7 +51,7 @@ class RunnerSavePrompt(tkSimpleDialog.Dialog):
 
 
 
-class RunnerWindow(tkSimpleDialog.Dialog):
+class RunnerWindow(six.moves.tkinter_tksimpledialog.Dialog):
     """
     Dialog box for blocking input while running the analysis.
     """
@@ -61,14 +62,14 @@ class RunnerWindow(tkSimpleDialog.Dialog):
         self.dialog_text = tk.StringVar()
         self.dialog_text.set("Ready to start analysis...")
 
-        tkSimpleDialog.Dialog.__init__(self, parent_window, title)
+        six.moves.tkinter_tksimpledialog.Dialog.__init__(self, parent_window, title)
 
 
     def body(self, master):
-        frame = ttk.Frame(master, padding=(12, 6, 12, 6))
+        frame = six.moves.tkinter_ttk.Frame(master, padding=(12, 6, 12, 6))
         frame.pack()
 
-        dialog_text_label = ttk.Label(frame, textvariable=self.dialog_text)
+        dialog_text_label = six.moves.tkinter_ttk.Label(frame, textvariable=self.dialog_text)
         dialog_text_label.grid(column=0, row=0, sticky="nsew")
 
         self.run_button = tk.Button(frame, text="Begin", width=10, command=self.runner, default="active")
@@ -106,10 +107,10 @@ class RunnerWindow(tkSimpleDialog.Dialog):
             # perform the analysis
             self.pw.root_element.calculate()
 
-        except Exception, e:
+        except Exception as e:
             # display error
             logging.error(e, extra={'oname' : self.pw.root_element.name})
-            tkMessageBox.showerror("Enrich2 Error", "Enrich2 encountered an error:\n{}".format(e))
+            six.moves.tkinter_messagebox.showerror("Enrich2 Error", "Enrich2 encountered an error:\n{}".format(e))
 
         else:
             # no exception occurred during calculation and setup
@@ -117,16 +118,16 @@ class RunnerWindow(tkSimpleDialog.Dialog):
             if self.pw.plots_requested.get():
                 try:
                     self.pw.root_element.make_plots()
-                except Exception, e:
-                    tkMessageBox.showwarning(None, "Calculations completed, but plotting failed:\n{}".format(e))
+                except Exception as e:
+                    six.moves.tkinter_messagebox.showwarning(None, "Calculations completed, but plotting failed:\n{}".format(e))
             if self.pw.tsv_requested.get():
                 try:
                     self.pw.root_element.write_tsv()
-                except Exception, e:
-                    tkMessageBox.showwarning(None, "Calculations completed, but tsv output failed:\n{}".format(e))
+                except Exception as e:
+                    six.moves.tkinter_messagebox.showwarning(None, "Calculations completed, but tsv output failed:\n{}".format(e))
 
             # show the dialog box
-            tkMessageBox.showinfo("", "Analysis completed.")
+            six.moves.tkinter_messagebox.showinfo("", "Analysis completed.")
 
         finally:
             # close the HDF5 files

@@ -16,6 +16,7 @@
 #  along with Enrich2.  If not, see <http://www.gnu.org/licenses/>.
 
 from __future__ import print_function
+from __future__ import absolute_import
 import time
 import logging
 import os.path
@@ -200,7 +201,7 @@ class SeqLib(StoreManager):
 
         If *raw* is ``True``, the counts are stored under ``"/raw/label/counts"``; else ``"/main/label/counts"``.
         """
-        if len(df_dict.keys()) == 0:
+        if len(list(df_dict.keys())) == 0:
             raise ValueError("Failed to count {} [{}]".format(label, self.name))
         df = pd.DataFrame.from_dict(df_dict, orient="index", dtype="int32")
         df.columns = ['count']
@@ -255,7 +256,7 @@ class SeqLib(StoreManager):
 
         This DataFrame contains the same information as ``report_filter_stats``
         """
-        df = pd.DataFrame(index=SeqLib.filter_messages.values(), columns=['count'])
+        df = pd.DataFrame(index=list(SeqLib.filter_messages.values()), columns=['count'])
         for key in self.filter_stats.keys():
             if self.filter_stats[key] > 0 or key == 'total':
                 df.loc[SeqLib.filter_messages[key], 'count'] = self.filter_stats[key]
