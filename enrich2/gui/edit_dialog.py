@@ -23,7 +23,7 @@ import six.moves.tkinter_tksimpledialog
 import six.moves.tkinter_messagebox
 import six.moves.tkinter_filedialog
 import json
-from sys import maxint
+from sys import maxsize
 from collections import OrderedDict
 from .dialog_elements import FileEntry, IntegerEntry, Checkbox, StringEntry, SectionLabel
 from ..experiment import Experiment
@@ -140,7 +140,7 @@ class EditDialog(six.moves.tkinter_tksimpledialog.Dialog):
                 self.frame_dict['variants'] = list()
                 self.frame_dict['variants'].append(SectionLabel("Variant Options"))
                 self.frame_dict['variants'].append(StringEntry("Wild Type Sequence", self.element_cfg['variants']['wild type'], 'sequence'))
-                self.frame_dict['variants'].append(IntegerEntry("Wild Type Offset", self.element_cfg['variants']['wild type'], 'reference offset', optional=True, minvalue=-maxint - 1))
+                self.frame_dict['variants'].append(IntegerEntry("Wild Type Offset", self.element_cfg['variants']['wild type'], 'reference offset', optional=True, minvalue=-maxsize - 1))
                 self.frame_dict['variants'].append(Checkbox("Protein Coding", self.element_cfg['variants']['wild type'], 'coding'))
                 self.frame_dict['variants'].append(Checkbox("Use Aligner", self.element_cfg['variants'], 'use aligner'))
                 self.frame_dict['variants'].append(IntegerEntry("Minimum Count", self.element_cfg['variants'], 'min count', optional=True))

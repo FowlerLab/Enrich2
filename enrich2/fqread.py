@@ -20,7 +20,6 @@ from __future__ import absolute_import
 from sys import stderr
 import os.path
 import re
-import string
 import itertools
 import bz2
 import gzip
@@ -43,7 +42,7 @@ header_pattern = re.compile("@(?P<MachineName>.+)"
 BUFFER_SIZE = 100000 # empirically optimized for reading FASTQ files
 
 
-dna_trans = string.maketrans("actgACTG", "tgacTGAC")
+dna_trans = str.maketrans("actgACTG", "tgacTGAC")
 
 
 class FQRead(object):
