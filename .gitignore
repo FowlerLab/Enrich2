@@ -59,3 +59,5 @@ test/test_output/
 # Jupyter checkpoint files
 docs/notebooks/.ipynb_checkpoints/
 
+# Visual Studio Code
+.vscode/
