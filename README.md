@@ -10,7 +10,7 @@ An example dataset is available at the [Enrich2-Example GitHub repository](https
 Installation and dependencies
 -----------------------------
 
-Enrich2 runs on Python 2.7 and requires the following packages:
+Enrich2 runs on Python 2.7 and 3.4+ and requires the following packages:
 
 * [NumPy](http://www.numpy.org/) version 1.10.4 or higher
 * [SciPy](http://www.scipy.org/) version 0.16.0 or higher
@@ -18,6 +18,7 @@ Enrich2 runs on Python 2.7 and requires the following packages:
 * [PyTables](http://www.pytables.org/) version 3.2.0 or higher
 * [Statsmodels](http://statsmodels.sourceforge.net/) version 0.6.1 or higher
 * [matplotlib](http://matplotlib.org/) version 1.4.3 or higher
+* [six](https://pythonhosted.org/six/) version 1.9 or higher
 
 The configuration GUI requires [Tkinter](https://docs.python.org/2/library/tkinter.html). Building a local copy of the documentation requires [Sphinx](http://sphinx-doc.org/).
 
