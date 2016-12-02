@@ -58,7 +58,7 @@ class SeqLib(StoreManager):
         self.filter_stats = dict()
         self.default_filters = dict()
         self.default_filters.update({'min quality' : 0})
-        self.default_filters.update({'max N' : sys.maxint})
+        self.default_filters.update({'max N' : sys.maxsize})
         self.default_filters.update({'avg quality' : 0})
         self.default_filters.update({'chastity' : False})
 
