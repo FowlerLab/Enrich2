@@ -41,7 +41,7 @@ class BarcodeSeqLib(SeqLib):
         self.revcomp_reads = None
         self.trim_start = None
         self.trim_length = None
-        self.barcode_min_count = None
+        self.barcode_min_count = 0
         self.add_label('barcodes')
 
 
@@ -122,10 +122,10 @@ class BarcodeSeqLib(SeqLib):
             'reverse' : self.revcomp_reads,
             'filters' : self.serialize_filters()
         }
-        if self.trim_start > 1:
+        if self.trim_start is not None and self.trim_start > 1:
             fastq['start'] = self.trim_start
 
-        if self.trim_length < sys.maxsize:
+        if self.trim_length is not None and self.trim_length < sys.maxsize:
             fastq['length'] = self.trim_length
 
         return fastq
