@@ -80,7 +80,7 @@ def main_cmd():
 
     """
     # build description string based on available methods
-    desc_string = "Command-line driver for Enrich2." + \
+    desc_string = "Command-line driver for Enrich2. PYTHON 3 VERSION" + \
         "\n\nscoring methods:\n" + \
         "\n".join(["  {:22}{}".format(k, v) for k, v in available_scoring_methods.items()]) + \
         "\n\nlog ratio methods:\n" + \

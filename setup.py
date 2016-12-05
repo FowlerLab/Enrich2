@@ -35,7 +35,7 @@ else:
 
 setup(
     name="Enrich2",
-    version="1.0.0",
+    version="2.0.0",
 
     packages=find_packages(),
     package_data={
