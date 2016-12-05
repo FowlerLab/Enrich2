@@ -40,7 +40,7 @@ from ..barcode import BarcodeSeqLib
 from ..overlap import OverlapSeqLib
 from ..seqlib import SeqLib
 from ..variant import VariantSeqLib
-from ..storemanager import available_scoring_methods, available_logr_methods
+from ..storemanager import SCORING_METHODS, LOGR_METHODS
 
 
 def write_json(d, handle):
@@ -159,7 +159,7 @@ class Configurator(tk.Tk):
         scoring_heading = six.moves.tkinter_ttk.Label(options_frame, text="Scoring Method")
         scoring_heading.grid(column=0, row=row)
         row += 1
-        for i, k in enumerate(available_scoring_methods.keys()):
+        for i, k in enumerate(SCORING_METHODS.keys()):
             rb = six.moves.tkinter_ttk.Radiobutton(options_frame, text=available_scoring_methods[k].title(), variable=self.scoring_method, value=k)
             rb.grid(column=0, row=row, sticky="w")
             row += 1
@@ -169,7 +169,7 @@ class Configurator(tk.Tk):
         logr_heading = six.moves.tkinter_ttk.Label(options_frame, text="Normalization Method")
         logr_heading.grid(column=0, row=row)
         row += 1
-        for i, k in enumerate(available_logr_methods.keys()):
+        for i, k in enumerate(LOGR_METHODS.keys()):
             rb = six.moves.tkinter_ttk.Radiobutton(options_frame, text=available_logr_methods[k].title(), variable=self.logr_method, value=k)
             rb.grid(column=0, row=row, sticky="w")
             row += 1

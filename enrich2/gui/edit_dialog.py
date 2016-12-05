@@ -60,8 +60,8 @@ element_layouts = {
                     "BcvSeqLib" : [('main',), ('fastq', 'filters',), ('barcodes', 'variants',)],
                     "BcidSeqLib" :  [('main',), ('fastq', 'filters',), ('barcodes', 'identifiers',)],
                     "OverlapSeqLib" :  [('main',), ('fastq', 'filters', 'overlap',), ('variants',)],
-                    "BasicSeqLib" : [('main',), ('fastq', 'filters',), ('variants',)],
-                    "BarcodeSeqLib" : [('main',), ('fastq', 'filters',), ('barcodes',)],
+                    "BasicSeqLib" : [('main',), ('fastq', 'trimming', 'filters',), ('variants',)],
+                    "BarcodeSeqLib" : [('main',), ('fastq', 'trimming', 'filters',), ('barcodes',)],
                     "Selection" : [('main',)],
                     "Condition" : [('main',)],
                     "Experiment" : [('main',)]
@@ -122,14 +122,18 @@ class EditDialog(six.moves.tkinter_tksimpledialog.Dialog):
                 self.frame_dict['fastq'].append(FileEntry("Reads", self.element_cfg['fastq'], 'reads', extensions=_FASTQ_SUFFIXES))
                 self.frame_dict['fastq'].append(Checkbox("Reverse", self.element_cfg['fastq'], 'reverse'))
 
+            if isinstance(self.element, BarcodeSeqLib) or isinstance(self.element, BasicSeqLib):
+                self.frame_dict['trimming'] = list()
+                self.frame_dict['trimming'].append(SectionLabel("Read Trimming Options"))
+                self.frame_dict['trimming'].append(IntegerEntry("Trim Start", self.element_cfg['fastq'], 'start', optional=True, minvalue=1))
+                self.frame_dict['trimming'].append(IntegerEntry("Trim Length", self.element_cfg['fastq'], 'length', optional=True, minvalue=1))
+
             if isinstance(self.element, BarcodeSeqLib):
                 self.frame_dict['barcodes'] = list()
                 self.frame_dict['barcodes'].append(SectionLabel("Barcode Options"))
                 if isinstance(self.element, BcvSeqLib) or isinstance(self.element, BcidSeqLib):
                     self.frame_dict['barcodes'].append(FileEntry("Barcode-variant File", self.element_cfg['barcodes'], 'map file'))
                 self.frame_dict['barcodes'].append(IntegerEntry("Minimum Count", self.element_cfg['barcodes'], 'min count', optional=True))
-                self.frame_dict['barcodes'].append(IntegerEntry("Trim Start", self.element_cfg['fastq'], 'start', optional=True, minvalue=1))
-                self.frame_dict['barcodes'].append(IntegerEntry("Trim Length", self.element_cfg['fastq'], 'length', optional=True, minvalue=1))
             
             if isinstance(self.element, BcidSeqLib):
                 self.frame_dict['identifiers'] = list()

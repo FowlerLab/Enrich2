@@ -28,7 +28,7 @@ import time
 #: Dictionary specifying available scoring methods for the analysis
 #: Key is the internal name of the method, value is the GUI label
 #: For command line options, internal name is used for the option string itself and the value is the help string
-available_scoring_methods = collections.OrderedDict([
+SCORING_METHODS = collections.OrderedDict([
                                 ("WLS", "weighted least squares"),
                                 ("ratios", "log ratios (Enrich2)"),
                                 ("counts", "counts only"),
@@ -40,7 +40,7 @@ available_scoring_methods = collections.OrderedDict([
 #: Dictionary specifying available scoring methods for the analysis
 #: Key is the internal name of the method, value is the GUI label
 #: For command line options, internal name is used for the option string itself and the value is the help string
-available_logr_methods = collections.OrderedDict([
+LOGR_METHODS = collections.OrderedDict([
                             ("wt", "wild type"),
                             ("complete", "library size (complete cases)"),
                             ("full", "library size (all reads)"),
@@ -49,7 +49,7 @@ available_logr_methods = collections.OrderedDict([
 
 #: List specifying valid labels in their sorted order
 #: Sorted order is the order in which they should be calculated in
-available_element_labels = ['barcodes', 'identifiers', 'variants', 'synonymous']
+ELEMENT_LABELS = ['barcodes', 'identifiers', 'variants', 'synonymous']
 
 
 def fix_filename(s):
@@ -126,7 +126,7 @@ class StoreManager(object):
             shared.extend(x.labels)
         shared = collections.Counter(shared)
         shared = [x for x in shared.keys() if shared[x] == len(self.children)]
-        return sorted(shared, key=lambda a: available_element_labels.index(a))
+        return sorted(shared, key=lambda a: ELEMENT_LABELS.index(a))
 
 
     @property
@@ -274,7 +274,7 @@ class StoreManager(object):
         """
         Make sure the *value* is valid and set it.
         """
-        if value in list(available_scoring_methods.keys()):
+        if value in list(SCORING_METHODS.keys()):
             self._scoring_method = value
         else:
             raise ValueError("Invalid setting for scoring_method [{}]".format(self.name))
@@ -397,7 +397,7 @@ class StoreManager(object):
         """
         Make sure the *value* is valid and set it.
         """
-        if value in list(available_logr_methods.keys()):
+        if value in list(LOGR_METHODS.keys()):
             self._logr_method = value
         else:
             raise ValueError("Invalid setting '{}' for log-ratio method [{}]".format(value, self.name))
@@ -455,14 +455,14 @@ class StoreManager(object):
         """
         labels = set(self._labels)
         if isinstance(x, str):
-            if x in available_element_labels:
+            if x in ELEMENT_LABELS:
                 labels.update([x])
             else:
                 raise ValueError("Invalid element label '{}' [{}]".format(x, self.name))
         else:
             raise AttributeError("Failed to add labels [{}]".format(self.name))
         # sort based on specified order
-        self._labels = sorted(labels, key=lambda a: available_element_labels.index(a))
+        self._labels = sorted(labels, key=lambda a: ELEMENT_LABELS.index(a))
 
 
     def configure(self, cfg):
