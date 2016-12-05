@@ -51,11 +51,11 @@ class BarcodeMap(dict):
         try:
             ext = os.path.splitext(mapfile)[-1].lower()
             if ext in (".bz2"):
-                handle = bz2.BZ2File(mapfile, "rU")
+                handle = bz2.open(mapfile, "rt")
             elif ext in (".gz"):
-                handle = gzip.GzipFile(mapfile, "rU")
+                handle = gzip.openFile(mapfile, "rt")
             else:
-                handle = open(mapfile, "rU")
+                handle = open(mapfile, "rt")
         except IOError:
             raise IOError(
                 "Could not open barcode map file '{}' [{}]".format(mapfile, 

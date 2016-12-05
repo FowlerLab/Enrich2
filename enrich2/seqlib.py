@@ -241,7 +241,7 @@ class SeqLib(StoreManager):
 
         .. note:: Reads are checked for all quality-based criteria before filtering.
         """
-        with open(os.path.join(self.output_dir, fix_filename(self.name) + ".filter.txt"), "w") as handle:
+        with open(os.path.join(self.output_dir, fix_filename(self.name) + ".filter.txt"), "wt") as handle:
             elements = list()
             for key in sorted(self.filter_stats, key=self.filter_stats.__getitem__, reverse=True):
                 if key != 'total' and self.filter_stats[key] > 0:

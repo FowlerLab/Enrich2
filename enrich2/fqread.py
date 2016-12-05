@@ -219,11 +219,11 @@ def create_compressed_outfile(fname, compression):
     name are overwritten.
     """
     if compression == "bz2":
-        handle = bz2.BZ2File(fname + ".bz2", "w")
+        handle = bz2.open(fname + ".bz2", "wt")
     elif compression == "gz":
-        handle = gzip.GzipFile(fname + ".gz", "w")
+        handle = gzip.open(fname + ".gz", "wt")
     elif compression is None:
-        handle = open(fname, "w")
+        handle = open(fname, "wt")
     else:
         raise IOError("unrecognized compression mode '{mode}'".format(mode=compression))
     return handle
@@ -242,11 +242,11 @@ def read_fastq(fname, filter_function=None, buffer_size=BUFFER_SIZE, qbase=33):
     """
     _, _, _, compression = split_fastq_path(fname)
     if compression is None: # raw FASTQ
-        handle = open(fname, "rU")
+        handle = open(fname, "rt")
     elif compression == "bz2":
-        handle = bz2.BZ2File(fname, "rU")
+        handle = bz2.open(fname, "rt")
     elif compression == "gz":
-        handle = gzip.GzipFile(fname, "rU")
+        handle = gzip.open(fname, "rt")
     else:
         raise IOError("unrecognized compression mode '{mode}'".format(mode=compression))
 
