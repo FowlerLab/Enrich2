@@ -16,6 +16,7 @@
 #  along with Enrich2.  If not, see <http://www.gnu.org/licenses/>.
 
 from __future__ import print_function
+from __future__ import absolute_import
 import logging
 import pandas as pd
 import numpy as np
@@ -28,6 +29,8 @@ from .condition import Condition
 from .constants import WILD_TYPE_VARIANT, SYNONYMOUS_VARIANT
 from .sfmap import sfmap_plot
 from .dataframe import singleton_dataframe
+from six.moves import range
+from six.moves import zip
 
 
 class Experiment(StoreManager):
@@ -193,7 +196,7 @@ class Experiment(StoreManager):
 
         bcm = None
         for sel in self.selection_list():
-            if '/main/barcodemap' in sel.store.keys():
+            if '/main/barcodemap' in list(sel.store.keys()):
                 if bcm is None:
                     bcm = sel.store['/main/barcodemap']
                 else:
@@ -225,7 +228,7 @@ class Experiment(StoreManager):
                 conditions_index.extend([cnd.name] * len(sel.timepoints))
                 selections_index.extend([sel.name] * len(sel.timepoints))
                 values_index.extend(["c_{}".format(x) for x in sorted(sel.timepoints)])
-        columns = pd.MultiIndex.from_tuples(zip(conditions_index, selections_index, values_index), names=["condition", "selection", "timepoint"])
+        columns = pd.MultiIndex.from_tuples(list(zip(conditions_index, selections_index, values_index)), names=["condition", "selection", "timepoint"])
 
         # create union index
         logging.info("Creating row index for counts ({})".format(label), extra={'oname' : self.name})
@@ -273,7 +276,7 @@ class Experiment(StoreManager):
                 conditions_index.extend([cnd.name] * len(values_list))
                 selections_index.extend([sel.name] * len(values_list))
                 values_index.extend(sorted(values_list))
-        columns = pd.MultiIndex.from_tuples(zip(conditions_index, selections_index, values_index), names=["condition", "selection", "value"])
+        columns = pd.MultiIndex.from_tuples(list(zip(conditions_index, selections_index, values_index)), names=["condition", "selection", "value"])
 
         # create union index
         logging.info("Creating row index for scores ({})".format(label), extra={'oname' : self.name})
@@ -373,7 +376,7 @@ class Experiment(StoreManager):
                     beta0 = np.sum(y * w, axis=0) / sw
                     sigma2ML = np.sum((y - np.mean(y, axis=0)) **2 / (len(beta0) - 1), axis=0)
                     eps = np.zeros(beta0.shape)
-                    for _ in xrange(iterations):
+                    for _ in range(iterations):
                         w = 1 / (sigma2i + sigma2ML)
                         sw = np.sum(w, axis=0)
                         sw2 = np.sum(w **2, axis=0)
@@ -443,7 +446,7 @@ class Experiment(StoreManager):
                 cnd1_index.extend([cnd1] * len(values_list))
                 cnd2_index.extend([cnd2] * len(values_list))
                 values_index.extend(sorted(values_list))
-        columns = pd.MultiIndex.from_tuples(zip(cnd1_index, cnd2_index, values_index), names=["condition1", "condition2", "value"])
+        columns = pd.MultiIndex.from_tuples(list(zip(cnd1_index, cnd2_index, values_index)), names=["condition1", "condition2", "value"])
 
         idx = pd.IndexSlice
         result_df = pd.DataFrame(np.nan, index=data.index, columns=columns)

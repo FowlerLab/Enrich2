@@ -16,11 +16,13 @@
 #  along with Enrich2.  If not, see <http://www.gnu.org/licenses/>.
 
 from __future__ import print_function
+from __future__ import absolute_import
 import matplotlib.pyplot as plt
 import numpy as np
 import collections
 import logging
 import scipy.stats
+from six.moves import zip
 
 
 #: Default colors for Enrich2 plots.
@@ -271,7 +273,7 @@ def barcodemap_plot(obj, pdf, log=False, bins=DEFAULT_BINS,
                         extra={'oname' : obj.name})
         return
 
-    if len(data.keys()) <= 1:
+    if len(list(data.keys())) <= 1:
         logging.warning("Not enough elements to make barcodemap plot", extra={'oname' : seqlib.name})
         return 
 
@@ -281,7 +283,7 @@ def barcodemap_plot(obj, pdf, log=False, bins=DEFAULT_BINS,
     configure_axes(ax)
 
     # plot the histogram
-    ax.hist(data.values(), bins=bins, log=log, color=color)
+    ax.hist(list(data.values()), bins=bins, log=log, color=color)
 
     # set the title and axes labels
     ax.set_title("Barcodes per Variant\n{}".format(obj.name))

@@ -16,13 +16,14 @@
 #  along with Enrich2.  If not, see <http://www.gnu.org/licenses/>.
 
 from __future__ import print_function
-import Tkinter as tk
-import ttk
-import tkSimpleDialog
-import tkMessageBox
-import tkFileDialog
+from __future__ import absolute_import
+import six.moves.tkinter as tk
+import six.moves.tkinter_ttk
+import six.moves.tkinter_tksimpledialog
+import six.moves.tkinter_messagebox
+import six.moves.tkinter_filedialog
 import json
-from sys import maxint
+from sys import maxsize
 from collections import OrderedDict
 from .dialog_elements import FileEntry, IntegerEntry, Checkbox, StringEntry, SectionLabel
 from ..experiment import Experiment
@@ -35,6 +36,7 @@ from ..barcode import BarcodeSeqLib
 from ..overlap import OverlapSeqLib
 from ..seqlib import SeqLib
 from ..variant import VariantSeqLib
+import six
 
 
 def clear_nones(d):
@@ -44,7 +46,7 @@ def clear_nones(d):
     if not isinstance(d, dict):
         return d
     else:
-        return dict((k, clear_nones(v)) for k, v in d.iteritems() if v is not None)
+        return dict((k, clear_nones(v)) for k, v in six.iteritems(d) if v is not None)
 
 
 # All valid suffixes for a FASTQ file that can be recognized by Enrich2
@@ -67,7 +69,7 @@ element_layouts = {
 
 
 
-class EditDialog(tkSimpleDialog.Dialog):
+class EditDialog(six.moves.tkinter_tksimpledialog.Dialog):
     """
     Dialog box for editing elements. Also used to set properties on newly-created elements.
 
@@ -138,13 +140,13 @@ class EditDialog(tkSimpleDialog.Dialog):
                 self.frame_dict['variants'] = list()
                 self.frame_dict['variants'].append(SectionLabel("Variant Options"))
                 self.frame_dict['variants'].append(StringEntry("Wild Type Sequence", self.element_cfg['variants']['wild type'], 'sequence'))
-                self.frame_dict['variants'].append(IntegerEntry("Wild Type Offset", self.element_cfg['variants']['wild type'], 'reference offset', optional=True, minvalue=-maxint - 1))
+                self.frame_dict['variants'].append(IntegerEntry("Wild Type Offset", self.element_cfg['variants']['wild type'], 'reference offset', optional=True, minvalue=-maxsize - 1))
                 self.frame_dict['variants'].append(Checkbox("Protein Coding", self.element_cfg['variants']['wild type'], 'coding'))
                 self.frame_dict['variants'].append(Checkbox("Use Aligner", self.element_cfg['variants'], 'use aligner'))
                 self.frame_dict['variants'].append(IntegerEntry("Minimum Count", self.element_cfg['variants'], 'min count', optional=True))
                 self.frame_dict['filters'].append(IntegerEntry("Maximum Mutations", self.element_cfg['fastq']['filters'], 'max mutations', optional=True))
 
-        tkSimpleDialog.Dialog.__init__(self, parent_window, title)
+        six.moves.tkinter_tksimpledialog.Dialog.__init__(self, parent_window, title)
 
 
     def body(self, master):
@@ -152,12 +154,12 @@ class EditDialog(tkSimpleDialog.Dialog):
         Add the UI elements to the edit window. Ordering and placement of UI 
         elements in columns is defined by the ``element_layouts`` dictionary.
         """
-        main = ttk.Frame(master, padding=(3, 3, 12, 12))
+        main = six.moves.tkinter_ttk.Frame(master, padding=(3, 3, 12, 12))
         main.grid(row=0, column=0, sticky="nsew")
 
         layout = element_layouts[type(self.element).__name__]
         for i, column_tuple in enumerate(layout):
-            new_frame = ttk.Frame(master, padding=(3, 3, 12, 12))
+            new_frame = six.moves.tkinter_ttk.Frame(master, padding=(3, 3, 12, 12))
             new_frame.grid(row=0, column=i, sticky="nsew")
             row_no = 0
             for row_frame_key in layout[i]:
@@ -178,7 +180,7 @@ class EditDialog(tkSimpleDialog.Dialog):
         if self.element.parent is not None:
             if self.element not in self.element.parent.children:
                 if self.name_entry.value.get() in self.element.parent.child_names():
-                    tkMessageBox.showwarning("", "Sibling names must be unique.")
+                    six.moves.tkinter_messagebox.showwarning("", "Sibling names must be unique.")
                     return False
 
         return True

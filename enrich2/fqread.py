@@ -16,14 +16,15 @@
 #  along with Enrich2.  If not, see <http://www.gnu.org/licenses/>.
 
 from __future__ import print_function
+from __future__ import absolute_import
 from sys import stderr
 import os.path
 import re
-import string
 import itertools
 import bz2
 import gzip
 from array import array
+from six.moves import range
 
 # The following regex is referenced by line number in the class documentation.
 # Matches FASTQ headers based on the following pattern (modify as needed):
@@ -41,7 +42,7 @@ header_pattern = re.compile("@(?P<MachineName>.+)"
 BUFFER_SIZE = 100000 # empirically optimized for reading FASTQ files
 
 
-dna_trans = string.maketrans("actgACTG", "tgacTGAC")
+dna_trans = str.maketrans("actgACTG", "tgacTGAC")
 
 
 class FQRead(object):
@@ -270,7 +271,7 @@ def read_fastq(fname, filter_function=None, buffer_size=BUFFER_SIZE, qbase=33):
             leftover = '\n'.join(lines[len(lines) - dangling:])
 
         # index into the list of lines to pull out the FASTQ records
-        for i in xrange(fastq_count):
+        for i in range(fastq_count):
             # (header, sequence, header2, quality)
             fq = FQRead(*lines[i * 4:(i + 1) * 4], qbase=qbase)
             if filter_function is None: # no filtering

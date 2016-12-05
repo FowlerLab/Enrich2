@@ -15,9 +15,10 @@
 #  You should have received a copy of the GNU General Public License
 #  along with Enrich2.  If not, see <http://www.gnu.org/licenses/>.
 
-import Tkinter as tk
-import ttk
-import tkSimpleDialog
+from __future__ import absolute_import
+import six.moves.tkinter as tk
+import six.moves.tkinter_ttk
+import six.moves.tkinter_tksimpledialog
 
 
 def subtree_ids(treeview, x, level=0):
@@ -33,7 +34,7 @@ def subtree_ids(treeview, x, level=0):
     return id_list
 
 
-class DeleteDialog(tkSimpleDialog.Dialog):
+class DeleteDialog(six.moves.tkinter_tksimpledialog.Dialog):
     """
     Confirmation dialog box for deleting the selected items from the Treeview.
     """
@@ -43,7 +44,7 @@ class DeleteDialog(tkSimpleDialog.Dialog):
         for x in self.tree.treeview.selection():
             if x not in [y[0] for y in self.id_tuples]:
                 self.id_tuples.extend(subtree_ids(self.tree.treeview, x))
-        tkSimpleDialog.Dialog.__init__(self, parent_window, title)
+        six.moves.tkinter_tksimpledialog.Dialog.__init__(self, parent_window, title)
 
 
     def body(self, master):
@@ -64,7 +65,7 @@ class DeleteDialog(tkSimpleDialog.Dialog):
                 else:
                     bullet = "    " * (level + 1) + u"\u25C7"
                 message_string += u"{bullet} {name}\n".format(bullet=bullet, name=self.tree.get_element(x).name)
-        message = ttk.Label(master, text=message_string, justify="left")
+        message = six.moves.tkinter_ttk.Label(master, text=message_string, justify="left")
         message.grid(row=0, sticky="w")
 
 
@@ -82,7 +83,7 @@ class DeleteDialog(tkSimpleDialog.Dialog):
 
             box.pack()
         else:
-            tkSimpleDialog.Dialog.buttonbox(self)
+            six.moves.tkinter_tksimpledialog.Dialog.buttonbox(self)
 
 
     def apply(self):

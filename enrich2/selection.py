@@ -16,6 +16,7 @@
 #  along with Enrich2.  If not, see <http://www.gnu.org/licenses/>.
 
 from __future__ import print_function
+from __future__ import absolute_import
 from .basic import BasicSeqLib
 from .barcodevariant import BcvSeqLib
 from .barcodeid import BcidSeqLib
@@ -40,6 +41,7 @@ from .plots import fit_axes, fit_axes_text, volcano_plot, configure_axes, plot_c
 from .constants import WILD_TYPE_VARIANT, SYNONYMOUS_VARIANT, AA_CODES
 from .variant import protein_variant
 from .dataframe import singleton_dataframe
+from six.moves import range
 
 def regression_apply(row, timepoints, weighted):
     """
@@ -159,7 +161,7 @@ class Selection(StoreManager):
                     lib = globals()[libtype]()
                     # don't re-parse the barcode maps if possible
                     mapfile = lib_cfg['barcodes']['map file']
-                    if mapfile in self.barcode_maps.keys():
+                    if mapfile in list(self.barcode_maps.keys()):
                         lib.configure(lib_cfg, barcode_map=self.barcode_maps[mapfile])
                     else:
                         lib.configure(lib_cfg)
@@ -235,7 +237,7 @@ class Selection(StoreManager):
         the same barcode map, else ``False``.
         """
         return all(isinstance(lib, BcvSeqLib) for lib in self.children) and \
-            len(self.barcode_maps.keys()) == 1
+            len(list(self.barcode_maps.keys())) == 1
 
 
     def is_barcodeid(self):
@@ -246,7 +248,7 @@ class Selection(StoreManager):
         the same barcode map, else ``False``.
         """
         return all(isinstance(lib, BcidSeqLib) for lib in self.children) and \
-            len(self.barcode_maps.keys()) == 1
+            len(list(self.barcode_maps.keys())) == 1
 
 
     def is_coding(self):
@@ -287,7 +289,7 @@ class Selection(StoreManager):
         logging.info("Aggregating SeqLib data", extra={'oname' : self.name})
 
         destination = "/main/{}/counts_unfiltered".format(label)
-        if destination in self.store.keys():
+        if destination in list(self.store.keys()):
             # need to remove the current destination table because we are using append
             # append is required because it takes the "min_itemsize" argument, and put doesn't
             logging.info("Replacing existing '{}'".format(destination), extra={'oname' : self.name})
@@ -307,7 +309,7 @@ class Selection(StoreManager):
         max_index_length = complete_index.map(len).max()
 
         # perform operation in chunks
-        for i in xrange(0, len(complete_index), self.chunksize):
+        for i in range(0, len(complete_index), self.chunksize):
             # don't duplicate the index if the chunksize is large
             if self.chunksize < len(complete_index):
                 index_chunk = complete_index[i:i + self.chunksize]
@@ -546,7 +548,7 @@ class Selection(StoreManager):
         """
         if self.check_store("/main/{}/scores".format(label)):
             return
-        elif "/main/{}/scores".format(label) in self.store.keys():
+        elif "/main/{}/scores".format(label) in list(self.store.keys()):
             # need to remove the current keys because we are using append
             self.store.remove("/main/{}/scores".format(label))
 

@@ -15,6 +15,7 @@
 #  You should have received a copy of the GNU General Public License
 #  along with Enrich2.  If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import absolute_import
 from .variant import VariantSeqLib
 from .fqread import read_fastq, split_fastq_path
 import pandas as pd
@@ -88,7 +89,7 @@ class BasicSeqLib(VariantSeqLib):
             if 'length' in cfg['fastq']:
                 self.trim_length = cfg['fastq']['length']
             else:
-                self.trim_length = sys.maxint
+                self.trim_length = sys.maxsize
 
             self.filters = cfg['fastq']['filters']
         except KeyError as key:
@@ -112,7 +113,7 @@ class BasicSeqLib(VariantSeqLib):
         if self.trim_start > 1:
             fastq['start'] = self.trim_start
 
-        if self.trim_length < sys.maxint:
+        if self.trim_length < sys.maxsize:
             fastq['length'] = self.trim_length
 
         return fastq
