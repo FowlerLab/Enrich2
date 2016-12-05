@@ -67,7 +67,7 @@ class FQRead(object):
             self.sequence = sequence
             self.header2 = header2
             # quality is a list of integers
-            self.quality = [x - qbase for x in array('b', quality).tolist()]
+            self.quality = [x - qbase for x in array('b', quality.encode('ascii')).tolist()]
             self.qbase = qbase
 
 
