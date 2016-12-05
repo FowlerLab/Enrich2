@@ -353,15 +353,15 @@ class VariantSeqLib(SeqLib):
 
             for pos, change in mutations:
                 ref_dna_pos = pos + self.wt.dna_offset + 1
-                ref_pro_pos = pos / 3 + self.wt.protein_offset + 1
+                ref_pro_pos = pos // 3 + self.wt.protein_offset + 1
                 mut = "c.{pos}{change}".format(pos=ref_dna_pos, change=change)
                 if has_indel(change):
-                    mut += " (p.{pre}{pos}fs)".format(pre=AA_CODES[self.wt.protein_seq[pos / 3]], pos=ref_pro_pos)
-                elif variant_protein[pos / 3] == self.wt.protein_seq[pos / 3]:
+                    mut += " (p.{pre}{pos}fs)".format(pre=AA_CODES[self.wt.protein_seq[pos // 3]], pos=ref_pro_pos)
+                elif variant_protein[pos // 3] == self.wt.protein_seq[pos // 3]:
                     mut += " (p.=)"
                 else:
-                    mut += " (p.{pre}{pos}{post})".format(pre=AA_CODES[self.wt.protein_seq[pos / 3]], pos=ref_pro_pos,
-                             post=AA_CODES[variant_protein[pos / 3]])
+                    mut += " (p.{pre}{pos}{post})".format(pre=AA_CODES[self.wt.protein_seq[pos // 3]], pos=ref_pro_pos,
+                             post=AA_CODES[variant_protein[pos // 3]])
                 mutation_strings.append(mut)
         else:
             for pos, change in mutations:

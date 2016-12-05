@@ -315,7 +315,7 @@ class Selection(StoreManager):
                 index_chunk = complete_index[i:i + self.chunksize]
             else:
                 index_chunk = complete_index
-            logging.info("Merging counts for chunk {} ({} rows)".format(i / self.chunksize + 1, len(index_chunk)), extra={'oname' : self.name})
+            logging.info("Merging counts for chunk {} ({} rows)".format(i // self.chunksize + 1, len(index_chunk)), extra={'oname' : self.name})
 
             for tp in self.timepoints:
                 c = self.libraries[tp][0].store.select(lib_table, "index = index_chunk")

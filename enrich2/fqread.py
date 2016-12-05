@@ -260,7 +260,7 @@ def read_fastq(fname, filter_function=None, buffer_size=BUFFER_SIZE, qbase=33):
 
         buf = leftover + buf # prepend partial record from previous buffer
         lines = buf.split('\n')
-        fastq_count = len(lines) / 4
+        fastq_count = len(lines) // 4
 
         if not eof: # handle lines from the trailing partial FASTQ record
             dangling = len(lines) % 4
