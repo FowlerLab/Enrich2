@@ -88,7 +88,7 @@ class BasicSeqLib(VariantSeqLib):
             if 'length' in cfg['fastq']:
                 self.trim_length = cfg['fastq']['length']
             else:
-                self.trim_length = sys.maxint
+                self.trim_length = sys.maxsize
 
             self.filters = cfg['fastq']['filters']
         except KeyError as key:
@@ -112,7 +112,7 @@ class BasicSeqLib(VariantSeqLib):
         if self.trim_start > 1:
             fastq['start'] = self.trim_start
 
-        if self.trim_length < sys.maxint:
+        if self.trim_length < sys.maxsize:
             fastq['length'] = self.trim_length
 
         return fastq
