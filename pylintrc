@@ -1,0 +1,2 @@
+# Variable names that will always be accepted
+good-names=df,se,id,_,i,j,k,a,x,y,z
