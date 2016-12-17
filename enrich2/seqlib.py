@@ -27,12 +27,11 @@ import sys
 from .plots import counts_plot
 from .storemanager import StoreManager, fix_filename
 
+
 class SeqLib(StoreManager):
     """
     Abstract class for handling count data from a single sequencing library.
-    
     """
-    
     # Note: the following block is referenced by line number above
     # When adding new messages, update the documentation line numbers also!
     filter_messages = OrderedDict([
@@ -47,7 +46,7 @@ class SeqLib(StoreManager):
             ])
 
     store_suffix = "lib"
-    
+
     def __init__(self):
         StoreManager.__init__(self)
         self.timepoint = None
@@ -60,7 +59,6 @@ class SeqLib(StoreManager):
         self.default_filters.update({'max N' : sys.maxsize})
         self.default_filters.update({'avg quality' : 0})
         self.default_filters.update({'chastity' : False})
-
 
     @property
     def filters(self):
@@ -89,7 +87,6 @@ class SeqLib(StoreManager):
             self.filter_stats[key] = 0
         self.filter_stats['total'] = 0
 
-
     def serialize_filters(self):
         """
         Return a dictionary of filtering options that have non-default values.
@@ -100,13 +97,11 @@ class SeqLib(StoreManager):
                 cfg[key] = self.filters[key]
         return cfg
 
-
     def _children(self):
         """
         These objects have no children. Returns ``None``.
         """
         return None
-
 
     def add_child(self, child):
         """
@@ -114,13 +109,11 @@ class SeqLib(StoreManager):
         """
         raise AttributeError("SeqLib objects do not support adding children")
 
-
     def remove_child_id(self, tree_id):
         """
         No children, raises an AttributeError.
         """
         raise AttributeError("SeqLib objects do not support removing children")
-
 
     def validate(self):
         """
@@ -128,14 +121,12 @@ class SeqLib(StoreManager):
         """
         pass
 
-
     def has_wt(self):
         """
         Returns whether or not the object has a wild type sequence. Returns ``False``
         unless overloaded by a derived class (such as :py:class:`~seqlib.seqlib.VariantSeqLib`).
         """
         return False
-
 
     def configure(self, cfg):
         """
@@ -159,7 +150,6 @@ class SeqLib(StoreManager):
         except ValueError as value:
             raise ValueError("Invalid parameter value {value}".format(value=value), self.name)
 
-
     def serialize(self):
         """
         Format this object (and its children) as a config object suitable for dumping to a config file.
@@ -172,13 +162,11 @@ class SeqLib(StoreManager):
 
         return cfg
 
-
     def calculate(self):
         """
         Pure virtual method that defines how the data are counted.
         """
         raise NotImplementedError("must be implemented by subclass")
-
 
     def report_filtered_read(self, fq, filter_flags):
         """
@@ -192,7 +180,6 @@ class SeqLib(StoreManager):
                       messages=', '.join(StoreManager.filter_messages[x] 
                                 for x in filter_flags if filter_flags[x]), 
                       name=self.name, read=fq), extra={'oname' : self.name})
-
 
     def save_counts(self, label, df_dict, raw):
         """
@@ -214,7 +201,6 @@ class SeqLib(StoreManager):
         self.store.put(key, df, format="table", data_columns=df.columns)
         del df
 
-
     def save_filtered_counts(self, label, query):
         """
         Filter the counts in ``"/raw/label/counts"`` using the *query* string and store the result in ``"/main/label/counts"``
@@ -229,7 +215,6 @@ class SeqLib(StoreManager):
                 n=self.store[main_table]['count'].sum(),
                 u=len(self.store[main_table].index),
                 label=label), extra={'oname' : self.name})
-
 
     def report_filter_stats(self):
         """
@@ -248,7 +233,6 @@ class SeqLib(StoreManager):
             print("total", self.filter_stats['total'], sep="\t", file=handle)
         logging.info("Wrote filtering statistics", extra={'oname' : self.name})
 
-
     def save_filter_stats(self):
         """
         Save a DataFrame containing the number of filtered reads under ``'/raw/filter'``.
@@ -261,7 +245,6 @@ class SeqLib(StoreManager):
                 df.loc[SeqLib.filter_messages[key], 'count'] = self.filter_stats[key]
         df.dropna(inplace=True)
         self.store.put('/raw/filter', df.astype(int), format="table", data_columns=df.columns)
-
 
     def read_quality_filter(self, fq):
         """
@@ -310,7 +293,6 @@ class SeqLib(StoreManager):
         else:
             return True
 
-
     def make_plots(self):
         """
         Make plots that are shared by all :py:class:`~seqlib.seqlib.SeqLib` objects.
@@ -326,7 +308,6 @@ class SeqLib(StoreManager):
                 counts_plot(self, label, pdf, log=False)
             pdf.close()
 
-
     def write_tsv(self):
         """
         Write each table from the store to its own tab-separated file.
@@ -338,7 +319,6 @@ class SeqLib(StoreManager):
             logging.info("Generating tab-separated output files", extra={'oname' : self.name})
             for k in self.store.keys():
                 self.write_table_tsv(k)
-
 
     def copy_raw(self):
         """
