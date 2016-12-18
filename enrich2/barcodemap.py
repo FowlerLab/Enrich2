@@ -20,6 +20,9 @@ import gzip
 import bz2
 import os.path
 
+re_barcode = re.compile("^[ACGT]+$")
+re_variant_dna = re.compile("^[ACGTN]+$")
+re_identifier = re.compile("^.+$")
 
 class BarcodeMap(dict):
     """
@@ -72,13 +75,17 @@ class BarcodeMap(dict):
                 raise ValueError("Unexpected barcode map line format [{}]".format(self.name))
 
             barcode = barcode.upper()
-            if not re.match("^[ACGT]+$", barcode):
+            if not re_barcode.match(barcode):
                 raise ValueError("Barcode DNA sequence contains unexpected "
                                   "characters [{}]".format(self.name))
             if self.is_variant:
                 value = value.upper()
-                if not re.match("^[ACGTN]+$", value):
+                if not re_variant_dna.match(value):
                     raise ValueError("Variant DNA sequence contains unexpected "
+                                      "characters [{}]".format(self.name))
+            else:
+                if not re_identifier.match(value):
+                    raise ValueError("Identifier contains unexpected "
                                       "characters [{}]".format(self.name))
 
             if barcode in self:

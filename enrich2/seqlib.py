@@ -348,5 +348,18 @@ class SeqLib(StoreManager):
                     logging.info("Copied raw data '{}'".format(k), extra={'oname' : self.name})
             store.close()
 
+    def raw_from_file(self, fname):
+        """Get raw counts from a counts file instead of FASTQ_ file.
 
+        The ``'/raw/<element>/counts'`` table will be populated using the given
+        input file. The input file should be a two-column file readable by
+        ``pandas`` as a series or two-column dataframe or an Enrich2 HDF5 file.
+
+        If the input file is a two-column file, the index will be checked using
+        the SeqLib's ``validate_index()`` method.
+
+        If the input file is an HDF5 file, the entire set of ``'/raw'`` tables
+        will be copied over, with the metadata intact.
+        """
+        pass
 

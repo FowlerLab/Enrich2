@@ -22,11 +22,34 @@ import logging
 from .constants import WILD_TYPE_VARIANT, SYNONYMOUS_VARIANT, AA_CODES
 import collections
 from .variant import mutation_count, re_protein, re_coding, re_noncoding
+from .barcodemap import re_barcode, re_identifier
 from .constants import AA_CODES
+from .storemanager import ELEMENT_LABELS
 from .sfmap import aa_list, nt_list
 
 
 SingleMut = collections.namedtuple("SingleMut", ['pre', 'post', 'pos', 'key'])
+
+
+def validate_index(index, element):
+    """
+    Return a boolean list for which index values are valid for the given
+    element type.
+    """
+    if element not in ELEMENT_LABELS:
+        raise ValueError("Invalid element label '{}'".format(element))
+
+    if element == "barcodes":
+        retval = [re_barcode.match(x) is not None for x in index]
+    elif element == "identifiers":
+        retval = [re_identifier.match(x) is not None for x in index]
+    elif element == "variants":
+        pass
+    elif element == "synonymous":
+        pass
+    else:
+        raise NotImplementedError("Unimplemented element type '{}'".format(element))
+
 
 
 def single_mutation_index(index):

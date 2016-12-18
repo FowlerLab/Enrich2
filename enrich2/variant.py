@@ -39,10 +39,20 @@ re_protein = re.compile("(?P<match>p\.(?P<pre>[A-Z][a-z][a-z])(?P<pos>-?\d+)(?P<
 re_nucleotide = re.compile("(?P<match>[nc]\.(?P<pos>-?\d+)(?P<pre>[ACGT])>(?P<post>[ACGT]))")
 
 #: Regular expression that matches a single coding nucleotide substitution in HGVS_ format.
-re_coding = re.compile("(?P<match>c\.(?P<pos>-?\d+)(?P<pre>[ACGT])>(?P<post>[ACGT]) \(p\.\S+\))")
+re_coding = re.compile("(?P<match>c\.(?P<pos>-?\d+)(?P<pre>[ACGT])>(?P<post>[ACGT]) \(p\.(?:=|[A-Z][a-z][a-z]-?\d+[A-Z][a-z][a-z])\))")
 
 #: Regular expression that matches a single noncoding nucleotide substitution in HGVS_ format.
 re_noncoding = re.compile("(?P<match>n\.(?P<pos>-?\d+)(?P<pre>[ACGT])>(?P<post>[ACGT]))")
+
+
+def valid_variant(s):
+    """
+    Returns true if s is a valid variant string, else false. 
+    """
+    if s == WILD_TYPE_VARIANT:
+        return True
+    else:
+        pass
 
 
 def hgvs2single(s):
