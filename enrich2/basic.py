@@ -117,7 +117,7 @@ class BasicSeqLib(VariantSeqLib):
 
         return fastq
 
-
+    
     def calculate(self):
         """
         Reads the forward or reverse FASTQ file (reverse reads are reverse-complemented),
