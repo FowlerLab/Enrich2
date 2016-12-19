@@ -45,14 +45,25 @@ re_coding = re.compile("(?P<match>c\.(?P<pos>-?\d+)(?P<pre>[ACGT])>(?P<post>[ACG
 re_noncoding = re.compile("(?P<match>n\.(?P<pos>-?\d+)(?P<pre>[ACGT])>(?P<post>[ACGT]))")
 
 
-def valid_variant(s):
+def valid_variant(s, is_coding=True):
     """
-    Returns true if s is a valid variant string, else false. 
+    Returns True if s is a valid coding or noncoding variant, else False.
     """
     if s == WILD_TYPE_VARIANT:
         return True
     else:
-        pass
+        if is_coding:
+            for mut in s.split(", "):
+                match = re_coding.match(mut)
+                if match is None:
+                    return False
+            return True
+        else:
+            for mut in s.split(", "):
+                match = re_noncoding.match(mut)
+                if match is None:
+                    return False
+            return True
 
 
 def hgvs2single(s):
