@@ -24,7 +24,7 @@ import tkFileDialog
 import json
 from sys import maxsize
 from collections import OrderedDict
-from .dialog_elements import FileEntry, IntegerEntry, Checkbox, StringEntry, SectionLabel
+from .dialog_elements import FileEntry, IntegerEntry, Checkbox, StringEntry, SectionLabel, DEFAULT_COLUMNS
 from ..experiment import Experiment
 from ..condition import Condition
 from ..selection import Selection
@@ -37,6 +37,23 @@ from ..seqlib import SeqLib
 from ..variant import VariantSeqLib
 
 
+def clear_nones_filter(v):
+    """
+    Filter function for clear_nones.
+
+    Returns False if v is None or is an empty dictionary, else True.
+    """
+    if isinstance(v, dict):
+        if len(v.keys()) == 0:
+            return False
+        else:
+            return True
+    elif v is None:
+        return False
+    else:
+        return True
+
+
 def clear_nones(d):
     """
     Return a copy of dictionary *d* with keys with value ``None`` removed.
@@ -44,7 +61,8 @@ def clear_nones(d):
     if not isinstance(d, dict):
         return d
     else:
-        return dict((k, clear_nones(v)) for k, v in d.iteritems() if v is not None)
+        return dict((k, clear_nones(v)) for k, v in d.iteritems() if
+                    clear_nones_filter(v))
 
 
 # All valid suffixes for a FASTQ file that can be recognized by Enrich2
@@ -53,18 +71,95 @@ _FASTQ_SUFFIXES = [x + y for x in (".fq", ".fastq") for y in ("", ".bz2", ".gz")
 
 #: Dictionary defining the layout of the edit UI elements in columns
 #: Keys are class names and values are lists of tuples, one tuple per column
-#: The column tuples contain keys to the dialog element's ``frame_dict`` member 
+#: The column tuples contain keys to the dialog element's ``frame_dict`` member
 element_layouts = {
-                    "BcvSeqLib" : [('main',), ('fastq', 'filters',), ('barcodes', 'variants',)],
-                    "BcidSeqLib" :  [('main',), ('fastq', 'filters',), ('barcodes', 'identifiers',)],
-                    "OverlapSeqLib" :  [('main',), ('fastq', 'filters', 'overlap',), ('variants',)],
-                    "BasicSeqLib" : [('main',), ('fastq', 'trimming', 'filters',), ('variants',)],
-                    "BarcodeSeqLib" : [('main',), ('fastq', 'trimming', 'filters',), ('barcodes',)],
-                    "Selection" : [('main',)],
-                    "Condition" : [('main',)],
-                    "Experiment" : [('main',)]
+                    "BcvSeqLib": [('main', 'counts',),
+                                  ('fastq', 'trimming', 'filters',),
+                                  ('barcodes', 'variants',)],
+                    "BcidSeqLib":  [('main', 'counts',),
+                                    ('fastq', 'trimming', 'filters',),
+                                    ('barcodes', 'identifiers',)],
+                    "OverlapSeqLib":  [('main', 'counts',),
+                                       ('fastq', 'filters', 'overlap',),
+                                       ('variants',)],
+                    "BasicSeqLib": [('main', 'counts',),
+                                    ('fastq', 'trimming', 'filters',),
+                                    ('variants',)],
+                    "BarcodeSeqLib": [('main', 'counts',),
+                                      ('fastq', 'trimming', 'filters',),
+                                      ('barcodes',)],
+                    "Selection": [('main',)],
+                    "Condition": [('main',)],
+                    "Experiment": [('main',)]
                    }
 
+
+class CountsToggle(object):
+    def __init__(self, frame_dict):
+        self.mode = tk.StringVar()
+        self.frame_dict = frame_dict
+        self.rb_fastq = None
+        self.rb_coutns = None
+
+    def body(self, master, row, columns=DEFAULT_COLUMNS, **kwargs):
+        self.rb_fastq = ttk.Radiobutton(master, text="FASTQ File Mode",
+                                        variable=self.mode, value="FASTQ",
+                                        command=self.fastq_mode)
+        self.rb_fastq.grid(row=row, column=0, columnspan=columns, sticky="ew")
+        self.rb_counts = ttk.Radiobutton(master, text="Count File Mode",
+                                         variable=self.mode, value="Counts",
+                                         command=self.counts_mode)
+        self.rb_counts.grid(row=row + 1, column=0, columnspan=columns,
+                            sticky="ew")
+        return 2
+
+    def counts_mode(self):
+        for k in ['filters', 'fastq', 'overlap', 'trimming']:
+            if k in self.frame_dict:
+                for x in self.frame_dict[k]:
+                    try:
+                        x.disable()
+                    except AttributeError:
+                        print(x, k)
+        for k in ['counts']:
+            if k in self.frame_dict:
+                for x in self.frame_dict[k]:
+                    try:
+                        x.enable()
+                    except AttributeError:
+                        print(x, k)
+
+        tkMessageBox.showinfo("", "Counts mode!")
+
+    def fastq_mode(self):
+        for k in ['counts']:
+            if k in self.frame_dict:
+                for x in self.frame_dict[k]:
+                    try:
+                        x.disable()
+                    except AttributeError:
+                        print(x, k)
+        for k in ['filters', 'fastq', 'overlap', 'trimming']:
+            if k in self.frame_dict:
+                for x in self.frame_dict[k]:
+                    try:
+                        x.enable()
+                    except AttributeError:
+                        print(x, k)
+
+        tkMessageBox.showinfo("", "FASTQ mode!")
+
+    def validate(self):
+        return True
+
+    def apply(self):
+        return None
+
+    def enable(self):
+        pass
+
+    def disable(self):
+        pass
 
 
 class EditDialog(tkSimpleDialog.Dialog):
@@ -80,6 +175,7 @@ class EditDialog(tkSimpleDialog.Dialog):
         self.element = element
         self.element_cfg = None
         self.frame_dict = OrderedDict()
+        self.toggle = None
 
         # create the editable version of the config object
         self.element_cfg = self.element.serialize()
@@ -93,14 +189,17 @@ class EditDialog(tkSimpleDialog.Dialog):
         if isinstance(self.element, SeqLib):
             self.frame_dict['fastq'] = list()
             self.frame_dict['filters'] = list()
+            self.frame_dict['counts'] = list()
 
+            self.toggle = CountsToggle(self.frame_dict)
+            self.frame_dict['main'].append(self.toggle)
             self.frame_dict['main'].append(SectionLabel("SeqLib Options"))
             self.frame_dict['main'].append(IntegerEntry("Time Point", self.element_cfg, 'timepoint'))
-            self.frame_dict['main'].append(FileEntry("Counts File", self.element_cfg, 'counts file', optional=True, extensions=[".h5"]))
+
+            self.frame_dict['counts'].append(SectionLabel("Counts Options"))
+            self.frame_dict['counts'].append(FileEntry("Counts File", self.element_cfg, 'counts file', extensions=[".h5", ".txt", ".tsv", ".csv"]))
 
             self.frame_dict['filters'].append(SectionLabel("FASTQ Filtering"))
-            # Removed chastity filtering option, due to issues with specifying a FASTQ header format
-            # self.frame_dict['filters'].append(Checkbox("Chastity", self.element_cfg['fastq']['filters'], 'chastity'))
             self.frame_dict['filters'].append(IntegerEntry("Minimum Quality", self.element_cfg['fastq']['filters'], 'min quality', optional=True))
             self.frame_dict['filters'].append(IntegerEntry("Average Quality", self.element_cfg['fastq']['filters'], 'avg quality', optional=True))
             self.frame_dict['filters'].append(IntegerEntry("Maximum N's", self.element_cfg['fastq']['filters'], 'max N', optional=True))
@@ -132,7 +231,7 @@ class EditDialog(tkSimpleDialog.Dialog):
                 if isinstance(self.element, BcvSeqLib) or isinstance(self.element, BcidSeqLib):
                     self.frame_dict['barcodes'].append(FileEntry("Barcode-variant File", self.element_cfg['barcodes'], 'map file'))
                 self.frame_dict['barcodes'].append(IntegerEntry("Minimum Count", self.element_cfg['barcodes'], 'min count', optional=True))
-            
+
             if isinstance(self.element, BcidSeqLib):
                 self.frame_dict['identifiers'] = list()
                 self.frame_dict['identifiers'].append(SectionLabel("Identifier Options"))
@@ -144,12 +243,11 @@ class EditDialog(tkSimpleDialog.Dialog):
                 self.frame_dict['variants'].append(StringEntry("Wild Type Sequence", self.element_cfg['variants']['wild type'], 'sequence'))
                 self.frame_dict['variants'].append(IntegerEntry("Wild Type Offset", self.element_cfg['variants']['wild type'], 'reference offset', optional=True, minvalue=-maxsize))
                 self.frame_dict['variants'].append(Checkbox("Protein Coding", self.element_cfg['variants']['wild type'], 'coding'))
-                self.frame_dict['variants'].append(Checkbox("Use Aligner", self.element_cfg['variants'], 'use aligner'))
                 self.frame_dict['variants'].append(IntegerEntry("Minimum Count", self.element_cfg['variants'], 'min count', optional=True))
                 self.frame_dict['filters'].append(IntegerEntry("Maximum Mutations", self.element_cfg['fastq']['filters'], 'max mutations', optional=True))
+                self.frame_dict['filters'].append(Checkbox("Use Aligner", self.element_cfg['variants'], 'use aligner'))
 
         tkSimpleDialog.Dialog.__init__(self, parent_window, title)
-
 
     def body(self, master):
         """
@@ -167,7 +265,10 @@ class EditDialog(tkSimpleDialog.Dialog):
             for row_frame_key in layout[i]:
                 for ui_element in self.frame_dict[row_frame_key]:
                     row_no += ui_element.body(new_frame, row_no, left=True)
-
+        if self.element.counts_file is not None:
+            self.toggle.rb_counts.invoke()
+        else:
+            self.toggle.rb_fastq.invoke()
 
     def validate(self):
         """
@@ -186,7 +287,6 @@ class EditDialog(tkSimpleDialog.Dialog):
                     return False
 
         return True
-
 
     def apply(self):
         """
