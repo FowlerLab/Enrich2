@@ -24,7 +24,8 @@ import tkFileDialog
 import json
 from sys import maxsize
 from collections import OrderedDict
-from .dialog_elements import FileEntry, IntegerEntry, Checkbox, StringEntry, SectionLabel, DEFAULT_COLUMNS
+from .dialog_elements import FileEntry, IntegerEntry, Checkbox, StringEntry, \
+    SectionLabel, DEFAULT_COLUMNS
 from ..experiment import Experiment
 from ..condition import Condition
 from ..selection import Selection
@@ -197,7 +198,7 @@ class EditDialog(tkSimpleDialog.Dialog):
             self.frame_dict['main'].append(IntegerEntry("Time Point", self.element_cfg, 'timepoint'))
 
             self.frame_dict['counts'].append(SectionLabel("Counts Options"))
-            self.frame_dict['counts'].append(FileEntry("Counts File", self.element_cfg, 'counts file', extensions=[".h5", ".txt", ".tsv", ".csv"]))
+            self.frame_dict['counts'].append(FileEntry("Counts File", self.element_cfg, 'counts file', extensions=[".h5", ".txt", ".tsv"]))
 
             self.frame_dict['filters'].append(SectionLabel("FASTQ Filtering"))
             self.frame_dict['filters'].append(IntegerEntry("Minimum Quality", self.element_cfg['fastq']['filters'], 'min quality', optional=True))
