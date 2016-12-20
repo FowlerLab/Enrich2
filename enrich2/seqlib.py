@@ -25,7 +25,7 @@ from collections import OrderedDict
 from matplotlib.backends.backend_pdf import PdfPages
 import sys
 from .plots import counts_plot
-from .storemanager import StoreManager, fix_filename
+from .storemanager import StoreManager, fix_filename, ELEMENT_LABELS
 
 
 class SeqLib(StoreManager):
@@ -199,7 +199,7 @@ class SeqLib(StoreManager):
         if len(df_dict.keys()) == 0:
             raise ValueError("Failed to count {} [{}]".format(label,
                                                               self.name))
-        df = pd.DataFrame.from_dict(df_dict, orient="index", dtype="int32")
+        df = pd.DataFrame.from_dict(df_dict, orient="index", dtype=np.int32)
         df.columns = ['count']
         df.sort_values('count', ascending=False, inplace=True)
         logging.info("Counted {n} {label} ({u} unique)".format(
@@ -236,7 +236,7 @@ class SeqLib(StoreManager):
         Create report file for the number of filtered reads.
 
         The report file is located in the output directory, named
-        ``SeqLibName.filter.txt``. 
+        ``SeqLibName.filter.txt``.
         It contains the number of reads filtered for each category, plus the
         total number filtered.
 
@@ -350,45 +350,60 @@ class SeqLib(StoreManager):
             for k in self.store.keys():
                 self.write_table_tsv(k)
 
-    def copy_raw(self):
+    def counts_from_file_h5(self, fname):
         """
         If an HDF store containing raw counts has been specified, open the
         store, copy those counts into this store, and close the counts store.
 
         Copies all tables in the ``'/raw'`` group along with their metadata.
         """
-        if not os.path.exists(self.counts_file):
-            raise IOError("Counts file '{}' not found [{}]"
-                          "".format(self.counts_file, self.name))
-        elif os.path.splitext(self.counts_file)[-1].lower() not in \
-                (".h5", ".hdf5", "hdf"):
-            raise ValueError("Unrecognized counts file extension for '{}' "
-                             "[{}]".format(self.counts_file, self.name))
+        store = pd.HDFStore(fname)
+        logging.info("Using existing HDF5 data store '{}' for raw data"
+                     "".format(fname),
+                     extra={'oname': self.name})
+        # this could probably be much more efficient, but the PyTables docs
+        # don't explain copying subsets of files adequately
+        raw_keys = [key for key in store.keys() if key.startswith("/raw/")]
+        if len(raw_keys) == 0:
+            raise ValueError("No raw counts found in '{}' [{}]"
+                             "".format(fname, self.name))
         else:
-            store = pd.HDFStore(self.counts_file)
-            logging.info("Using existing HDF5 data store '{}' for raw data"
-                         "".format(self.counts_file),
-                         extra={'oname': self.name})
-            # this could probably be much more efficient, but the PyTables docs
-            # don't explain copying subsets of files adequately
-            raw_keys = [key for key in store.keys() if key.startswith("/raw/")]
-            if len(raw_keys) == 0:
-                raise ValueError("No raw counts found in '{}' [{}]"
-                                 "".format(self.counts_file, self.name))
-            else:
-                for k in raw_keys:
-                    # copy the data table
-                    raw = store[k]
-                    self.store.put(k, raw, format="table",
-                                   data_columns=raw.columns)
-                    # copy the metadata
-                    self.set_metadata(k, self.get_metadata(k, store=store),
-                                      update=False)
-                    logging.info("Copied raw data '{}'".format(k),
-                                 extra={'oname': self.name})
-            store.close()
+            for k in raw_keys:
+                # copy the data table
+                raw = store[k]
+                self.store.put(k, raw, format="table",
+                               data_columns=raw.columns)
+                # copy the metadata
+                self.set_metadata(k, self.get_metadata(k, store=store),
+                                  update=False)
+                logging.info("Copied raw data '{}'".format(k),
+                             extra={'oname': self.name})
+        store.close()
 
-    def raw_from_file(self, fname):
+    def counts_from_file_tsv(self, fname):
+        """
+        If a counts file in tsv format has been specified, read the counts into
+        a new dataframe and save as raw counts.
+        """
+        df = pd.read_table(fname, sep='\t', header=0, index_col=0,
+                           dtype=np.int32)
+        if df.columns != ["counts"]:
+            raise ValueError("Invalid column names for counts file [{}]"
+                             "".format(self.name))
+        if len(df) == 0:
+            raise ValueError("Empty counts file [{}]".format(self.name))
+        label = None
+        for elem in ELEMENT_LABELS:
+            if elem in self.labels:
+                label = elem
+                break
+        if label is None:
+            raise ValueError("No valid element labels [{}]".format(self.name))
+        key = "/raw/{}/counts".format(label)
+        self.store.put(key, df, format="table", data_columns=df.columns,
+                       dtype=np.int32)
+
+    def counts_from_file(self, fname):
         """Get raw counts from a counts file instead of FASTQ_ file.
 
         The ``'/raw/<element>/counts'`` table will be populated using the given
@@ -401,5 +416,15 @@ class SeqLib(StoreManager):
         If the input file is an HDF5 file, the entire set of ``'/raw'`` tables
         will be copied over, with the metadata intact.
         """
-        pass
+        if not os.path.exists(fname):
+            raise IOError("Counts file '{}' not found [{}]"
+                          "".format(fname, self.name))
+        elif os.path.splitext(fname)[-1].lower() in (".h5"):
+            self.counts_from_file_h5()
+        elif os.path.splitext(fname)[-1].lower() in \
+                (".txt", ".tsv"):
+            self.counts_from_file_tsv()
+        else:
+            raise ValueError("Unrecognized counts file extension for '{}' "
+                             "[{}]".format(fname, self.name))
 

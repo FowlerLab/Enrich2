@@ -109,7 +109,6 @@ class BarcodeSeqLib(SeqLib):
             raise KeyError("Missing required config value {}".format(key),
                            self.name)
 
-
     def serialize_fastq(self):
         """
         Serialize this object's FASTQ_ file handling and filtering options.
@@ -127,14 +126,43 @@ class BarcodeSeqLib(SeqLib):
 
         return fastq
 
-    def calculate(self):
+    def counts_from_reads(self):
         """
         Reads the forward or reverse FASTQ_ file (reverse reads are
         reverse-complemented), performs quality-based filtering, and counts
         the barcodes.
 
         Barcode counts after read-level filtering are stored under
-        ``"/raw/barcodes/counts"``. Barcodes that pass the minimum count
+        ``"/raw/barcodes/counts"``.
+        """
+        df_dict = dict()
+
+        filter_flags = dict()
+        for key in self.filters:
+            filter_flags[key] = False
+
+        # count all the barcodes
+        logging.info("Counting barcodes", extra={'oname': self.name})
+        for fqr in read_fastq(self.reads):
+            fqr.trim_length(self.trim_length, start=self.trim_start)
+            if self.revcomp_reads:
+                fqr.revcomp()
+
+            if self.read_quality_filter(fqr):  # passed filtering
+                try:
+                    df_dict[fqr.sequence.upper()] += 1
+                except KeyError:
+                    df_dict[fqr.sequence.upper()] = 1
+
+        self.save_counts('barcodes', df_dict, raw=True)
+        del df_dict
+
+    def calculate(self):
+        """
+        Counts the barcodes from the FASTQ file or from the provided counts
+        file depending on the config.
+
+        Barcodes that pass the minimum count
         filtering are stored under ``"/main/barcodes/counts"``.
 
         If ``"/main/barcodes/counts"`` already exists, those will be used
@@ -146,29 +174,9 @@ class BarcodeSeqLib(SeqLib):
         # no raw counts present
         if not self.check_store('/raw/barcodes/counts'):
             if self.counts_file is not None:
-                self.copy_raw()
+                self.counts_from_file(self.counts_file)
             else:
-                df_dict = dict()
-
-                filter_flags = dict()
-                for key in self.filters:
-                    filter_flags[key] = False
-
-                # count all the barcodes
-                logging.info("Counting barcodes", extra={'oname': self.name})
-                for fqr in read_fastq(self.reads):
-                    fqr.trim_length(self.trim_length, start=self.trim_start)
-                    if self.revcomp_reads:
-                        fqr.revcomp()
-
-                    if self.read_quality_filter(fqr):  # passed filtering
-                        try:
-                            df_dict[fqr.sequence.upper()] += 1
-                        except KeyError:
-                            df_dict[fqr.sequence.upper()] = 1
-
-                self.save_counts('barcodes', df_dict, raw=True)
-                del df_dict
+                self.counts_from_reads()
 
         if len(self.labels) == 1:  # only barcodes
             self.save_filtered_counts('barcodes',
