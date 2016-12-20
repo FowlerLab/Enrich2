@@ -82,13 +82,13 @@ def single2hgvs(s):
     Convert single-letter amino acid changes in the form
     <pre><pos><post> into HGVS strings that match Enrich2 
     output.
-    
+
     Searches the string s for all instances of the above
     pattern and returns a list of Enrich2 variants.
-    
     """
     t = re.findall('[A-Z*]\d+[A-Z*]', s)
-    return ["p.{}{}{}".format(AA_CODES[x[0]], x[1:-1], AA_CODES[x[-1]]) for x in t]
+    return ["p.{}{}{}".format(AA_CODES[x[0]], x[1:-1], AA_CODES[x[-1]])
+            for x in t]
 
 
 def get_variant_type(variant):
@@ -97,7 +97,9 @@ def get_variant_type(variant):
     coding, or noncoding.
 
     :param str variant: variant string
-    :return: ``'protein'``, ``'coding'``, or ``'noncoding'`` depending on which regular expression matches, else ``None``. Note that both wild type and synonymous special variants will return ``None``.
+    :return: ``'protein'``, ``'coding'``, or ``'noncoding'`` depending on \
+    which regular expression matches, else ``None``. Note that both wild type \
+    and synonymous special variants will return ``None``.
     :rtype: str
     """
     v = variant.split(', ')[0]  # test first token of multi-mutant
@@ -151,9 +153,9 @@ def has_unresolvable(variant):
     """
     Tests if the HGVS_ *variant* has an unresolvable amino acid change.
 
-    Unresolvable amino acid changes are most commonly caused by the presence 
-    of N or X nucleotides, resulting in a non-translatable codon. They are 
-    also found when a frameshift causes the last part of the coding sequence 
+    Unresolvable amino acid changes are most commonly caused by the presence
+    of N or X nucleotides, resulting in a non-translatable codon. They are
+    also found when a frameshift causes the last part of the coding sequence
     to not have three nucleotides.
 
     :param str variant: variant string
@@ -164,7 +166,7 @@ def has_unresolvable(variant):
         return True
     else:
         return False
-    
+
 
 def protein_variant(variant):
     """
@@ -188,7 +190,7 @@ def protein_variant(variant):
         if len(matches) == 0:
             raise ValueError("Invalid coding variant string.")
         # uniqify and remove synonymous
-        seen = {"p.=" : True}
+        seen = {"p.=": True}
         unique_matches = list()
         for v in matches:
             if v in seen:
@@ -202,13 +204,12 @@ def protein_variant(variant):
             return ", ".join(unique_matches)
 
 
-
 class VariantSeqLib(SeqLib):
     """
-    Abstract :py:class:`~seqlib.seqlib.SeqLib` class for for Enrich libraries containing 
-    variants. Implements core functionality for assessing variants, either 
-    coding or noncoding. Subclasess must evaluate the variant DNA sequences 
-    that are being counted.
+    Abstract :py:class:`~seqlib.seqlib.SeqLib` class for for Enrich libraries
+    containing variants. Implements core functionality for assessing variants,
+    either coding or noncoding. Subclasess must evaluate the variant DNA
+    sequences that are being counted.
     """
     def __init__(self):
         SeqLib.__init__(self)
@@ -218,12 +219,11 @@ class VariantSeqLib(SeqLib):
         self.variant_min_count = None
         self.add_label('variants')
         # 'synonymous' label may be added in configure() if wt is coding
-        self.default_filters.update({'max mutations' : DEFAULT_MAX_MUTATIONS})
-
+        self.default_filters.update({'max mutations': DEFAULT_MAX_MUTATIONS})
 
     def configure(self, cfg):
         """
-        Set up the object using the config object *cfg*, usually derived from 
+        Set up the object using the config object *cfg*, usually derived from
         a ``.json`` file.
         """
         SeqLib.configure(self, cfg)
@@ -248,8 +248,6 @@ class VariantSeqLib(SeqLib):
         except KeyError as key:
             raise KeyError("Missing required config value {key} [{name}]".format(key=key, name=self.name))
 
-
-
     def serialize(self):
         """
         Format this object (and its children) as a config object suitable for dumping to a config file.
@@ -258,13 +256,12 @@ class VariantSeqLib(SeqLib):
 
         if 'variants' not in cfg:
             cfg['variants'] = {
-                'wild type' : self.wt.serialize(),
-                'use aligner' : self.aligner is not None,
-                'min count' : self.variant_min_count
+                'wild type': self.wt.serialize(),
+                'use aligner': self.aligner is not None,
+                'min count': self.variant_min_count
             }
 
         return cfg
-
 
     def is_coding(self):
         """
@@ -272,17 +269,16 @@ class VariantSeqLib(SeqLib):
         """
         return self.wt.is_coding()
 
-
     def has_wt(self):
         """
-        Returns ``True``, because :py:class:`~seqlib.seqlib.VariantSeqLib` objects have
-        a wild type sequence. Raises a ValueError if the wild type sequence is not set properly.
+        Returns ``True``, because :py:class:`~seqlib.seqlib.VariantSeqLib`
+        objects have a wild type sequence. Raises a ValueError if the wild type
+        sequence is not set properly.
         """
         if self.wt is not None:
             return True
         else:
             raise ValueError("Wild type not set properly [{}]".format(self.name))
-
 
     def align_variant(self, variant_dna):
         """
@@ -311,7 +307,7 @@ class VariantSeqLib(SeqLib):
                         mut = "dup{seq}".format(seq=dup)
                     else:
                         mut = "_{pos}ins{seq}".format(pos=x + 2, seq=dup)
-                else:                                    
+                else:
                     mut = "_{pos}ins{seq}".format(pos=x + 2, seq=variant_dna[y:y + length])
             elif cat == "deletion":
                 mut = "_{pos}del".format(pos=x + length)
