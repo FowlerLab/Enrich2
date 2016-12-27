@@ -39,7 +39,6 @@ class SeqLib(StoreManager):
                 ('avg quality', "average quality"),
                 ('max N', "excess N bases"),
                 ('chastity', "not chaste"),
-                ('max mutations', "excess mutations"),
                 ('remove unresolvable', "unresolvable mismatch"),
                 ('merge failure', "unable to merge reads"),
                 ('total', "total")
@@ -385,9 +384,8 @@ class SeqLib(StoreManager):
         If a counts file in tsv format has been specified, read the counts into
         a new dataframe and save as raw counts.
         """
-        df = pd.read_table(fname, sep='\t', header=0, index_col=0,
-                           dtype=np.int32)
-        if df.columns != ["counts"]:
+        df = pd.read_table(fname, sep='\t', header=0, index_col=0)
+        if df.columns != ["count"]:
             raise ValueError("Invalid column names for counts file [{}]"
                              "".format(self.name))
         if len(df) == 0:
@@ -420,10 +418,10 @@ class SeqLib(StoreManager):
             raise IOError("Counts file '{}' not found [{}]"
                           "".format(fname, self.name))
         elif os.path.splitext(fname)[-1].lower() in (".h5"):
-            self.counts_from_file_h5()
+            self.counts_from_file_h5(self.counts_file)
         elif os.path.splitext(fname)[-1].lower() in \
                 (".txt", ".tsv"):
-            self.counts_from_file_tsv()
+            self.counts_from_file_tsv(self.counts_file)
         else:
             raise ValueError("Unrecognized counts file extension for '{}' "
                              "[{}]".format(fname, self.name))

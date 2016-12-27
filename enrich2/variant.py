@@ -217,9 +217,9 @@ class VariantSeqLib(SeqLib):
         self.aligner = None
         self.aligner_cache = None
         self.variant_min_count = None
-        self.add_label('variants')
+        self.max_mutations = None
         # 'synonymous' label may be added in configure() if wt is coding
-        self.default_filters.update({'max mutations': DEFAULT_MAX_MUTATIONS})
+        self.add_label('variants')
 
     def configure(self, cfg):
         """
@@ -245,21 +245,29 @@ class VariantSeqLib(SeqLib):
             else:
                 self.variant_min_count = 0
 
+            if 'max mutations' in cfg['variants']:
+                self.max_mutations = int(cfg['variants']['max mutations'])
+            else:
+                self.max_mutations = DEFAULT_MAX_MUTATIONS
+
         except KeyError as key:
-            raise KeyError("Missing required config value {key} [{name}]".format(key=key, name=self.name))
+            raise KeyError("Missing required config value {key} [{name}]"
+                           "".format(key=key, name=self.name))
 
     def serialize(self):
         """
-        Format this object (and its children) as a config object suitable for dumping to a config file.
+        Format this object (and its children) as a config object suitable for
+        dumping to a config file.
         """
         cfg = SeqLib.serialize(self)
 
-        if 'variants' not in cfg:
-            cfg['variants'] = {
-                'wild type': self.wt.serialize(),
-                'use aligner': self.aligner is not None,
-                'min count': self.variant_min_count
-            }
+        cfg['variants'] = dict()
+        cfg['variants']['wild type'] = self.wt.serialize()
+        cfg['variants']['use aligner'] = self.aligner is not None
+        if self.max_mutations != DEFAULT_MAX_MUTATIONS:
+            cfg['variants']['max mutations'] = self.max_mutations
+        if self.variant_min_count > 0:
+            cfg['variants']['min count'] = self.variant_min_count
 
         return cfg
 
@@ -347,10 +355,10 @@ class VariantSeqLib(SeqLib):
             for i in xrange(len(variant_dna)):
                 if variant_dna[i] != self.wt.dna_seq[i]:
                     mutations.append((i, "{pre}>{post}".format(pre=self.wt.dna_seq[i], post=variant_dna[i])))
-                    if len(mutations) > self.filters['max mutations']:
+                    if len(mutations) > self.max_mutations:
                         if self.aligner is not None:
                             mutations = self.align_variant(variant_dna)
-                            if len(mutations) > self.filters['max mutations']:
+                            if len(mutations) > self.max_mutations:
                                 # too many mutations post-alignment
                                 return None
                             else:
@@ -393,7 +401,6 @@ class VariantSeqLib(SeqLib):
             variant_string = WILD_TYPE_VARIANT
         return variant_string
 
-
     def count_synonymous(self):
         """
         Combine counts for synonymous variants (defined as variants that differ 
@@ -434,3 +441,13 @@ class VariantSeqLib(SeqLib):
 
         self.save_counts('synonymous', df_dict, raw=False)
         del df_dict
+
+    def report_filtered_variant(self, variant, count):
+        """
+        Outputs a summary of the filtered variant to *handle*. Internal filter 
+        names are converted to messages using the ``SeqLib.filter_messages`` 
+        dictionary. Related to :py:meth:`SeqLib.report_filtered`.
+        """
+        logging.debug("Filtered variant (quantity={n}) (excess mutations)"
+                      "\n{read!s}".format(n=count, read=variant),
+                      extra={'oname': self.name})

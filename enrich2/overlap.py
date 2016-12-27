@@ -231,6 +231,7 @@ class OverlapSeqLib(VariantSeqLib):
         self.merge_mismatches = pd.DataFrame(data=0, index=[x + self.fwd_start + self.wt.dna_offset for x in xrange(0, self.overlap_length)], columns=["resolved", "unresolved", "first"])
 
         logging.info("Counting variants", extra={'oname': self.name})
+        max_mut_variants = 0
         for fwd, rev in read_fastq_multi([self.forward, self.reverse]):
             # filter on chastity before merge
             chaste = True
@@ -259,10 +260,9 @@ class OverlapSeqLib(VariantSeqLib):
                 if self.read_quality_filter(merge):
                     mutations = self.count_variant(merge.sequence)
                     if mutations is None:  # merge read has too many mutations
-                        self.filter_stats['max mutations'] += 1
-                        self.filter_stats['total'] += 1
+                        max_mut_variants += 1
                         if self.report_filtered:
-                            self.report_filtered_read(merge, filter_flags)
+                            self.report_filtered_variant(merge.sequence, 1)
                     else:
                         try:
                             df_dict[mutations] += 1
@@ -277,6 +277,8 @@ class OverlapSeqLib(VariantSeqLib):
         if self.aligner is not None:
             logging.info("Aligned {} variants".format(self.aligner.calls), extra={'oname' : self.name})
             self.aligner_cache = None
+        logging.info("Removed {} total variants with excess mutations"
+                     "".format(max_mut_variants), extra={'oname': self.name})
         self.save_filter_stats()
 
     def calculate(self):

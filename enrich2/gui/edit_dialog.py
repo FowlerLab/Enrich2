@@ -245,8 +245,8 @@ class EditDialog(tkSimpleDialog.Dialog):
                 self.frame_dict['variants'].append(IntegerEntry("Wild Type Offset", self.element_cfg['variants']['wild type'], 'reference offset', optional=True, minvalue=-maxsize))
                 self.frame_dict['variants'].append(Checkbox("Protein Coding", self.element_cfg['variants']['wild type'], 'coding'))
                 self.frame_dict['variants'].append(IntegerEntry("Minimum Count", self.element_cfg['variants'], 'min count', optional=True))
-                self.frame_dict['filters'].append(IntegerEntry("Maximum Mutations", self.element_cfg['fastq']['filters'], 'max mutations', optional=True))
-                self.frame_dict['filters'].append(Checkbox("Use Aligner", self.element_cfg['variants'], 'use aligner'))
+                self.frame_dict['variants'].append(IntegerEntry("Maximum Mutations", self.element_cfg['variants'], 'max mutations', optional=True))
+                self.frame_dict['variants'].append(Checkbox("Use Aligner", self.element_cfg['variants'], 'use aligner'))
 
         tkSimpleDialog.Dialog.__init__(self, parent_window, title)
 

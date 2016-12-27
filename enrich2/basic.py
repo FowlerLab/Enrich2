@@ -126,6 +126,7 @@ class BasicSeqLib(VariantSeqLib):
         df_dict = dict()
 
         logging.info("Counting variants", extra={'oname': self.name})
+        max_mut_variants = 0
         for fq in read_fastq(self.reads):
             fq.trim_length(self.trim_length, start=self.trim_start)
             if self.revcomp_reads:
@@ -134,10 +135,9 @@ class BasicSeqLib(VariantSeqLib):
             if self.read_quality_filter(fq):
                 mutations = self.count_variant(fq.sequence)
                 if mutations is None:  # too many mutations
-                    self.filter_stats['max mutations'] += 1
-                    self.filter_stats['total'] += 1
+                    max_mut_variants += 1
                     if self.report_filtered:
-                        self.report_filtered_read(fq, filter_flags)
+                        self.report_filtered_variant(fq.sequence, 1)
                 else:
                     try:
                         df_dict[mutations] += 1
@@ -151,6 +151,8 @@ class BasicSeqLib(VariantSeqLib):
             logging.info("Aligned {} variants".format(self.aligner.calls),
                          extra={'oname': self.name})
             self.aligner_cache = None
+        logging.info("Removed {} total variants with excess mutations"
+                     "".format(max_mut_variants), extra={'oname': self.name})
         self.save_filter_stats()
 
     def calculate(self):
