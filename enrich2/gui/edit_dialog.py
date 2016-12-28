@@ -130,8 +130,6 @@ class CountsToggle(object):
                     except AttributeError:
                         print(x, k)
 
-        tkMessageBox.showinfo("", "Counts mode!")
-
     def fastq_mode(self):
         for k in ['counts']:
             if k in self.frame_dict:
@@ -147,8 +145,6 @@ class CountsToggle(object):
                         x.enable()
                     except AttributeError:
                         print(x, k)
-
-        tkMessageBox.showinfo("", "FASTQ mode!")
 
     def validate(self):
         return True
