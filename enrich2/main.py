@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #
-#  Copyright 2016 Alan F Rubin
+#  Copyright 2016-2017 Alan F Rubin
 #
 #  This file is part of Enrich2.
 #
@@ -37,7 +37,7 @@ from enrich2.gui.configurator import Configurator
 
 
 __author__ = "Alan F Rubin"
-__copyright__ = "Copyright 2016, Alan F Rubin"
+__copyright__ = "Copyright 2016-2017, Alan F Rubin"
 __license__ = "GPLv3"
 __version__ = "1.0.0"
 __maintainer__ = "Alan F Rubin"
