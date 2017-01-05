@@ -28,6 +28,7 @@ from .condition import Condition
 from .constants import WILD_TYPE_VARIANT, SYNONYMOUS_VARIANT
 from .sfmap import sfmap_plot
 from .dataframe import singleton_dataframe
+from .random_effects import rml_estimator
 
 
 class Experiment(StoreManager):
@@ -319,21 +320,9 @@ class Experiment(StoreManager):
         self.store.put("/main/{}/scores_shared".format(label), data, format="table")
 
 
-    def calc_scores(self, label, iterations=50):
+    def calc_scores(self, label):
         """
         Combine the scores and standard errors within each condition.
-
-        Implements the robust maximum likelihood method from Demidenko.
-
-        ::
-        
-            @book{demidenko2013mixed,
-              title={Mixed models: theory and applications with R},
-              author={Demidenko, Eugene},
-              year={2013},
-              publisher={John Wiley \& Sons}
-            }
-
         """
         if self.check_store("/main/{}/scores".format(label)):
             return
@@ -368,19 +357,7 @@ class Experiment(StoreManager):
                     data.loc[:, idx[cnd, 'epsilon']] = 0.
                 # multiple replicates
                 else:
-                    w = 1 / sigma2i
-                    sw = np.sum(w, axis=0)
-                    beta0 = np.sum(y * w, axis=0) / sw
-                    sigma2ML = np.sum((y - np.mean(y, axis=0)) **2 / (len(beta0) - 1), axis=0)
-                    eps = np.zeros(beta0.shape)
-                    for _ in xrange(iterations):
-                        w = 1 / (sigma2i + sigma2ML)
-                        sw = np.sum(w, axis=0)
-                        sw2 = np.sum(w **2, axis=0)
-                        betaML = np.sum(y * w, axis=0) / sw
-                        sigma2ML_new = sigma2ML * np.sum(((y - betaML) **2) * (w **2), axis=0) / (sw - (sw2 / sw))
-                        eps = np.abs(sigma2ML - sigma2ML_new)
-                        sigma2ML = sigma2ML_new
+                    betaML, sigma2ML, eps = rml_estimator(y, sigma2i)
                     data.loc[:, idx[cnd, 'score']] = betaML
                     data.loc[:, idx[cnd, 'SE']] = np.sqrt(sigma2ML)
                     data.loc[:, idx[cnd, 'epsilon']] = eps
