@@ -277,7 +277,7 @@ class VariantSeqLib(SeqLib):
         """
         return self.wt.is_coding()
 
-    def has_wt(self):
+    def has_wt_sequence(self):
         """
         Returns ``True``, because :py:class:`~seqlib.seqlib.VariantSeqLib`
         objects have a wild type sequence. Raises a ValueError if the wild type

@@ -127,7 +127,7 @@ class Selection(StoreManager):
 
     @property
     def wt(self):
-        if self.has_wt():
+        if self.has_wt_sequence():
             if self._wt is None:
                 self._wt = self.children[0].wt.duplicate(self.name)
             return self._wt
@@ -190,14 +190,14 @@ class Selection(StoreManager):
             raise ValueError("Insufficient number of timepoints for regression scoring [{}]".format(self.name))
         
         # check the wild type sequences
-        if self.has_wt():
+        if self.has_wt_sequence():
             for child in self.children[1:]:
                 if self.children[0].wt != child.wt:
                     logging.warning("Inconsistent wild type sequences", extra={'oname' : self.name})
                     break
         
         # check that we're not doing wild type normalization on something with no wild type
-        if not self.has_wt() and self.logr_method == "wt":
+        if not self.has_wt_sequence() and self.logr_method == "wt":
             raise ValueError("No wild type sequence for wild type normalization [{}]".format(self.name))
 
         # validate children
@@ -258,13 +258,13 @@ class Selection(StoreManager):
         return all(x.is_coding() for x in self.children)
 
 
-    def has_wt(self):
+    def has_wt_sequence(self):
         """
         Return ``True`` if the all :py:class:`~seqlib.seqlib.SeqLib` in the 
         :py:class:`~selection.Selection` have a wild type sequence, else 
         ``False``.
         """
-        return all(x.has_wt() for x in self.children)
+        return all(x.has_wt_sequence() for x in self.children)
 
 
     def merge_counts_unfiltered(self, label):

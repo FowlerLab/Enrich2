@@ -50,7 +50,7 @@ class Experiment(StoreManager):
 
     @property
     def wt(self):
-        if self.has_wt():
+        if self.has_wt_sequence():
             if self._wt is None:
                 self._wt = self.selection_list()[0].wt.duplicate(self.name)
             return self._wt
@@ -131,7 +131,7 @@ class Experiment(StoreManager):
         Calls validate on all child Conditions. Also checks the wild type sequence status.
         """
         # check the wild type sequences
-        if self.has_wt():
+        if self.has_wt_sequence():
             for child in self.selection_list()[1:]:
                 if self.selection_list()[0].wt != child.wt:
                     logging.warning("Inconsistent wild type sequences", extra={'oname' : self.name})
@@ -150,13 +150,13 @@ class Experiment(StoreManager):
         return all(x.is_coding() for x in self.selection_list())
 
 
-    def has_wt(self):
+    def has_wt_sequence(self):
         """
         Return ``True`` if the all :py:class:`~selection.Selection` in the 
         :py:class:`~experiment.Experiment` have a wild type sequence, else 
         ``False``.
         """
-        return all(x.has_wt() for x in self.selection_list())
+        return all(x.has_wt_sequence() for x in self.selection_list())
 
 
     def calculate(self):
