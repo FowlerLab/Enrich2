@@ -197,8 +197,8 @@ class Selection(StoreManager):
                     break
         
         # check that we're not doing wild type normalization on something with no wild type
-        if not self.has_wt_sequence() and self.logr_method == "wt":
-            raise ValueError("No wild type sequence for wild type normalization [{}]".format(self.name))
+        #if not self.has_wt_sequence() and self.logr_method == "wt":
+        #    raise ValueError("No wild type sequence for wild type normalization [{}]".format(self.name))
 
         # validate children
         for child in self.children:
@@ -454,7 +454,13 @@ class Selection(StoreManager):
         df = self.store.select("/main/{}/counts".format(label), "columns in ['c_0', c_last]")
 
         if self.logr_method == "wt":
-            shared_counts = self.store.select("/main/variants/counts", "columns in ['c_0', c_last] & index='{}'".format(WILD_TYPE_VARIANT))
+            if "variants" in self.labels:
+                wt_label = "variants"
+            elif "identifiers" in self.labels:
+                wt_label = "identifiers"
+            else:
+                raise ValueError('Failed to use wild type log ratio method, suitable data table not present [{}]'.format(self.name))
+            shared_counts = self.store.select("/main/{}/counts".format(wt_label), "columns in ['c_0', c_last] & index='{}'".format(WILD_TYPE_VARIANT))
             if len(shared_counts) == 0: # wild type not found
                 raise ValueError('Failed to use wild type log ratio method, wild type sequence not present [{}]'.format(self.name))
             shared_counts = shared_counts.values + 0.5
@@ -496,7 +502,18 @@ class Selection(StoreManager):
         # perform operations on the numpy values of the data frame for easier broadcasting
         ratios = ratios[c_n].values
         if self.logr_method == "wt":
-            ratios = ratios - np.log(self.store.select("/main/variants/counts", "columns=c_n & index='{}'".format(WILD_TYPE_VARIANT)).values + 0.5)
+            if "variants" in self.labels:
+                wt_label = "variants"
+            elif "identifiers" in self.labels:
+                wt_label = "identifiers"
+            else:
+                raise ValueError('Failed to use wild type log ratio method, suitable data table not present [{}]'.format(self.name))
+            if len(wt_counts) == 0: # wild type not found
+                raise ValueError('Failed to use wild type log ratio method, wild type sequence not present [{}]'.format(self.name))
+            wt_counts = self.store.select("/main/{}/counts".format(wt_label), "columns=c_n & index='{}'".format(WILD_TYPE_VARIANT))
+            if len(wt_counts) == 0: # wild type not found
+                raise ValueError('Failed to use wild type log ratio method, wild type sequence not present [{}]'.format(self.name))
+            ratios = ratios - np.log(wt_counts).values + 0.5)
         elif self.logr_method == "complete":
             ratios = ratios - np.log(self.store.select("/main/{}/counts".format(label), "columns=c_n").sum(axis="index").values + 0.5)
         elif self.logr_method == "full":
