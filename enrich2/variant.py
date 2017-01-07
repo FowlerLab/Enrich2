@@ -1,4 +1,4 @@
-#  Copyright 2016 Alan F Rubin
+#  Copyright 2016-2017 Alan F Rubin
 #
 #  This file is part of Enrich2.
 #
@@ -277,7 +277,7 @@ class VariantSeqLib(SeqLib):
         """
         return self.wt.is_coding()
 
-    def has_wt(self):
+    def has_wt_sequence(self):
         """
         Returns ``True``, because :py:class:`~seqlib.seqlib.VariantSeqLib`
         objects have a wild type sequence. Raises a ValueError if the wild type

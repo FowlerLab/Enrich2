@@ -1,4 +1,4 @@
-#  Copyright 2016 Alan F Rubin
+#  Copyright 2016-2017 Alan F Rubin
 #
 #  This file is part of Enrich2.
 #
@@ -123,7 +123,7 @@ class SeqLib(StoreManager):
         """
         pass
 
-    def has_wt(self):
+    def has_wt_sequence(self):
         """
         Returns whether or not the object has a wild type sequence. Returns
         ``False`` unless overloaded by a derived class (such as
