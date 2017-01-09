@@ -21,6 +21,7 @@ from .barcodevariant import BcvSeqLib
 from .barcodeid import BcidSeqLib
 from .barcode import BarcodeSeqLib
 from .overlap import OverlapSeqLib
+from .idonly import IdOnlySeqLib
 from .config_check import seqlib_type
 from .storemanager import StoreManager
 import os
@@ -508,12 +509,10 @@ class Selection(StoreManager):
                 wt_label = "identifiers"
             else:
                 raise ValueError('Failed to use wild type log ratio method, suitable data table not present [{}]'.format(self.name))
-            if len(wt_counts) == 0: # wild type not found
-                raise ValueError('Failed to use wild type log ratio method, wild type sequence not present [{}]'.format(self.name))
             wt_counts = self.store.select("/main/{}/counts".format(wt_label), "columns=c_n & index='{}'".format(WILD_TYPE_VARIANT))
             if len(wt_counts) == 0: # wild type not found
                 raise ValueError('Failed to use wild type log ratio method, wild type sequence not present [{}]'.format(self.name))
-            ratios = ratios - np.log(wt_counts).values + 0.5)
+            ratios = ratios - np.log(wt_counts.values + 0.5)
         elif self.logr_method == "complete":
             ratios = ratios - np.log(self.store.select("/main/{}/counts".format(label), "columns=c_n").sum(axis="index").values + 0.5)
         elif self.logr_method == "full":
@@ -541,7 +540,16 @@ class Selection(StoreManager):
         #variances = 1.0 / (variances[c_n].values + 0.5) + 1.0 / (variances[['c_0']].values + 0.5)
         variances = 1.0 / (variances[c_n].values + 0.5)
         if self.logr_method == "wt":
-            variances = variances + 1.0 / (self.store.select("/main/variants/counts", "columns=c_n & index='{}'".format(WILD_TYPE_VARIANT)).values + 0.5)
+            if "variants" in self.labels:
+                wt_label = "variants"
+            elif "identifiers" in self.labels:
+                wt_label = "identifiers"
+            else:
+                raise ValueError('Failed to use wild type log ratio method, suitable data table not present [{}]'.format(self.name))
+            wt_counts = self.store.select("/main/{}/counts".format(wt_label), "columns=c_n & index='{}'".format(WILD_TYPE_VARIANT))
+            if len(wt_counts) == 0: # wild type not found
+                raise ValueError('Failed to use wild type log ratio method, wild type sequence not present [{}]'.format(self.name))
+            variances = variances + 1.0 / (wt_counts.values + 0.5)
         elif self.logr_method == "complete":
             variances = variances + 1.0 / (self.store.select("/main/{}/counts".format(label), "columns=c_n").sum(axis="index").values + 0.5)
         elif self.logr_method == "full":

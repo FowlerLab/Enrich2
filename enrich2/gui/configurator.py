@@ -37,6 +37,7 @@ from ..basic import BasicSeqLib
 from ..barcodevariant import BcvSeqLib
 from ..barcode import BarcodeSeqLib
 from ..overlap import OverlapSeqLib
+from ..idonly import IdOnlySeqLib
 from ..seqlib import SeqLib
 from ..variant import VariantSeqLib
 from ..storemanager import SCORING_METHODS, LOGR_METHODS

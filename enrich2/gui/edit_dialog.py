@@ -33,6 +33,7 @@ from ..basic import BasicSeqLib
 from ..barcodevariant import BcvSeqLib
 from ..barcodeid import BcidSeqLib
 from ..barcode import BarcodeSeqLib
+from ..idonly import IdOnlySeqLib
 from ..overlap import OverlapSeqLib
 from ..seqlib import SeqLib
 from ..variant import VariantSeqLib
@@ -42,11 +43,13 @@ def clear_nones_filter(v):
     """
     Filter function for clear_nones.
 
-    Returns False if v is None or is an empty dictionary, else True.
+    Returns False if v is None, else True.
     """
     if isinstance(v, dict):
         if len(v.keys()) == 0:
-            return False
+            # removing empty dictionaries breaks SeqLib recognition
+            # return False
+            return True
         else:
             return True
     elif v is None:
@@ -89,6 +92,8 @@ element_layouts = {
                     "BarcodeSeqLib": [('main', 'counts',),
                                       ('fastq', 'trimming', 'filters',),
                                       ('barcodes',)],
+                    "IdOnlySeqLib":  [('main', 'counts',),
+                                      ('identifiers',)],
                     "Selection": [('main',)],
                     "Condition": [('main',)],
                     "Experiment": [('main',)]
@@ -188,24 +193,28 @@ class EditDialog(tkSimpleDialog.Dialog):
         if 'output directory' in self.element_cfg:
             self.frame_dict['main'].append(FileEntry("Output Directory", self.element_cfg, 'output directory', optional=self.element != self.tree.root_element, directory=True))
         if isinstance(self.element, SeqLib):
-            self.frame_dict['fastq'] = list()
-            self.frame_dict['filters'] = list()
             self.frame_dict['counts'] = list()
 
-            self.toggle = CountsToggle(self.frame_dict)
-            self.frame_dict['main'].append(self.toggle)
             self.frame_dict['main'].append(SectionLabel("SeqLib Options"))
             self.frame_dict['main'].append(IntegerEntry("Time Point", self.element_cfg, 'timepoint'))
 
             self.frame_dict['counts'].append(SectionLabel("Counts Options"))
-            self.frame_dict['counts'].append(FileEntry("Counts File", self.element_cfg, 'counts file', extensions=[".h5", ".txt", ".tsv"]))
+            self.frame_dict['counts'].append(FileEntry("Counts File", self.element_cfg, 'counts file', extensions=[".h5", ".txt", ".tsv", ".csv"]))
 
-            self.frame_dict['filters'].append(SectionLabel("FASTQ Filtering"))
-            self.frame_dict['filters'].append(IntegerEntry("Minimum Quality", self.element_cfg['fastq']['filters'], 'min quality', optional=True))
-            self.frame_dict['filters'].append(IntegerEntry("Average Quality", self.element_cfg['fastq']['filters'], 'avg quality', optional=True))
-            self.frame_dict['filters'].append(IntegerEntry("Maximum N's", self.element_cfg['fastq']['filters'], 'max N', optional=True))
+            if not isinstance(self.element, IdOnlySeqLib):
+                self.toggle = CountsToggle(self.frame_dict)
+                self.frame_dict['main'].append(self.toggle)
 
-            self.frame_dict['fastq'].append(SectionLabel("FASTQ Options"))
+                self.frame_dict['fastq'] = list()
+                self.frame_dict['filters'] = list()
+
+                self.frame_dict['filters'].append(SectionLabel("FASTQ Filtering"))
+                self.frame_dict['filters'].append(IntegerEntry("Minimum Quality", self.element_cfg['fastq']['filters'], 'min quality', optional=True))
+                self.frame_dict['filters'].append(IntegerEntry("Average Quality", self.element_cfg['fastq']['filters'], 'avg quality', optional=True))
+                self.frame_dict['filters'].append(IntegerEntry("Maximum N's", self.element_cfg['fastq']['filters'], 'max N', optional=True))
+
+                self.frame_dict['fastq'].append(SectionLabel("FASTQ Options"))
+
             if isinstance(self.element, OverlapSeqLib):
                 self.frame_dict['fastq'].append(FileEntry("Forward Reads", self.element_cfg['fastq'], 'forward reads', extensions=_FASTQ_SUFFIXES))
                 self.frame_dict['fastq'].append(FileEntry("Reverse Reads", self.element_cfg['fastq'], 'reverse reads', extensions=_FASTQ_SUFFIXES))
@@ -216,7 +225,7 @@ class EditDialog(tkSimpleDialog.Dialog):
                 self.frame_dict['overlap'].append(IntegerEntry("Maximum Mismatches", self.element_cfg['overlap'], 'max mismatches'))
                 self.frame_dict['overlap'].append(Checkbox("Overlap Only", self.element_cfg['overlap'], 'trim'))
                 self.frame_dict['filters'].append(Checkbox("Remove Unresolvable Overlaps", self.element_cfg['fastq']['filters'], 'remove unresolvable'))
-            else:
+            elif 'fastq' in self.frame_dict:
                 self.frame_dict['fastq'].append(FileEntry("Reads", self.element_cfg['fastq'], 'reads', extensions=_FASTQ_SUFFIXES))
                 self.frame_dict['fastq'].append(Checkbox("Reverse", self.element_cfg['fastq'], 'reverse'))
 
@@ -233,7 +242,7 @@ class EditDialog(tkSimpleDialog.Dialog):
                     self.frame_dict['barcodes'].append(FileEntry("Barcode-variant File", self.element_cfg['barcodes'], 'map file'))
                 self.frame_dict['barcodes'].append(IntegerEntry("Minimum Count", self.element_cfg['barcodes'], 'min count', optional=True))
 
-            if isinstance(self.element, BcidSeqLib):
+            if isinstance(self.element, BcidSeqLib) or isinstance(self.element, IdOnlySeqLib):
                 self.frame_dict['identifiers'] = list()
                 self.frame_dict['identifiers'].append(SectionLabel("Identifier Options"))
                 self.frame_dict['identifiers'].append(IntegerEntry("Minimum Count", self.element_cfg['identifiers'], 'min count', optional=True))
@@ -266,10 +275,11 @@ class EditDialog(tkSimpleDialog.Dialog):
             for row_frame_key in layout[i]:
                 for ui_element in self.frame_dict[row_frame_key]:
                     row_no += ui_element.body(new_frame, row_no, left=True)
-        if self.element.counts_file is not None:
-            self.toggle.rb_counts.invoke()
-        else:
-            self.toggle.rb_fastq.invoke()
+        if 'fastq' in self.frame_dict:
+            if self.element.counts_file is not None:
+                self.toggle.rb_counts.invoke()
+            else:
+                self.toggle.rb_fastq.invoke()
 
     def validate(self):
         """

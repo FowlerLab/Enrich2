@@ -35,6 +35,7 @@ from ..barcode import BarcodeSeqLib
 from ..overlap import OverlapSeqLib
 from ..seqlib import SeqLib
 from ..variant import VariantSeqLib
+from ..idonly import IdOnlySeqLib
 from .create_seqlib_dialog import seqlib_label_text
 
 

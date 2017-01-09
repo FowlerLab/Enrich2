@@ -32,6 +32,7 @@ from enrich2.barcodeid import BcidSeqLib
 from enrich2.barcodevariant import BcvSeqLib
 from enrich2.basic import BasicSeqLib
 from enrich2.overlap import OverlapSeqLib
+from enrich2.idonly import IdOnlySeqLib
 from enrich2.storemanager import SCORING_METHODS, LOGR_METHODS
 from enrich2.gui.configurator import Configurator
 
@@ -167,6 +168,8 @@ def main_cmd():
             obj = BasicSeqLib()
         elif seqlib_type == "OverlapSeqLib":
             obj = OverlapSeqLib()
+        elif seqlib_type == "IdOnlySeqLib":
+            obj = IdOnlySeqLib()
         else:
             raise ValueError("Unrecognized SeqLib type '{}' [{}]".format(
                 seqlib_type, DRIVER_NAME))

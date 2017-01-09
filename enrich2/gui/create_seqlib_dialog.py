@@ -31,13 +31,16 @@ from ..barcode import BarcodeSeqLib
 from ..overlap import OverlapSeqLib
 from ..seqlib import SeqLib
 from ..variant import VariantSeqLib
+from ..idonly import IdOnlySeqLib
 
 
 seqlib_label_text = OrderedDict([("BcvSeqLib", "Barcoded Variant"),
                                  ("BcidSeqLib", "Barcoded Identifier"),
                                  ("OverlapSeqLib", "Overlap"),
                                  ("BasicSeqLib", "Basic"),
-                                 ("BarcodeSeqLib", "Barcodes Only")])
+                                 ("BarcodeSeqLib", "Barcodes Only"),
+                                 ("IdOnlySeqLib", "Identifiers Only"),
+                                 ])
 
 
 class CreateSeqLibDialog(tkSimpleDialog.Dialog):

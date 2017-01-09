@@ -420,7 +420,7 @@ class SeqLib(StoreManager):
         elif os.path.splitext(fname)[-1].lower() in (".h5"):
             self.counts_from_file_h5(self.counts_file)
         elif os.path.splitext(fname)[-1].lower() in \
-                (".txt", ".tsv"):
+                (".txt", ".tsv", ".csv"):
             self.counts_from_file_tsv(self.counts_file)
         else:
             raise ValueError("Unrecognized counts file extension for '{}' "

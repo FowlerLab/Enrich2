@@ -93,7 +93,7 @@ def is_seqlib(cfg):
         derived object, else False.
 
     """
-    if 'fastq' in cfg.keys():
+    if 'fastq' in cfg.keys() or 'identifiers' in cfg.keys():
         return True
     else:
         return False
@@ -131,6 +131,8 @@ def seqlib_type(cfg):
         return "OverlapSeqLib"
     elif 'variants' in cfg:
         return "BasicSeqLib"
+    elif 'identifiers' in cfg:
+        return "IdOnlySeqLib"
     else:
         raise ValueError("Unable to determine SeqLib type for configuration "
                          "object.")
