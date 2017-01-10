@@ -110,7 +110,7 @@ Normalization method
 
 * Wild Type
 
-	Recommended if your selection has a wild type sequence. Normalizes counts by the wild type count as described in the `Enrich2 manuscript`_.
+	Recommended if your selection has a wild type sequence. Normalizes counts by the wild type count as described in the `Enrich2 manuscript`_. For designs with identifiers instead of variants, the special wild type identifier "_wt" can be used.
 
 * Library Size (Complete Cases)
 

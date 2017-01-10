@@ -20,6 +20,8 @@ Sequencing libraries have :ref:`general-seqlib-parameters`, :ref:`sequence-file-
 +----------------------+---------+---------+------------+---------+
 | Barcodes Only        | X       |         |            |         |
 +----------------------+---------+---------+------------+---------+
+| Identifiers Only     |         |         | X          |         |
++----------------------+---------+---------+------------+---------+
 
 See :ref:`intro-seqlibs` for descriptions of each type.
 
@@ -42,7 +44,9 @@ General parameters
 
 * Counts File
 
-	Optional path to an HDF5 file that contains counts for this time point. Raw counts from that file will be copied into the HDF5 file created for this SeqLib. Sequence file parameters will be ignored.
+	Required for Counts File Mode. Path to an HDF5 file or tab-separated value file that contains counts for this time point. Raw counts from that file will be used for this SeqLib. If an HDF5 file is provided, all tables in the "raw/" group are copied. Sequence file parameters will be ignored. The file must have the suffix ".h5" for HDF5 or one of ".txt" ".tsv" or ".csv" for tab-separated value files.
+
+	.. note:: Tab-separated value files must have exactly two columns separated by a tab. The first line of the file must have the column heading "counts" preceded by a single tab character. The first column contains the barcode, identifier, or HGVS variant string depending on the type of raw counts required by the SeqLib type. The second column contains the count for that element.
 
 .. _sequence-file-seqlib-parameters:
 
@@ -53,7 +57,7 @@ Enrich2 accepts sequence files in FASTQ_ format. These files may be processed wh
 
 * Reads
 
-	Path to a FASTQ_ file containing the sequencing reads. For overlap SeqLibs, there are fields for Forward Reads and Reverse Reads.
+	Required for FASTQ_ File Mode. Path to a FASTQ_ file containing the sequencing reads. For overlap SeqLibs, there are fields for Forward Reads and Reverse Reads.
 
 * Reverse
 

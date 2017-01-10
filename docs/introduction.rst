@@ -22,7 +22,7 @@ Enrich2 represents deep mutational scanning experimental designs as a tree of ob
 
 * Sequencing library (SeqLib)
 
-	FASTQ_ output from sequencing a deep mutational scanning time point/round/bin. Has no children.
+	FASTQ_ output or count data from a deep mutational scanning time point/round/bin. Has no children.
 
 Each experimental design has a single root object, which can be an Experiment, Selection, or SeqLib. With the exception of Conditions, each experimental design object has its own HDF5 file containing its data. 
 
@@ -54,7 +54,7 @@ Enrich2 counts elements to quantify their enrichment or depletion in a complex p
 
 * Identifier
 
-	An arbitrary label (such as a target gene name) for barcode assignment. Stored as the label string. Identifiers are counted as the sum of counts for associated barcodes as defined by a barcode-identifier map.
+	An arbitrary label (such as a target gene name) for barcode assignment. Stored as the label string. Identifiers are counted as the sum of counts for associated barcodes as defined by a barcode-identifier map or specified as counts.
 
 .. _intro-seqlibs:
 
@@ -84,6 +84,10 @@ Enrich2 implements five types of SeqLib, each supporting different element types
 * Barcodes Only
 
 	Contains barcode elements. The FASTQ_ file contains only barcode sequences.
+
+* Identifiers Only
+
+	Contains identifier elements. No FASTQ_ file is processed, so the counts must be provided by the user.
 
 For more information, see :ref:`seqlib-configuration`.
 

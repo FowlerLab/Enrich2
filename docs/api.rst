@@ -62,6 +62,11 @@ This module provides class definitions for the various types of sequencing libra
 .. autoclass:: enrich2.overlap.OverlapSeqLib
 	:members:
 
+:py:class:`~enrich2.idonly.IdOnlySeqLib` class
+-------------------------------------------------------------
+.. autoclass:: enrich2.idonly.IdOnlySeqLib
+	:members:
+
 :py:class:`~enrich2.seqlib.SeqLib` helper classes
 -------------------------------------------------------
 
