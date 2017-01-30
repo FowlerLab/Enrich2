@@ -541,6 +541,8 @@ class Experiment(StoreManager):
 
         Uses :py:func:`~sfmap.sfmap_plot` for the plotting.
         """
+        plot_options = self.get_root().plot_options
+
         if coding:
             label = "amino acid"
         else:
@@ -555,12 +557,23 @@ class Experiment(StoreManager):
             df_name = '/main/synonymous/scores'
         else:
             df_name = '/main/variants/scores'
-        data, wtseq = singleton_dataframe(self.store[df_name][idx[condition,
-                                                                  'score']],
-                                          self.wt, coding=coding)
-        data_se, _ = singleton_dataframe(self.store[df_name][idx[condition,
-                                                                 'SE']],
-                                         self.wt, coding=coding)
+
+        if plot_options is not None:
+            data, wtseq = singleton_dataframe(self.store[df_name][
+                                              idx[condition, 'score']],
+                                              self.wt, coding=coding,
+                                              aa_list=plot_options['aa_list'])
+            data_se, _ = singleton_dataframe(self.store[df_name][
+                                             idx[condition, 'SE']],
+                                             self.wt, coding=coding,
+                                             aa_list=plot_options['aa_list'])
+        else:
+            data, wtseq = singleton_dataframe(self.store[df_name][
+                                              idx[condition, 'score']],
+                                              self.wt, coding=coding)
+            data_se, _ = singleton_dataframe(self.store[df_name][
+                                             idx[condition, 'SE']],
+                                             self.wt, coding=coding)
 
         # format the title
         if coding:
@@ -580,8 +593,14 @@ class Experiment(StoreManager):
         else:
             raise ValueError("Invalid scoring method", self.name)
 
-        sfmap_plot(df=data, pdf=pdf, style="scores", df_se=data_se,
-                   dimensions="tall", wt=wtseq, title=title)
+        if plot_options is not None:
+            sfmap_plot(df=data, pdf=pdf, style="scores", df_se=data_se,
+                       dimensions="tall", wt=wtseq, title=title,
+                       aa_list=plot_options['aa_list'],
+                       aa_label_groups=plot_options['aa_label_groups'])
+        else:
+            sfmap_plot(df=data, pdf=pdf, style="scores", df_se=data_se,
+                       dimensions="tall", wt=wtseq, title=title)
 
     def correlation_plot(self, pdf, label):
         """

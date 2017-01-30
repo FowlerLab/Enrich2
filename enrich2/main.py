@@ -35,6 +35,7 @@ from enrich2.overlap import OverlapSeqLib
 from enrich2.idonly import IdOnlySeqLib
 from enrich2.storemanager import SCORING_METHODS, LOGR_METHODS
 from enrich2.gui.configurator import Configurator
+from enrich2.sfmap import parse_aa_list
 
 
 __author__ = "Alan F Rubin"
@@ -129,6 +130,9 @@ def main_cmd():
     parser.add_argument("--output-dir", metavar="DIR",
                         dest="output_dir_override",
                         help="override the config file's output directory")
+    parser.add_argument("--sfmap-aa-file", metavar="FILE",
+                        dest="sfmap_aa_file",
+                        help="amino acid groups for sequence-function maps")
 
     args = parser.parse_args()
 
@@ -189,6 +193,11 @@ def main_cmd():
         obj.output_dir = args.output_dir_override
     else:
         obj.output_dir_override = False
+
+    if args.sfmap_aa_file is not None:
+        obj.plot_options = dict()
+        obj.plot_options['aa_list'], obj.plot_options['aa_label_groups'] = \
+            parse_aa_list(args.sfmap_aa_file)
 
     # configure the object
     obj.configure(cfg)

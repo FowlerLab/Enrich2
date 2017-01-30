@@ -25,7 +25,7 @@ from .variant import mutation_count, re_protein, re_coding, re_noncoding
 from .barcodemap import re_barcode, re_identifier
 from .constants import AA_CODES
 from .storemanager import ELEMENT_LABELS
-from .sfmap import aa_list, nt_list
+from .sfmap import AA_LIST, NT_LIST
 
 
 SingleMut = collections.namedtuple("SingleMut", ['pre', 'post', 'pos', 'key'])
@@ -155,7 +155,7 @@ def fill_position_gaps(positions, gap_size):
     return sorted(list(fill))
 
 
-def singleton_dataframe(values, wt, gap_size=5, coding=True, plot_wt_score=True):
+def singleton_dataframe(values, wt, gap_size=5, coding=True, plot_wt_score=True, aa_list=AA_LIST):
     """
     Prepare data for plotting as a sequence-function map. Returns a data frame suitable 
     for plotting as heat map data and a wild type sequence extracted from the variant 
@@ -208,7 +208,7 @@ def singleton_dataframe(values, wt, gap_size=5, coding=True, plot_wt_score=True)
     if coding:
         columns = aa_list
     else:
-        columns = nt_list
+        columns = NT_LIST
     frame = pd.DataFrame(np.nan, columns=columns, index=positions)
     # populate the DataFrame
     for x in index_tuples:

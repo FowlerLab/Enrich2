@@ -862,6 +862,8 @@ class Selection(StoreManager):
 
         Uses :py:func:`~sfmap.sfmap_plot` for the plotting.
         """
+        plot_options = self.get_root().plot_options
+        
         if cname.startswith("c_"):
             counts = True
         elif cname == "score":
@@ -889,11 +891,17 @@ class Selection(StoreManager):
             df_name += "counts_unfiltered"
         else:
             df_name += "scores"
-        data, wtseq = singleton_dataframe(self.store[df_name][cname], self.wt, coding=coding)
+        if plot_options is not None:
+            data, wtseq = singleton_dataframe(self.store[df_name][cname], self.wt, coding=coding, aa_list=plot_options['aa_list'])
+        else:
+            data, wtseq = singleton_dataframe(self.store[df_name][cname], self.wt, coding=coding)
         if counts:
             data_se = None
         else:
-            data_se, _ = singleton_dataframe(self.store[df_name]["SE"], self.wt, coding=coding)
+            if plot_options is not None:
+                data_se, _ = singleton_dataframe(self.store[df_name]["SE"], self.wt, coding=coding, aa_list=plot_options['aa_list'])
+            else:
+                data_se, _ = singleton_dataframe(self.store[df_name]["SE"], self.wt, coding=coding)
 
 
         # format the title
@@ -920,7 +928,14 @@ class Selection(StoreManager):
         else:
             style = "scores"
 
-        sfmap_plot(df=data, pdf=pdf, style=style, df_se=data_se, dimensions="tall", wt=wtseq, title=title)
+        if plot_options is not None:
+            sfmap_plot(df=data, pdf=pdf, style=style, df_se=data_se,
+                       dimensions="tall", wt=wtseq, title=title,
+                       aa_list=plot_options['aa_list'],
+                       aa_label_groups=plot_options['aa_label_groups'])
+        else:
+            sfmap_plot(df=data, pdf=pdf, style=style, df_se=data_se,
+                       dimensions="tall", wt=wtseq, title=title)
 
 
     def barcodemap_mapping(self):

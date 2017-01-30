@@ -115,6 +115,9 @@ class StoreManager(object):
         self.treeview_id = None
         self.treeview_info = None
 
+        # Plotting options
+        self.plot_options = None
+
 
     def child_labels(self):
         """
@@ -696,3 +699,8 @@ class StoreManager(object):
         return shared
 
 
+    def get_root(self):
+        if self.parent is not None:
+            return self.parent.get_root()
+        else:
+            return self
