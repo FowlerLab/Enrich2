@@ -16,18 +16,19 @@
 #  along with Enrich2.  If not, see <http://www.gnu.org/licenses/>.
 
 """
-Functions for identifying the type of 
-:py:class:`~enrich2.storemanager.StoreManager` derived object associated with a 
+Functions for identifying the type of
+:py:class:`~enrich2.storemanager.StoreManager` derived object associated with a
 given configuration object (decoded from a JSON file as described `here
 <https://docs.python.org/2/library/json.html>`_).
 
 """
 
+
 def is_experiment(cfg):
     """
     Check if the given configuration object specifies an 
     :py:class:`~enrich2.experiment.Experiment`.
-    
+
     Args:
         cfg (dict): decoded JSON object
 
@@ -46,7 +47,7 @@ def is_condition(cfg):
     """
     Check if the given configuration object specifies a 
     :py:class:`~enrich2.condition.Condition`.
-    
+
     Args:
         cfg (dict): decoded JSON object
 
@@ -65,7 +66,7 @@ def is_selection(cfg):
     """
     Check if the given configuration object specifies a 
     :py:class:`~enrich2.selection.Selection`.
-    
+
     Args:
         cfg (dict): decoded JSON object
 
@@ -84,7 +85,7 @@ def is_seqlib(cfg):
     """
     Check if the given configuration object specifies a 
     :py:class:`~enrich2.seqlib.SeqLib` derived object.
-    
+
     Args:
         cfg (dict): decoded JSON object
 
