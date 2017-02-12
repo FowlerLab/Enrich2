@@ -616,8 +616,12 @@ class Selection(StoreManager):
         logging.info("Creating wild type fit plot", extra={'oname' : self.name})
 
         # get the data and calculate log ratios
-        data = self.store.select("/main/variants/counts", where='index = "{}"'.format(WILD_TYPE_VARIANT)).ix[0]
-        sums = self.store['/main/variants/counts'].sum(axis="index")  # sum of complete cases (N')
+        if "variants" in self.labels:
+            wt_label = "variants"
+        elif "identifiers" in self.labels:
+            wt_label = "identifiers"
+        data = self.store.select("/main/{}/counts".format(wt_label), where='index = "{}"'.format(WILD_TYPE_VARIANT)).ix[0]
+        sums = self.store['/main/{}/counts'.format(wt_label)].sum(axis="index")  # sum of complete cases (N')
         yvalues = np.log(data + 0.5) - np.log(sums + 0.5)
         xvalues = [tp / float(max(self.timepoints)) for tp in self.timepoints]
 
