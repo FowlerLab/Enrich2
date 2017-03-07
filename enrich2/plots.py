@@ -21,6 +21,7 @@ import numpy as np
 import collections
 import logging
 import scipy.stats
+from statsmodels.nonparametric.kde import KDEUnivariate
 
 
 #: Default colors for Enrich2 plots.
@@ -550,3 +551,23 @@ def hexbin_corr_axes(ax, x, y, score_min, score_max, cbar_ax=None):
     return hb
 
 
+def density_ax(ax, ys, xmin, xmax, xlabel, line_params):
+
+    if len(ys) != len(line_params):
+        raise ValueError("All y-value sets must have a linestyle")
+
+    configure_axes(ax, xgrid=True)
+
+    d_ys = [KDEUnivariate(y.values) for y in ys]
+    [d_y.fit() for d_y in d_ys]
+
+    xs = np.linspace(xmin, xmax, 1000)
+
+    for i in xrange(len(ys)):
+        ax.plot(xs, d_ys[i].evaluate(xs), label=ys[i].name, **line_params[i])
+
+    ax.legend(**legend_params)
+
+    ax.set_xlabel(xlabel, **label_params)
+    ax.set_ylabel("Density", **label_params)
+    ax.tick_params(axis='both', which='major', **tick_params)
