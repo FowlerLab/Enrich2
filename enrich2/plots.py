@@ -16,13 +16,25 @@
 #  along with Enrich2.  If not, see <http://www.gnu.org/licenses/>.
 
 from __future__ import print_function
-import matplotlib.pyplot as plt
-import numpy as np
 import collections
 import logging
+import numpy as np
+import matplotlib.pyplot as plt
 import scipy.stats
 from statsmodels.nonparametric.kde import KDEUnivariate
 
+tick_params = {'labelsize': 6,
+               'pad': 2}
+
+label_params = {'fontsize': 8,
+                'labelpad': 2}
+
+legend_params = {'fontsize': 8}
+
+letter_params = {'fontsize': 10,
+                 'weight': 'bold',
+                 'horizontalalignment': 'left',
+                 'verticalalignment': 'center'}
 
 #: Default colors for Enrich2 plots.
 #: Standard defaults are based on ColorBrewer Set1 and Pastel1.
