@@ -10,7 +10,7 @@ An example dataset is available at the [Enrich2-Example GitHub repository](https
 Installation and dependencies
 -----------------------------
 
-Enrich2 runs on Python 2.7 and 3.4+ and requires the following packages:
+Enrich2 runs on python 3.4+ and requires the following packages:
 
 * [NumPy](http://www.numpy.org/) version 1.10.4 or higher
 * [SciPy](http://www.scipy.org/) version 0.16.0 or higher
