@@ -15,15 +15,11 @@
 #  You should have received a copy of the GNU General Public License
 #  along with Enrich2.  If not, see <http://www.gnu.org/licenses/>.
 
-from __future__ import print_function
-from __future__ import absolute_import
 import matplotlib.pyplot as plt
 import numpy as np
 import collections
 import logging
 import scipy.stats
-from six.moves import zip
-
 
 #: Default colors for Enrich2 plots.
 #: Standard defaults are based on ColorBrewer Set1 and Pastel1.

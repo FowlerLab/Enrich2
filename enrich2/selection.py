@@ -15,8 +15,6 @@
 #  You should have received a copy of the GNU General Public License
 #  along with Enrich2.  If not, see <http://www.gnu.org/licenses/>.
 
-from __future__ import print_function
-from __future__ import absolute_import
 from .basic import BasicSeqLib
 from .barcodevariant import BcvSeqLib
 from .barcodeid import BcidSeqLib
@@ -41,7 +39,6 @@ from .plots import fit_axes, fit_axes_text, volcano_plot, configure_axes, plot_c
 from .constants import WILD_TYPE_VARIANT, SYNONYMOUS_VARIANT, AA_CODES
 from .variant import protein_variant
 from .dataframe import singleton_dataframe
-from six.moves import range
 
 def regression_apply(row, timepoints, weighted):
     """

@@ -15,8 +15,6 @@
 #  You should have received a copy of the GNU General Public License
 #  along with Enrich2.  If not, see <http://www.gnu.org/licenses/>.
 
-from __future__ import print_function
-from __future__ import absolute_import
 import logging
 import pandas as pd
 import numpy as np
@@ -29,9 +27,6 @@ from .condition import Condition
 from .constants import WILD_TYPE_VARIANT, SYNONYMOUS_VARIANT
 from .sfmap import sfmap_plot
 from .dataframe import singleton_dataframe
-from six.moves import range
-from six.moves import zip
-
 
 class Experiment(StoreManager):
     """

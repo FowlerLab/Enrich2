@@ -18,8 +18,6 @@
 #  along with Enrich2.  If not, see <http://www.gnu.org/licenses/>.
 
 
-from __future__ import print_function
-from __future__ import absolute_import
 from argparse import ArgumentParser, RawDescriptionHelpFormatter
 import logging
 import json

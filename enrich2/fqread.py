@@ -15,8 +15,6 @@
 #  You should have received a copy of the GNU General Public License
 #  along with Enrich2.  If not, see <http://www.gnu.org/licenses/>.
 
-from __future__ import print_function
-from __future__ import absolute_import
 from sys import stderr
 import os.path
 import re
@@ -24,7 +22,6 @@ import itertools
 import bz2
 import gzip
 from array import array
-from six.moves import range
 
 # The following regex is referenced by line number in the class documentation.
 # Matches FASTQ headers based on the following pattern (modify as needed):

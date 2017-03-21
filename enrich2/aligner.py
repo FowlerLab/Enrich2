@@ -23,9 +23,8 @@ insertion and deletion variants (i.e. not coding sequences).
 
 """
 
-from __future__ import absolute_import
 import numpy as np
-from six.moves import range
+
 
 #: Default similarity matrix used by the aligner.
 #: User-defined matrices must have this format.

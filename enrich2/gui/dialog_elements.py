@@ -15,12 +15,11 @@
 #  You should have received a copy of the GNU General Public License
 #  along with Enrich2.  If not, see <http://www.gnu.org/licenses/>.
 
-from __future__ import print_function
-from __future__ import absolute_import
-import six.moves.tkinter as tk
-import six.moves.tkinter_ttk
-import six.moves.tkinter_messagebox
-import six.moves.tkinter_filedialog
+import tkinter as tk
+import tkinter.ttk
+import tkinter.simpledialog
+import tkinter.messagebox
+import tkinter.filedialog
 import re
 import os.path
 
@@ -32,7 +31,7 @@ class SectionLabel(object):
 
 
     def body(self, master, row, columns=DEFAULT_COLUMNS, **kwargs):
-        label = six.moves.tkinter_ttk.Label(master, text=self.text)
+        label = tkinter.ttk.Label(master, text=self.text)
         label.grid(row=row, column=0, columnspan=columns, sticky="w")
         return 1
 
@@ -67,7 +66,7 @@ class Checkbox(object):
 
         Returns the number of rows taken by this element.
         """
-        checkbox = six.moves.tkinter_ttk.Checkbutton(master, text=self.text, variable=self.value)
+        checkbox = tkinter.ttk.Checkbutton(master, text=self.text, variable=self.value)
         checkbox.grid(row=row, column=0, columnspan=columns, sticky="w")
         return 1
 
@@ -108,9 +107,9 @@ class MyEntry(object):
 
         Returns the number of rows taken by this element.
         """
-        label = six.moves.tkinter_ttk.Label(master, text=self.text)
+        label = tkinter.ttk.Label(master, text=self.text)
         label.grid(row=row, column=0, columnspan=1, sticky="e")
-        entry = six.moves.tkinter_ttk.Entry(master, textvariable=self.value)
+        entry = tkinter.ttk.Entry(master, textvariable=self.value)
         entry.grid(row=row, column=1, columnspan=columns - 1, sticky="ew")
         return 1
 
@@ -120,7 +119,7 @@ class MyEntry(object):
         Validates the input. Returns ``True`` unless the field is blank and *optional* is ``False``.
         """
         if not self.optional and len(self.value.get()) == 0:
-            six.moves.tkinter_messagebox.showwarning("", "{} not specified.".format(self.text))
+            tkinter.messagebox.showwarning("", "{} not specified.".format(self.text))
             return False
         else:
             return True
@@ -158,17 +157,17 @@ class FileEntry(MyEntry):
 
         Returns the number of rows taken by this element.
         """
-        label = six.moves.tkinter_ttk.Label(master, text=self.text)
+        label = tkinter.ttk.Label(master, text=self.text)
         label.grid(row=row, column=0, columnspan=1, sticky="e")
-        entry = six.moves.tkinter_ttk.Entry(master, textvariable=self.value)
+        entry = tkinter.ttk.Entry(master, textvariable=self.value)
         entry.grid(row=row, column=1, columnspan=columns - 1, sticky="ew")
         if self.directory:
-            choose = six.moves.tkinter_ttk.Button(master, text="Choose...", command=lambda: self.value.set(six.moves.tkinter_filedialog.askdirectory()))
+            choose = tkinter.ttk.Button(master, text="Choose...", command=lambda: self.value.set(tkinter.filedialog.askdirectory()))
         else:
-            choose = six.moves.tkinter_ttk.Button(master, text="Choose...", command=lambda: self.value.set(six.moves.tkinter_filedialog.askopenfilename()))
+            choose = tkinter.ttk.Button(master, text="Choose...", command=lambda: self.value.set(tkinter.filedialog.askopenfilename()))
         choose.grid(row=row + 1, column=1, sticky="w")
         if self.optional:
-            clear = six.moves.tkinter_ttk.Button(master, text="Clear", command=lambda: self.value.set(""))
+            clear = tkinter.ttk.Button(master, text="Clear", command=lambda: self.value.set(""))
             clear.grid(row=row + 1, column=2, sticky="e")
         return 2
 
@@ -176,7 +175,7 @@ class FileEntry(MyEntry):
     def validate(self):
         if len(self.value.get()) == 0:
             if not self.optional:
-                six.moves.tkinter_messagebox.showwarning("", "{} not specified.".format(self.text))
+                tkinter.messagebox.showwarning("", "{} not specified.".format(self.text))
                 return False
             else:
                 return True
@@ -186,12 +185,12 @@ class FileEntry(MyEntry):
                     if any(self.value.get().lower().endswith(x) for x in self.extensions):
                         return True
                     else:
-                        six.moves.tkinter_messagebox.showwarning("", "Invalid file extension for {}.".format(self.text))
+                        tkinter.messagebox.showwarning("", "Invalid file extension for {}.".format(self.text))
                         return False
                 else: # no extension restriction
                     return True
             else:
-                six.moves.tkinter_messagebox.showwarning("", "{} file does not exist.".format(self.text))
+                tkinter.messagebox.showwarning("", "{} file does not exist.".format(self.text))
                 return False
 
 
@@ -212,9 +211,9 @@ class StringEntry(MyEntry):
 
         Returns the number of rows taken by this element.
         """
-        label = six.moves.tkinter_ttk.Label(master, text=self.text)
+        label = tkinter.ttk.Label(master, text=self.text)
         label.grid(row=row, column=0, columnspan=1, sticky="e")
-        entry = six.moves.tkinter_ttk.Entry(master, textvariable=self.value)
+        entry = tkinter.ttk.Entry(master, textvariable=self.value)
         entry.grid(row=row, column=1, columnspan=columns - 1, sticky="ew")
         return 1
 
@@ -256,9 +255,9 @@ class IntegerEntry(MyEntry):
             label_sticky = "e"
             label_width = 1
 
-        label = six.moves.tkinter_ttk.Label(master, text=self.text)
+        label = tkinter.ttk.Label(master, text=self.text)
         label.grid(row=row, column=label_column, columnspan=label_width, sticky=label_sticky)
-        entry = six.moves.tkinter_ttk.Entry(master, textvariable=self.value, width=width)
+        entry = tkinter.ttk.Entry(master, textvariable=self.value, width=width)
         entry.grid(row=row, column=entry_column, columnspan=entry_width, sticky=entry_sticky)
         return 1
 
@@ -275,16 +274,16 @@ class IntegerEntry(MyEntry):
         except ValueError:
             if len(self.value.get()) == 0:
                 if not self.optional:
-                    six.moves.tkinter_messagebox.showwarning("", "{} not specified.".format(self.text))
+                    tkinter.messagebox.showwarning("", "{} not specified.".format(self.text))
                     return False
                 else:
                     return True
             else:
-                six.moves.tkinter_messagebox.showwarning("", "{} is not an integer.".format(self.text))
+                tkinter.messagebox.showwarning("", "{} is not an integer.".format(self.text))
                 return False
         else:
             if intvalue < self.minvalue:
-                six.moves.tkinter_messagebox.showwarning("", "{} lower than minimum value ({}).".format(self.text, self.minvalue))
+                tkinter.messagebox.showwarning("", "{} lower than minimum value ({}).".format(self.text, self.minvalue))
                 return False
             else:
                 return True

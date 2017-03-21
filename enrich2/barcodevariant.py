@@ -15,7 +15,6 @@
 #  You should have received a copy of the GNU General Public License
 #  along with Enrich2.  If not, see <http://www.gnu.org/licenses/>.
 
-from __future__ import absolute_import
 import logging
 from .seqlib import SeqLib
 from .variant import VariantSeqLib
@@ -25,7 +24,6 @@ import pandas as pd
 from .plots import barcodemap_plot
 from matplotlib.backends.backend_pdf import PdfPages
 import os.path
-import six
 
 class BcvSeqLib(VariantSeqLib, BarcodeSeqLib):
     """
@@ -112,7 +110,7 @@ class BcvSeqLib(VariantSeqLib, BarcodeSeqLib):
                     barcode_variants[bc] = mutations
             
             # save counts, filtering based on the min count
-            self.save_counts('variants', {k:v for k,v in six.iteritems(df_dict) if v >= self.variant_min_count}, raw=False)
+            self.save_counts('variants', {k:v for k,v in df_dict.items() if v >= self.variant_min_count}, raw=False)
             del df_dict
 
             # write the active subset of the BarcodeMap to the store

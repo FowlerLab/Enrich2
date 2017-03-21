@@ -15,13 +15,13 @@
 #  You should have received a copy of the GNU General Public License
 #  along with Enrich2.  If not, see <http://www.gnu.org/licenses/>.
 
-from __future__ import absolute_import
-import six.moves.tkinter as tk
-import six.moves.tkinter_ttk
-import six.moves.tkinter_tksimpledialog
+import tkinter as tk
+import tkinter.ttk
+import tkinter.simpledialog
+import tkinter.messagebox
+import tkinter.filedialog
 
-
-class SeqLibApplyDialog(six.moves.tkinter_tksimpledialog.Dialog):
+class SeqLibApplyDialog(tkinter.simpledialog.Dialog):
     """
     Confirmation dialog box for applying FASTQ filtering options to selected SeqLibs from the Treeview.
     """
@@ -29,7 +29,7 @@ class SeqLibApplyDialog(six.moves.tkinter_tksimpledialog.Dialog):
         self.tree = tree
         self.source_id = source_id
         self.target_ids = [x for x in self.tree.treeview.selection() if x != source_id and type(self.tree.get_element(self.source_id)) == type(self.tree.get_element(x))]
-        six.moves.tkinter_tksimpledialog.Dialog.__init__(self, parent_window, title)
+        tkinter.simpledialog.Dialog.__init__(self, parent_window, title)
 
 
     def body(self, master):
@@ -47,7 +47,7 @@ class SeqLibApplyDialog(six.moves.tkinter_tksimpledialog.Dialog):
             message_string = 'Apply FASTQ filtering options from "{}"" to the following?\n'.format(self.tree.get_element(self.source_id).name)
             for x in self.target_ids:
                 message_string += u"{bullet} {name}\n".format(bullet=bullet, name=self.tree.get_element(x).name)
-        message = six.moves.tkinter_ttk.Label(master, text=message_string, justify="left")
+        message = tkinter.ttk.Label(master, text=message_string, justify="left")
         message.grid(row=0, sticky="w")
 
 
@@ -65,7 +65,7 @@ class SeqLibApplyDialog(six.moves.tkinter_tksimpledialog.Dialog):
 
             box.pack()
         else:
-            six.moves.tkinter_tksimpledialog.Dialog.buttonbox(self)
+            tkinter.simpledialog.Dialog.buttonbox(self)
 
 
     def apply(self):

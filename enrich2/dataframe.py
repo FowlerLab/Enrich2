@@ -15,7 +15,6 @@
 #  You should have received a copy of the GNU General Public License
 #  along with Enrich2.  If not, see <http://www.gnu.org/licenses/>.
 
-from __future__ import absolute_import
 import re
 import pandas as pd
 import numpy as np
@@ -25,7 +24,7 @@ import collections
 from .variant import mutation_count, re_protein, re_coding, re_noncoding
 from .constants import AA_CODES
 from .sfmap import aa_list, nt_list
-from six.moves import range
+
 
 
 SingleMut = collections.namedtuple("SingleMut", ['pre', 'post', 'pos', 'key'])

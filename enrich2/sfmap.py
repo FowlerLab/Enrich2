@@ -15,8 +15,6 @@
 #  You should have received a copy of the GNU General Public License
 #  along with Enrich2.  If not, see <http://www.gnu.org/licenses/>.
 
-from __future__ import print_function
-from __future__ import absolute_import
 import logging
 import numpy as np
 import matplotlib.pyplot as plt
@@ -25,9 +23,6 @@ from matplotlib.patches import Circle
 from matplotlib.lines import Line2D
 from matplotlib.gridspec import GridSpec
 from .plots import plot_cmaps, plot_colors
-from six.moves import range
-from six.moves import zip
-
 
 #: List of amino acids in row order for sequence-function maps.
 aa_list = ['H', 'K', 'R',                # (+)

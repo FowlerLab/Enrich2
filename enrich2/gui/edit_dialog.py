@@ -15,13 +15,11 @@
 #  You should have received a copy of the GNU General Public License
 #  along with Enrich2.  If not, see <http://www.gnu.org/licenses/>.
 
-from __future__ import print_function
-from __future__ import absolute_import
-import six.moves.tkinter as tk
-import six.moves.tkinter_ttk
-import six.moves.tkinter_tksimpledialog
-import six.moves.tkinter_messagebox
-import six.moves.tkinter_filedialog
+import tkinter as tk
+import tkinter.ttk
+import tkinter.simpledialog
+import tkinter.messagebox
+import tkinter.filedialog
 import json
 from sys import maxsize
 from collections import OrderedDict
@@ -46,7 +44,7 @@ def clear_nones(d):
     if not isinstance(d, dict):
         return d
     else:
-        return dict((k, clear_nones(v)) for k, v in six.iteritems(d) if v is not None)
+        return dict((k, clear_nones(v)) for k, v in d.items() if v is not None)
 
 
 # All valid suffixes for a FASTQ file that can be recognized by Enrich2
@@ -69,7 +67,7 @@ element_layouts = {
 
 
 
-class EditDialog(six.moves.tkinter_tksimpledialog.Dialog):
+class EditDialog(tkinter.simpledialog.Dialog):
     """
     Dialog box for editing elements. Also used to set properties on newly-created elements.
 
@@ -150,7 +148,7 @@ class EditDialog(six.moves.tkinter_tksimpledialog.Dialog):
                 self.frame_dict['variants'].append(IntegerEntry("Minimum Count", self.element_cfg['variants'], 'min count', optional=True))
                 self.frame_dict['filters'].append(IntegerEntry("Maximum Mutations", self.element_cfg['fastq']['filters'], 'max mutations', optional=True))
 
-        six.moves.tkinter_tksimpledialog.Dialog.__init__(self, parent_window, title)
+        tkinter.simpledialog.Dialog.__init__(self, parent_window, title)
 
 
     def body(self, master):
@@ -158,12 +156,12 @@ class EditDialog(six.moves.tkinter_tksimpledialog.Dialog):
         Add the UI elements to the edit window. Ordering and placement of UI 
         elements in columns is defined by the ``element_layouts`` dictionary.
         """
-        main = six.moves.tkinter_ttk.Frame(master, padding=(3, 3, 12, 12))
+        main = tkinter.ttk.Frame(master, padding=(3, 3, 12, 12))
         main.grid(row=0, column=0, sticky="nsew")
 
         layout = element_layouts[type(self.element).__name__]
         for i, column_tuple in enumerate(layout):
-            new_frame = six.moves.tkinter_ttk.Frame(master, padding=(3, 3, 12, 12))
+            new_frame = tkinter.ttk.Frame(master, padding=(3, 3, 12, 12))
             new_frame.grid(row=0, column=i, sticky="nsew")
             row_no = 0
             for row_frame_key in layout[i]:
@@ -184,7 +182,7 @@ class EditDialog(six.moves.tkinter_tksimpledialog.Dialog):
         if self.element.parent is not None:
             if self.element not in self.element.parent.children:
                 if self.name_entry.value.get() in self.element.parent.child_names():
-                    six.moves.tkinter_messagebox.showwarning("", "Sibling names must be unique.")
+                    tkinter.messagebox.showwarning("", "Sibling names must be unique.")
                     return False
 
         return True
