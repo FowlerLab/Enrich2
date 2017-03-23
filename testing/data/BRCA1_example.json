@@ -1,0 +1,171 @@
+{
+  "conditions": [
+    {
+      "name": "E3",
+      "selections": [
+        {
+          "libraries": [
+            {
+              "barcodes": {
+                "map file": "./testing/data/BRCA1_example_barcodemap.txt.bz2"
+              },
+              "fastq": {
+                "filters": {
+                  "min quality": 20
+                },
+                "length": 16,
+                "reads": "./testing/data/BRCA1_input_sample.fq.bz2",
+                "reverse": 0
+              },
+              "name": "E3 Input",
+              "report filtered reads": false,
+              "timepoint": 0,
+              "variants": {
+                "min count": 0,
+                "use aligner": false,
+                "wild type": {
+                  "coding": true,
+                  "reference offset": 0,
+                  "sequence": "GATTTATCTGCTCTTCGCGTTGAAGAAGTACAAAATGTCATTAATGCTATGCAGAAAATCTTAGAGTGTCCCATCTGCCTGGAGTTGATC"
+                }
+              }
+            },
+            {
+              "barcodes": {
+                "map file": "./testing/data/BRCA1_example_barcodemap.txt.bz2"
+              },
+              "fastq": {
+                "filters": {
+                  "min quality": 20
+                },
+                "length": 16,
+                "reads": "./testing/data/BRCA1_rep1_rd2.fq.bz2",
+                "reverse": 0
+              },
+              "name": "Rep1 Rd2",
+              "report filtered reads": false,
+              "timepoint": 2,
+              "variants": {
+                "min count": 0,
+                "use aligner": false,
+                "wild type": {
+                  "coding": true,
+                  "reference offset": 0,
+                  "sequence": "GATTTATCTGCTCTTCGCGTTGAAGAAGTACAAAATGTCATTAATGCTATGCAGAAAATCTTAGAGTGTCCCATCTGCCTGGAGTTGATC"
+                }
+              }
+            },
+            {
+              "barcodes": {
+                "map file": "./testing/data/BRCA1_example_barcodemap.txt.bz2"
+              },
+              "fastq": {
+                "filters": {
+                  "min quality": 20
+                },
+                "length": 16,
+                "reads": "./testing/data/BRCA1_rep1_rd5.fq.bz2",
+                "reverse": 0
+              },
+              "name": "Rep1 Rd5",
+              "report filtered reads": false,
+              "timepoint": 5,
+              "variants": {
+                "min count": 0,
+                "use aligner": false,
+                "wild type": {
+                  "coding": true,
+                  "reference offset": 0,
+                  "sequence": "GATTTATCTGCTCTTCGCGTTGAAGAAGTACAAAATGTCATTAATGCTATGCAGAAAATCTTAGAGTGTCCCATCTGCCTGGAGTTGATC"
+                }
+              }
+            }
+          ],
+          "name": "Rep1"
+        },
+        {
+          "libraries": [
+            {
+              "barcodes": {
+                "map file": "./testing/data/BRCA1_example_barcodemap.txt.bz2"
+              },
+              "fastq": {
+                "filters": {
+                  "min quality": 20
+                },
+                "length": 16,
+                "reads": "./testing/data/BRCA1_input_sample.fq.bz2",
+                "reverse": 0
+              },
+              "name": "E3 Input",
+              "report filtered reads": false,
+              "timepoint": 0,
+              "variants": {
+                "min count": 0,
+                "use aligner": false,
+                "wild type": {
+                  "coding": true,
+                  "reference offset": 0,
+                  "sequence": "GATTTATCTGCTCTTCGCGTTGAAGAAGTACAAAATGTCATTAATGCTATGCAGAAAATCTTAGAGTGTCCCATCTGCCTGGAGTTGATC"
+                }
+              }
+            },
+            {
+              "barcodes": {
+                "map file": "./testing/data/BRCA1_example_barcodemap.txt.bz2"
+              },
+              "fastq": {
+                "filters": {
+                  "min quality": 20
+                },
+                "length": 16,
+                "reads": "./testing/data/BRCA1_rep2_rd2.fq.bz2",
+                "reverse": 0
+              },
+              "name": "Rep2 Rd2",
+              "report filtered reads": false,
+              "timepoint": 2,
+              "variants": {
+                "min count": 0,
+                "use aligner": false,
+                "wild type": {
+                  "coding": true,
+                  "reference offset": 0,
+                  "sequence": "GATTTATCTGCTCTTCGCGTTGAAGAAGTACAAAATGTCATTAATGCTATGCAGAAAATCTTAGAGTGTCCCATCTGCCTGGAGTTGATC"
+                }
+              }
+            },
+            {
+              "barcodes": {
+                "map file": "./testing/data/BRCA1_example_barcodemap.txt.bz2"
+              },
+              "fastq": {
+                "filters": {
+                  "min quality": 20
+                },
+                "length": 16,
+                "reads": "./testing/data/BRCA1_rep2_rd5.fq.bz2",
+                "reverse": 0
+              },
+              "name": "Rep2 Rd5",
+              "report filtered reads": false,
+              "timepoint": 5,
+              "variants": {
+                "min count": 0,
+                "use aligner": false,
+                "wild type": {
+                  "coding": true,
+                  "reference offset": 0,
+                  "sequence": "GATTTATCTGCTCTTCGCGTTGAAGAAGTACAAAATGTCATTAATGCTATGCAGAAAATCTTAGAGTGTCCCATCTGCCTGGAGTTGATC"
+                }
+              }
+            }
+          ],
+          "name": "Rep2"
+        }
+      ]
+    }
+  ],
+  "name": "BRCA1 Example",
+  "output directory": "./results/"
+}

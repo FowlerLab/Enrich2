@@ -12,7 +12,6 @@ and plots the relationship between each variant's score and input count.
 
 .. code:: python
 
-    from __future__ import print_function
     import os.path
     import numpy as np
     import pandas as pd

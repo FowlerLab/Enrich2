@@ -12,7 +12,6 @@ variant's score and number of unique barcodes.
 
 .. code:: python
 
-    from __future__ import print_function
     import os.path
     from collections import Counter
     import numpy as np

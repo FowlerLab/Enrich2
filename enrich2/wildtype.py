@@ -35,6 +35,10 @@ class WildTypeSequence(object):
         self.dna_offset = None
         self.protein_offset = None
 
+    
+    def __str__(self):
+        return pretty_class_str(self)
+
 
     def __eq__(self, other):
         # note we don't need to check protein_offset, since it depends on dna_offset and protein_seq
