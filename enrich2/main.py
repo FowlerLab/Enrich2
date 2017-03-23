@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #
-#  Copyright 2016 Alan F Rubin
+#  Copyright 2016-2017 Alan F Rubin
 #
 #  This file is part of Enrich2.
 #
@@ -18,6 +18,7 @@
 #  along with Enrich2.  If not, see <http://www.gnu.org/licenses/>.
 
 
+
 from argparse import ArgumentParser, RawDescriptionHelpFormatter
 import logging
 import json
@@ -31,12 +32,14 @@ from enrich2.barcodeid import BcidSeqLib
 from enrich2.barcodevariant import BcvSeqLib
 from enrich2.basic import BasicSeqLib
 from enrich2.overlap import OverlapSeqLib
+from enrich2.idonly import IdOnlySeqLib
 from enrich2.storemanager import SCORING_METHODS, LOGR_METHODS
 from enrich2.gui.configurator import Configurator
+from enrich2.sfmap import parse_aa_list
 
 
 __author__ = "Alan F Rubin"
-__copyright__ = "Copyright 2016, Alan F Rubin"
+__copyright__ = "Copyright 2016-2017, Alan F Rubin"
 __license__ = "GPLv3"
 __version__ = "2.0.0"
 __maintainer__ = "Alan F Rubin"
@@ -127,6 +130,9 @@ def main_cmd():
     parser.add_argument("--output-dir", metavar="DIR",
                         dest="output_dir_override",
                         help="override the config file's output directory")
+    parser.add_argument("--sfmap-aa-file", metavar="FILE",
+                        dest="sfmap_aa_file",
+                        help="amino acid groups for sequence-function maps")
 
     args = parser.parse_args()
 
@@ -166,6 +172,8 @@ def main_cmd():
             obj = BasicSeqLib()
         elif seqlib_type == "OverlapSeqLib":
             obj = OverlapSeqLib()
+        elif seqlib_type == "IdOnlySeqLib":
+            obj = IdOnlySeqLib()
         else:
             raise ValueError("Unrecognized SeqLib type '{}' [{}]".format(
                 seqlib_type, DRIVER_NAME))
@@ -185,6 +193,11 @@ def main_cmd():
         obj.output_dir = args.output_dir_override
     else:
         obj.output_dir_override = False
+
+    if args.sfmap_aa_file is not None:
+        obj.plot_options = dict()
+        obj.plot_options['aa_list'], obj.plot_options['aa_label_groups'] = \
+            parse_aa_list(args.sfmap_aa_file)
 
     # configure the object
     obj.configure(cfg)

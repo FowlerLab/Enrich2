@@ -1,4 +1,4 @@
-#  Copyright 2016 Alan F Rubin
+#  Copyright 2016-2017 Alan F Rubin
 #
 #  This file is part of Enrich2.
 #
@@ -14,6 +14,7 @@
 #
 #  You should have received a copy of the GNU General Public License
 #  along with Enrich2.  If not, see <http://www.gnu.org/licenses/>.
+
 
 import pandas as pd
 import numpy as np
@@ -224,71 +225,73 @@ class OverlapSeqLib(VariantSeqLib):
             merge.trim_length(self.overlap_length, self.fwd_start)
         return merge
 
+    def counts_from_reads(self):
+        df_dict = dict()
+
+        self.merge_mismatches = pd.DataFrame(data=0, index=[x + self.fwd_start + self.wt.dna_offset for x in range(0, self.overlap_length)], columns=["resolved", "unresolved", "first"])
+
+        logging.info("Counting variants", extra={'oname': self.name})
+        max_mut_variants = 0
+        for fwd, rev in read_fastq_multi([self.forward, self.reverse]):
+            # filter on chastity before merge
+            chaste = True
+            if self.filters['chastity']:
+                if not fwd.is_chaste():
+                    chaste = False
+                    if self.report_filtered:
+                        self.report_filtered_read(fwd, filter_flags)
+                if not rev.is_chaste():
+                    chaste = False
+                    if self.report_filtered:
+                        self.report_filtered_read(rev, filter_flags)
+                if not chaste:
+                    self.filter_stats['chastity'] += 1
+                    self.filter_stats['total'] += 1
+                    continue
+
+            merge = self.merge_reads(fwd, rev)
+            if merge is None:  # merge failed
+                self.filter_stats['merge failure'] += 1
+                self.filter_stats['total'] += 1
+                if self.report_filtered:
+                    self.report_filtered_read(fwd, filter_flags)
+                    self.report_filtered_read(rev, filter_flags)
+            else:
+                if self.read_quality_filter(merge):
+                    mutations = self.count_variant(merge.sequence)
+                    if mutations is None:  # merge read has too many mutations
+                        max_mut_variants += 1
+                        if self.report_filtered:
+                            self.report_filtered_variant(merge.sequence, 1)
+                    else:
+                        try:
+                            df_dict[mutations] += 1
+                        except KeyError:
+                            df_dict[mutations] = 1
+
+        self.store.put("/raw/overlap_mismatches", self.merge_mismatches, format="table", data_columns=self.merge_mismatches.columns)
+        self.merge_mismatches = None
+        self.save_counts('variants', df_dict, raw=True)
+        del df_dict
+
+        if self.aligner is not None:
+            logging.info("Aligned {} variants".format(self.aligner.calls), extra={'oname' : self.name})
+            self.aligner_cache = None
+        logging.info("Removed {} total variants with excess mutations"
+                     "".format(max_mut_variants), extra={'oname': self.name})
+        self.save_filter_stats()
 
     def calculate(self):
         """
-        Reads the forward and reverse reads, merges them, performs 
+        Reads the forward and reverse reads, merges them, performs
         quality-based filtering, and counts the variants.
         """
         if not self.check_store("/main/variants/counts"):
             if not self.check_store("/raw/variants/counts"):
                 if self.counts_file is not None:
-                    self.copy_raw()
+                    self.counts_from_file(self.counts_file)
                 else:   # count everything
-                    df_dict = dict()
-
-                    self.merge_mismatches = pd.DataFrame(data=0, index=[x + self.fwd_start + self.wt.dna_offset for x in range(0, self.overlap_length)], columns=["resolved", "unresolved", "first"])
-
-                    logging.info("Counting variants", extra={'oname' : self.name})
-                    for fwd, rev in read_fastq_multi([self.forward, self.reverse]):
-                        # filter on chastity before merge
-                        chaste = True
-                        if self.filters['chastity']:
-                            if not fwd.is_chaste():
-                                chaste = False
-                                if self.report_filtered:
-                                    self.report_filtered_read(fwd, filter_flags)
-                            if not rev.is_chaste():
-                                chaste = False
-                                if self.report_filtered:
-                                    self.report_filtered_read(rev, filter_flags)
-                            if not chaste:
-                                self.filter_stats['chastity'] += 1
-                                self.filter_stats['total'] += 1
-                                continue
-
-                        merge = self.merge_reads(fwd, rev)
-                        if merge is None: # merge failed
-                            self.filter_stats['merge failure'] += 1
-                            self.filter_stats['total'] += 1
-                            if self.report_filtered:
-                                self.report_filtered_read(fwd, filter_flags)
-                                self.report_filtered_read(rev, filter_flags)
-                        else:
-                            if self.read_quality_filter(merge):
-                                mutations = self.count_variant(merge.sequence)
-                                if mutations is None: # merge read has too many mutations
-                                    self.filter_stats['max mutations'] += 1
-                                    self.filter_stats['total'] += 1
-                                    if self.report_filtered:
-                                        self.report_filtered_read(merge, filter_flags)
-                                else:
-                                    try:
-                                        df_dict[mutations] += 1
-                                    except KeyError:
-                                        df_dict[mutations] = 1
-
-                    self.store.put("/raw/overlap_mismatches", self.merge_mismatches, format="table", data_columns=self.merge_mismatches.columns)
-                    self.merge_mismatches = None
-                    self.save_counts('variants', df_dict, raw=True)
-                    del df_dict
-
-                    if self.aligner is not None:
-                        logging.info("Aligned {} variants".format(self.aligner.calls), extra={'oname' : self.name})
-                        self.aligner_cache = None
-                    #self.report_filter_stats()
-                    self.save_filter_stats()
-
+                    self.counts_from_reads()
             self.save_filtered_counts('variants', "count >= self.variant_min_count")
 
         self.count_synonymous()

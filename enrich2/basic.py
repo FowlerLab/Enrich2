@@ -1,4 +1,4 @@
-#  Copyright 2016 Alan F Rubin
+#  Copyright 2016-2017 Alan F Rubin
 #
 #  This file is part of Enrich2.
 #
@@ -24,8 +24,8 @@ import sys
 
 class BasicSeqLib(VariantSeqLib):
     """
-    Class for count data from sequencing libraries with a single read for 
-    each variant. Creating a :py:class:`BasicSeqLib` requires a valid 
+    Class for count data from sequencing libraries with a single read for
+    each variant. Creating a :py:class:`BasicSeqLib` requires a valid
     *config* object, usually from a ``.json`` configuration file.
     """
 
@@ -38,10 +38,9 @@ class BasicSeqLib(VariantSeqLib):
         self.trim_start = None
         self.trim_length = None
 
-
     def configure(self, cfg):
         """
-        Set up the object using the config object *cfg*, usually derived from 
+        Set up the object using the config object *cfg*, usually derived from
         a ``.json`` file.
         """
         VariantSeqLib.configure(self, cfg)
@@ -52,21 +51,22 @@ class BasicSeqLib(VariantSeqLib):
             self.configure_fastq(cfg)
             try:
                 if split_fastq_path(self.reads) is None:
-                    raise IOError("FASTQ file error: unrecognized extension [{}]".format(self.name)) 
+                    raise IOError("FASTQ file error: unrecognized extension "
+                                  "[{}]".format(self.name))
             except IOError as fqerr:
-                raise IOError("FASTQ file error [{}]: {}".format(self.name, fqerr))
-
+                raise IOError("FASTQ file error [{}]: {}".format(self.name,
+                                                                 fqerr))
 
     def serialize(self):
         """
-        Format this object (and its children) as a config object suitable for dumping to a config file.
+        Format this object (and its children) as a config object suitable for
+        dumping to a config file.
         """
         cfg = VariantSeqLib.serialize(self)
 
         cfg['fastq'] = self.serialize_fastq()
 
         return cfg
-
 
     def configure_fastq(self, cfg):
         """
@@ -92,15 +92,15 @@ class BasicSeqLib(VariantSeqLib):
 
             self.filters = cfg['fastq']['filters']
         except KeyError as key:
-            raise KeyError("Missing required config value {key} [{name}]".format(key=key, name=self.name))
-
+            raise KeyError("Missing required config value {key} [{name}]"
+                           "".format(key=key, name=self.name))
 
     def serialize_fastq(self):
         """
         Serialize this object's FASTQ_ file handling and filtering options.
         """
         fastq = {
-            'filters' : self.serialize_filters()
+            'filters': self.serialize_filters()
         }
         fastq['reads'] = self.reads
 
@@ -117,48 +117,56 @@ class BasicSeqLib(VariantSeqLib):
 
         return fastq
 
+    def counts_from_reads(self):
+        """
+        Reads the forward or reverse FASTQ_ file (reverse reads are
+        reverse-complemented), performs quality-based filtering, and counts
+        the variants.
+        """
+        df_dict = dict()
+
+        logging.info("Counting variants", extra={'oname': self.name})
+        max_mut_variants = 0
+        for fq in read_fastq(self.reads):
+            fq.trim_length(self.trim_length, start=self.trim_start)
+            if self.revcomp_reads:
+                fq.revcomp()
+
+            if self.read_quality_filter(fq):
+                mutations = self.count_variant(fq.sequence)
+                if mutations is None:  # too many mutations
+                    max_mut_variants += 1
+                    if self.report_filtered:
+                        self.report_filtered_variant(fq.sequence, 1)
+                else:
+                    try:
+                        df_dict[mutations] += 1
+                    except KeyError:
+                        df_dict[mutations] = 1
+
+        self.save_counts('variants', df_dict, raw=True)
+        del df_dict
+
+        if self.aligner is not None:
+            logging.info("Aligned {} variants".format(self.aligner.calls),
+                         extra={'oname': self.name})
+            self.aligner_cache = None
+        logging.info("Removed {} total variants with excess mutations"
+                     "".format(max_mut_variants), extra={'oname': self.name})
+        self.save_filter_stats()
 
     def calculate(self):
         """
-        Reads the forward or reverse FASTQ file (reverse reads are reverse-complemented),
-        performs quality-based filtering, and counts the variants.
+        Counts variants from counts file or FASTQ.
         """
         if not self.check_store("/main/variants/counts"):
             if not self.check_store("/raw/variants/counts"):
                 if self.counts_file is not None:
-                    self.copy_raw()
-                else:   # count everything
-                    df_dict = dict()
-
-                    logging.info("Counting variants", extra={'oname' : self.name})
-                    for fq in read_fastq(self.reads):
-                        fq.trim_length(self.trim_length, start=self.trim_start)
-                        if self.revcomp_reads:
-                            fq.revcomp()
-
-                        if self.read_quality_filter(fq): # passed quality filtering
-                            mutations = self.count_variant(fq.sequence)
-                            if mutations is None: # read has too many mutations
-                                self.filter_stats['max mutations'] += 1
-                                self.filter_stats['total'] += 1
-                                if self.report_filtered:
-                                    self.report_filtered_read(fq, filter_flags)
-                            else:
-                                try:
-                                    df_dict[mutations] += 1
-                                except KeyError:
-                                    df_dict[mutations] = 1
-
-                    self.save_counts('variants', df_dict, raw=True)
-                    del df_dict
-
-                    if self.aligner is not None:
-                        logging.info("Aligned {} variants".format(self.aligner.calls), extra={'oname' : self.name})
-                        self.aligner_cache = None
-                    #self.report_filter_stats()
-                    self.save_filter_stats()
-
-            self.save_filtered_counts('variants', "count >= self.variant_min_count")
+                    self.counts_from_file(self.counts_file)
+                else:
+                    self.counts_from_reads()
+            self.save_filtered_counts('variants',
+                                      "count >= self.variant_min_count")
         self.count_synonymous()
 
 

@@ -1,4 +1,4 @@
-#  Copyright 2016 Alan F Rubin
+#  Copyright 2016-2017 Alan F Rubin
 #
 #  This file is part of Enrich2.
 #
@@ -16,10 +16,10 @@
 #  along with Enrich2.  If not, see <http://www.gnu.org/licenses/>.
 
 import tkinter as tk
-import tkinter.ttk
-import tkinter.simpledialog
-import tkinter.messagebox
-import tkinter.filedialog
+import tkinter.ttk as ttk
+import tkinter.simpledialog as tkSimpleDialog
+import tkinter.messagebox as tkMessageBox
+import tkinter.filedialog as tkFileDialog
 
 
 def subtree_ids(treeview, x, level=0):
@@ -35,7 +35,7 @@ def subtree_ids(treeview, x, level=0):
     return id_list
 
 
-class DeleteDialog(tkinter.simpledialog.Dialog):
+class DeleteDialog(tkSimpleDialog.Dialog):
     """
     Confirmation dialog box for deleting the selected items from the Treeview.
     """
@@ -45,7 +45,7 @@ class DeleteDialog(tkinter.simpledialog.Dialog):
         for x in self.tree.treeview.selection():
             if x not in [y[0] for y in self.id_tuples]:
                 self.id_tuples.extend(subtree_ids(self.tree.treeview, x))
-        tkinter.simpledialog.Dialog.__init__(self, parent_window, title)
+        tkSimpleDialog.Dialog.__init__(self, parent_window, title)
 
 
     def body(self, master):
@@ -66,7 +66,7 @@ class DeleteDialog(tkinter.simpledialog.Dialog):
                 else:
                     bullet = "    " * (level + 1) + u"\u25C7"
                 message_string += u"{bullet} {name}\n".format(bullet=bullet, name=self.tree.get_element(x).name)
-        message = tkinter.ttk.Label(master, text=message_string, justify="left")
+        message = ttk.Label(master, text=message_string, justify="left")
         message.grid(row=0, sticky="w")
 
 
@@ -84,7 +84,7 @@ class DeleteDialog(tkinter.simpledialog.Dialog):
 
             box.pack()
         else:
-            tkinter.simpledialog.Dialog.buttonbox(self)
+            tkSimpleDialog.Dialog.buttonbox(self)
 
 
     def apply(self):

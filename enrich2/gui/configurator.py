@@ -1,4 +1,4 @@
-#  Copyright 2016 Alan F Rubin
+#  Copyright 2016-2017 Alan F Rubin
 #
 #  This file is part of Enrich2.
 #
@@ -16,10 +16,9 @@
 #  along with Enrich2.  If not, see <http://www.gnu.org/licenses/>.
 
 import tkinter as tk
-import tkinter.ttk
-import tkinter.simpledialog
-import tkinter.messagebox
-import tkinter.filedialog
+import tkinter.ttk as ttk
+import tkinter.messagebox as tkMessageBox
+import tkinter.filedialog as tkFileDialog
 
 import platform
 import json
@@ -37,12 +36,10 @@ from ..basic import BasicSeqLib
 from ..barcodevariant import BcvSeqLib
 from ..barcode import BarcodeSeqLib
 from ..overlap import OverlapSeqLib
+from ..idonly import IdOnlySeqLib
 from ..seqlib import SeqLib
 from ..variant import VariantSeqLib
 from ..storemanager import SCORING_METHODS, LOGR_METHODS
-
-available_scoring_methods = SCORING_METHODS
-available_logr_methods = LOGR_METHODS
 
 
 def write_json(d, handle):
@@ -105,13 +102,13 @@ class Configurator(tk.Tk):
 
     def create_main_frame(self):
         # Frame for the Treeview and New/Edit/Delete buttons
-        main = tkinter.ttk.Frame(self, padding=(3, 3, 12, 12))
+        main = ttk.Frame(self, padding=(3, 3, 12, 12))
         main.rowconfigure(0, weight=1)
         main.columnconfigure(0, weight=1)
         main.grid(row=0, column=0, sticky="nsew")
 
         # Frame for the Treeview and its scrollbars
-        tree_frame = tkinter.ttk.Frame(main, padding=(3, 3, 12, 12))
+        tree_frame = ttk.Frame(main, padding=(3, 3, 12, 12))
         tree_frame.rowconfigure(0, weight=1)
         tree_frame.rowconfigure(1, weight=0)
         tree_frame.columnconfigure(0, weight=1)
@@ -119,7 +116,7 @@ class Configurator(tk.Tk):
         tree_frame.grid(row=0, column=0, sticky="nsew")
 
         # Treeview with column headings
-        self.treeview = tkinter.ttk.Treeview(tree_frame)
+        self.treeview = ttk.Treeview(tree_frame)
         self.treeview["columns"] = ("class", "barcodes", "variants")
         self.treeview.column("class", width=120)
         self.treeview.heading("class", text="Type")
@@ -140,77 +137,77 @@ class Configurator(tk.Tk):
         self.treeview.config(yscroll=tree_ysb.set, xscroll=tree_xsb.set)
 
         # Frame for New/Edit/Delete buttons
-        button_frame = tkinter.ttk.Frame(main, padding=(3, 3, 12, 12))
+        button_frame = ttk.Frame(main, padding=(3, 3, 12, 12))
         button_frame.grid(row=1, column=0)
-        new_button = tkinter.ttk.Button(button_frame, text="New...", command=self.new_button_press)
+        new_button = ttk.Button(button_frame, text="New...", command=self.new_button_press)
         new_button.grid(row=0, column=0)
-        edit_button = tkinter.ttk.Button(button_frame, text="Edit...", command=self.edit_button_press)
+        edit_button = ttk.Button(button_frame, text="Edit...", command=self.edit_button_press)
         edit_button.grid(row=0, column=1)
-        delete_button = tkinter.ttk.Button(button_frame, text="Delete", command=self.delete_button_press)
+        delete_button = ttk.Button(button_frame, text="Delete", command=self.delete_button_press)
         delete_button.grid(row=0, column=2)
 
         # Frame for Analysis Options
-        options_frame = tkinter.ttk.Frame(main, padding=(3, 3, 12, 12))
+        options_frame = ttk.Frame(main, padding=(3, 3, 12, 12))
         options_frame.grid(row=0, column=1, rowspan=2, sticky="nsew")
 
         row = 0
-        heading = tkinter.ttk.Label(options_frame, text="Analysis Options")
+        heading = ttk.Label(options_frame, text="Analysis Options")
         heading.grid(column=0, row=row)
         row += 1
 
-        scoring_heading = tkinter.ttk.Label(options_frame, text="Scoring Method")
+        scoring_heading = ttk.Label(options_frame, text="Scoring Method")
         scoring_heading.grid(column=0, row=row)
         row += 1
         for i, k in enumerate(SCORING_METHODS.keys()):
-            rb = tkinter.ttk.Radiobutton(options_frame, text=available_scoring_methods[k].title(), variable=self.scoring_method, value=k)
+            rb = ttk.Radiobutton(options_frame, text=SCORING_METHODS[k].title(), variable=self.scoring_method, value=k)
             rb.grid(column=0, row=row, sticky="w")
             row += 1
             if i == 0:
                 rb.invoke()
 
-        logr_heading = tkinter.ttk.Label(options_frame, text="Normalization Method")
+        logr_heading = ttk.Label(options_frame, text="Normalization Method")
         logr_heading.grid(column=0, row=row)
         row += 1
         for i, k in enumerate(LOGR_METHODS.keys()):
-            rb = tkinter.ttk.Radiobutton(options_frame, text=available_logr_methods[k].title(), variable=self.logr_method, value=k)
+            rb = ttk.Radiobutton(options_frame, text=LOGR_METHODS[k].title(), variable=self.logr_method, value=k)
             rb.grid(column=0, row=row, sticky="w")
             row += 1
             if i == 0:
                 rb.invoke()
 
-        other_heading = tkinter.ttk.Label(options_frame, text="Other Options")
+        other_heading = ttk.Label(options_frame, text="Other Options")
         other_heading.grid(column=0, row=row)
         row += 1
 
         # force recalculate
-        force_recalculate = tkinter.ttk.Checkbutton(options_frame, text="Force Recalculation", variable=self.force_recalculate)
+        force_recalculate = ttk.Checkbutton(options_frame, text="Force Recalculation", variable=self.force_recalculate)
         force_recalculate.grid(column=0, row=row, sticky="w")
         row += 1
 
         # component outliers
-        component_outliers = tkinter.ttk.Checkbutton(options_frame, text="Component Outlier Statistics", variable=self.component_outliers)
+        component_outliers = ttk.Checkbutton(options_frame, text="Component Outlier Statistics", variable=self.component_outliers)
         component_outliers.grid(column=0, row=row, sticky="w")
         row += 1
 
         # make plots
-        plots_requested = tkinter.ttk.Checkbutton(options_frame, text="Make Plots", variable=self.plots_requested)
+        plots_requested = ttk.Checkbutton(options_frame, text="Make Plots", variable=self.plots_requested)
         plots_requested.grid(column=0, row=row, sticky="w")
         plots_requested.invoke()
         row += 1
 
         # write tsv
-        tsv_requested = tkinter.ttk.Checkbutton(options_frame, text="Write TSV Files", variable=self.tsv_requested)
+        tsv_requested = ttk.Checkbutton(options_frame, text="Write TSV Files", variable=self.tsv_requested)
         tsv_requested.grid(column=0, row=row, sticky="w")
         tsv_requested.invoke()
         row += 1
 
-        go_button = tkinter.ttk.Button(options_frame, text="Run Analysis", command=self.go_button_press)
+        go_button = ttk.Button(options_frame, text="Run Analysis", command=self.go_button_press)
         go_button.grid(column=0, row=row, sticky="sew")
 
 
     def go_button_press(self):
         if self.root_element is None:
-            tkinter.messagebox.showwarning("", "No experimental design specified.")
+            tkMessageBox.showwarning("", "No experimental design specified.")
         else:
             RunnerSavePrompt(self)
             RunnerWindow(self)
@@ -254,7 +251,7 @@ class Configurator(tk.Tk):
 
     def new_button_press(self):
         if self.treeview.focus() == "" and self.root_element is not None:
-            tkinter.messagebox.showwarning(None, "No parent element selected.")
+            tkMessageBox.showwarning(None, "No parent element selected.")
         else: 
             if self.treeview.focus() == "" and self.root_element is None:
                 element = CreateRootDialog(self).element
@@ -269,7 +266,7 @@ class Configurator(tk.Tk):
             self.refresh_treeview()
 
             # select the newly added element if it was successfully added
-            if element.treeview_id in list(self.element_dict.keys()):
+            if element.treeview_id in self.element_dict.keys():
                 self.treeview.focus(element.treeview_id)
                 self.treeview.selection_set(element.treeview_id)
             else:
@@ -282,14 +279,14 @@ class Configurator(tk.Tk):
 
     def edit_button_press(self):
         if self.treeview.focus() == "":
-            tkinter.messagebox.showwarning(None, "No element selected.")
+            tkMessageBox.showwarning(None, "No element selected.")
         else:
             EditDialog(self, self, self.get_focused_element())
 
 
     def delete_button_press(self):
         if self.treeview.focus() == "":
-            tkinter.messagebox.showwarning(None, "No element selected.")
+            tkMessageBox.showwarning(None, "No element selected.")
         else:
             DeleteDialog(self, self)
 
@@ -331,15 +328,15 @@ class Configurator(tk.Tk):
 
 
     def menu_open(self):
-        fname = tkinter.filedialog.askopenfilename()
+        fname = tkFileDialog.askopenfilename()
         if len(fname) > 0:  # file was selected
             try:
                 with open(fname, "rU") as handle:
                     cfg = json.load(handle)
             except ValueError:
-                tkinter.messagebox.showerror(None, "Failed to parse config file.")
+                tkMessageBox.showerror(None, "Failed to parse config file.")
             except IOError:
-                tkinter.messagebox.showerror(None, "Could not read config file.")
+                tkMessageBox.showerror(None, "Could not read config file.")
             else:
                 if is_experiment(cfg):
                     obj = Experiment()
@@ -349,13 +346,13 @@ class Configurator(tk.Tk):
                     sltype = seqlib_type(cfg)
                     obj = globals()[sltype]()
                 else:
-                    tkinter.messagebox.showerror(None, "Unrecognized config format.")
+                    tkMessageBox.showerror(None, "Unrecognized config format.")
                     return
                 obj.output_dir_override = False
                 try:
                     obj.configure(cfg)
                 except Exception as e:
-                    tkinter.messagebox.showerror(None, "Failed to process config file:\n{}".format(e))
+                    tkMessageBox.showerror(None, "Failed to process config file:\n{}".format(e))
                 else:
                     self.root_element = obj
                     self.cfg_file_name.set(fname)
@@ -366,31 +363,31 @@ class Configurator(tk.Tk):
         if len(self.cfg_file_name.get()) == 0:
             self.menu_saveas()
         elif self.root_element is None:
-            tkinter.messagebox.showwarning(None, "Cannot save empty configuration.")
+            tkMessageBox.showwarning(None, "Cannot save empty configuration.")
         else:
             try:
                 with open(self.cfg_file_name.get(), "w") as handle:
                     write_json(self.root_element.serialize(), handle)
             except IOError:
-                tkinter.messagebox.showerror(None, "Failed to save config file.")
+                tkMessageBox.showerror(None, "Failed to save config file.")
             else:
-                tkinter.messagebox.showinfo(None, "Save successful:\n{}".format(self.cfg_file_name.get()))
+                tkMessageBox.showinfo(None, "Save successful:\n{}".format(self.cfg_file_name.get()))
 
 
     def menu_saveas(self):
         if self.root_element is None:
-            tkinter.messagebox.showwarning(None, "Cannot save empty configuration.")
+            tkMessageBox.showwarning(None, "Cannot save empty configuration.")
         else:
-            fname = tkinter.filedialog.asksaveasfilename()
+            fname = tkFileDialog.asksaveasfilename()
             if len(fname) > 0:  # file was selected
                 try:
                     with open(fname, "w") as handle:
                         write_json(self.root_element.serialize(), handle)
                 except IOError:
-                    tkinter.messagebox.showerror(None, "Failed to save config file.")
+                    tkMessageBox.showerror(None, "Failed to save config file.")
                 else:
                     self.cfg_file_name.set(fname)
-                    tkinter.messagebox.showinfo(None, "Save successful:\n{}".format(self.cfg_file_name.get()))
+                    tkMessageBox.showinfo(None, "Save successful:\n{}".format(self.cfg_file_name.get()))
 
 
     def menu_selectall(self):

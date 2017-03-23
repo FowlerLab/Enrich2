@@ -16,15 +16,14 @@
 #  along with Enrich2.  If not, see <http://www.gnu.org/licenses/>.
 
 import tkinter as tk
-import tkinter.ttk
-import tkinter.simpledialog
-import tkinter.messagebox
-import tkinter.filedialog
+import tkinter.ttk as ttk
+import tkinter.simpledialog as tkSimpleDialog
+import tkinter.messagebox as tkMessageBox
 import sys
 import logging
 
 
-class RunnerSavePrompt(tkinter.simpledialog.Dialog):
+class RunnerSavePrompt(tkSimpleDialog.Dialog):
     """
     Dialog box for prompting the user to save before running.
     """
@@ -34,14 +33,14 @@ class RunnerSavePrompt(tkinter.simpledialog.Dialog):
         self.dialog_text = tk.StringVar()
         self.dialog_text.set("Would you like to save your config changes?")
 
-        tkinter.simpledialog.Dialog.__init__(self, parent_window, title)
+        tkSimpleDialog.Dialog.__init__(self, parent_window, title)
 
 
     def body(self, master):
-        frame = tkinter.ttk.Frame(master, padding=(12, 6, 12, 6))
+        frame = ttk.Frame(master, padding=(12, 6, 12, 6))
         frame.pack()
 
-        dialog_text_label = tkinter.tkk.Label(frame, textvariable=self.dialog_text)
+        dialog_text_label = ttk.Label(frame, textvariable=self.dialog_text)
         dialog_text_label.grid(column=0, row=0, sticky="nsew")
 
 
@@ -50,7 +49,7 @@ class RunnerSavePrompt(tkinter.simpledialog.Dialog):
 
 
 
-class RunnerWindow(tkinter.simpledialog.Dialog):
+class RunnerWindow(tkSimpleDialog.Dialog):
     """
     Dialog box for blocking input while running the analysis.
     """
@@ -61,14 +60,14 @@ class RunnerWindow(tkinter.simpledialog.Dialog):
         self.dialog_text = tk.StringVar()
         self.dialog_text.set("Ready to start analysis...")
 
-        tkinter.simpledialog.Dialog.__init__(self, parent_window, title)
+        tkSimpleDialog.Dialog.__init__(self, parent_window, title)
 
 
     def body(self, master):
-        frame = tkinter.tkk.Frame(master, padding=(12, 6, 12, 6))
+        frame = ttk.Frame(master, padding=(12, 6, 12, 6))
         frame.pack()
 
-        dialog_text_label = tkinter.tkk.Label(frame, textvariable=self.dialog_text)
+        dialog_text_label = ttk.Label(frame, textvariable=self.dialog_text)
         dialog_text_label.grid(column=0, row=0, sticky="nsew")
 
         self.run_button = tk.Button(frame, text="Begin", width=10, command=self.runner, default="active")
@@ -109,7 +108,7 @@ class RunnerWindow(tkinter.simpledialog.Dialog):
         except Exception as e:
             # display error
             logging.error(e, extra={'oname' : self.pw.root_element.name})
-            tkinter.messagebox.showerror("Enrich2 Error", "Enrich2 encountered an error:\n{}".format(e))
+            tkMessageBox.showerror("Enrich2 Error", "Enrich2 encountered an error:\n{}".format(e))
 
         else:
             # no exception occurred during calculation and setup
@@ -118,15 +117,15 @@ class RunnerWindow(tkinter.simpledialog.Dialog):
                 try:
                     self.pw.root_element.make_plots()
                 except Exception as e:
-                    tkinter.messagebox.showwarning(None, "Calculations completed, but plotting failed:\n{}".format(e))
+                    tkMessageBox.showwarning(None, "Calculations completed, but plotting failed:\n{}".format(e))
             if self.pw.tsv_requested.get():
                 try:
                     self.pw.root_element.write_tsv()
                 except Exception as e:
-                    tkinter.messagebox.showwarning(None, "Calculations completed, but tsv output failed:\n{}".format(e))
+                    tkMessageBox.showwarning(None, "Calculations completed, but tsv output failed:\n{}".format(e))
 
             # show the dialog box
-            tkinter.messagebox.showinfo("", "Analysis completed.")
+            tkMessageBox.showinfo("", "Analysis completed.")
 
         finally:
             # close the HDF5 files
