@@ -18,8 +18,6 @@
 import tkinter as tk
 import tkinter.ttk as ttk
 import tkinter.simpledialog as tkSimpleDialog
-import tkinter.messagebox as tkMessageBox
-import tkinter.filedialog as tkFileDialog
 
 
 def subtree_ids(treeview, x, level=0):

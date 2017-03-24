@@ -358,8 +358,7 @@ class StoreManager(object):
         The plot directory is ``<output directory>/plots/<object name>/``.
         """
         if self._plot_dir is None:
-            dirname = os.path.join(
-                self.output_dir, "plots", "{}_{}".format(
+            dirname = os.path.join(self.output_dir, "plots", "{}_{}".format(
                     fix_filename(self.name), self.store_suffix))
             try:
                 if not os.path.exists(dirname):
@@ -378,8 +377,7 @@ class StoreManager(object):
         The plot directory is ``<output directory>/tsv/<object name>/``.
         """
         if self._tsv_dir is None:
-            dirname = os.path.join(
-                self.output_dir, "tsv",  "{}_{}".format(
+            dirname = os.path.join(self.output_dir, "tsv",  "{}_{}".format(
                     fix_filename(self.name), self.store_suffix))
             try:
                 if not os.path.exists(dirname):

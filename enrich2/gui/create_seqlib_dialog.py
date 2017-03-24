@@ -18,19 +18,7 @@
 import tkinter as tk
 import tkinter.ttk as ttk
 import tkinter.simpledialog as tkSimpleDialog
-
-import json
-from copy import deepcopy
 from collections import OrderedDict
-from ..basic import BasicSeqLib
-from ..barcodevariant import BcvSeqLib
-from ..barcodeid import BcidSeqLib
-from ..barcode import BarcodeSeqLib
-from ..overlap import OverlapSeqLib
-from ..seqlib import SeqLib
-from ..variant import VariantSeqLib
-from ..idonly import IdOnlySeqLib
-
 
 seqlib_label_text = OrderedDict([("BcvSeqLib", "Barcoded Variant"),
                                  ("BcidSeqLib", "Barcoded Identifier"),

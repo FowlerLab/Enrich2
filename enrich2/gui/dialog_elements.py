@@ -19,7 +19,6 @@ import tkinter as tk
 import tkinter.ttk as ttk
 import tkinter.messagebox as tkMessageBox
 import tkinter.filedialog as tkFileDialog
-import re
 import os.path
 
 DEFAULT_COLUMNS = 3

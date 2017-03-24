@@ -62,8 +62,9 @@ class Aligner(object):
         if 'gap' in similarity_keys:
             similarity_keys.remove('gap')
         for key in similarity_keys:
-            if not all(x in similarity[key] for x in similarity_keys) or \
-                    len(similarity[key]) != len(similarity_keys):
+            clause_1 = all(x in similarity[key] for x in similarity_keys)
+            clause_2 = len(similarity[key]) != len(similarity_keys)
+            if not clause_1 or clause_2:
                 raise ValueError("Asymmetrical alignment scoring matrix")
 
         self.similarity = similarity
@@ -86,9 +87,10 @@ class Aligner(object):
         For indels, the ``length`` value is the number of bases inserted or
         deleted with respect to *seq1* starting at ``i``.
         """
-        self.matrix = np.ndarray(shape=(len(seq1) + 1, len(seq2) + 1),
-                                 dtype=np.dtype([('score', np.int),
-                                                 ('trace', np.byte)]))
+        self.matrix = np.ndarray(
+            shape=(len(seq1) + 1, len(seq2) + 1),
+            dtype=np.dtype([('score', np.int), ('trace', np.byte)])
+        )
         seq1 = seq1.upper()
         seq2 = seq2.upper()
 

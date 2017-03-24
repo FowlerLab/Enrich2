@@ -18,24 +18,8 @@
 import tkinter as tk
 import tkinter.ttk as ttk
 import tkinter.simpledialog as tkSimpleDialog
-import tkinter.messagebox as tkMessageBox
-import tkinter.filedialog as tkFileDialog
 
-import json
-from copy import deepcopy
-from collections import OrderedDict
 from .dialog_elements import FileEntry, StringEntry, DEFAULT_COLUMNS
-from ..experiment import Experiment
-from ..condition import Condition
-from ..selection import Selection
-from ..basic import BasicSeqLib
-from ..barcodevariant import BcvSeqLib
-from ..barcodeid import BcidSeqLib
-from ..barcode import BarcodeSeqLib
-from ..overlap import OverlapSeqLib
-from ..seqlib import SeqLib
-from ..variant import VariantSeqLib
-from ..idonly import IdOnlySeqLib
 from .create_seqlib_dialog import seqlib_label_text
 
 
