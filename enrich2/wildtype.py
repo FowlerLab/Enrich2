@@ -18,8 +18,9 @@
 
 import logging
 import re
+
+from enrich2.base.utils import pretty_class_str
 from .constants import CODON_TABLE
-from .utils import pretty_class_str
 
 
 class WildTypeSequence(object):
