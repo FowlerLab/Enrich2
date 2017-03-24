@@ -15,14 +15,18 @@
 #  You should have received a copy of the GNU General Public License
 #  along with Enrich2.  If not, see <http://www.gnu.org/licenses/>.
 
+
+import os.path
 import logging
+import pandas as pd
+
+from matplotlib.backends.backend_pdf import PdfPages
+
 from .seqlib import SeqLib
 from .barcode import BarcodeSeqLib
 from .barcodemap import BarcodeMap
-import pandas as pd
 from .plots import barcodemap_plot
-from matplotlib.backends.backend_pdf import PdfPages
-import os.path
+
 
 class BcidSeqLib(BarcodeSeqLib):
     """
@@ -45,7 +49,6 @@ class BcidSeqLib(BarcodeSeqLib):
         self.identifier_min_count = None
         self.add_label('identifiers')
 
-
     def configure(self, cfg, barcode_map=None):
         """
         Set up the object using the config object *cfg*, usually derived from 
@@ -54,7 +57,9 @@ class BcidSeqLib(BarcodeSeqLib):
         BarcodeSeqLib.configure(self, cfg)
         try:
             if 'min count' in cfg['identifiers']:
-                self.identifier_min_count = int(cfg['identifiers']['min count'])
+                self.identifier_min_count = int(
+                    cfg['identifiers']['min count']
+                )
             else:
                 self.identifier_min_count = 0
 
@@ -62,16 +67,23 @@ class BcidSeqLib(BarcodeSeqLib):
                 if barcode_map.filename == cfg['barcodes']['map file']:
                     self.barcode_map = barcode_map
                 else:
-                    raise ValueError("Attempted to assign non-matching barcode map [{}]".format(self.name))
+                    raise ValueError("Attempted to assign "
+                                     "non-matching "
+                                     "barcode map [{}]".format(self.name))
             else:
-                self.barcode_map = BarcodeMap(cfg['barcodes']['map file'], is_variant=False)
+                self.barcode_map = BarcodeMap(
+                    mapfile=cfg['barcodes']['map file'],
+                    is_variant=False
+                )
         except KeyError as key:
-            raise KeyError("Missing required config value {key} [{name}]".format(key=key, name=self.name))
-
+            raise KeyError("Configuration Error: Missing "
+                           "required config value "
+                           "{key} [{name}]".format(key=key, name=self.name))
 
     def serialize(self):
         """
-        Format this object (and its children) as a config object suitable for dumping to a config file.
+        Format this object (and its children) as a config
+        object suitable for dumping to a config file.
         """
         cfg = BarcodeSeqLib.serialize(self)
 
@@ -79,25 +91,32 @@ class BcidSeqLib(BarcodeSeqLib):
         if self.identifier_min_count > 0:
             cfg['identifiers']['min count'] = self.identifier_min_count
 
-        if self.barcode_map is not None:    # required for creating new objects in GUI
+        # required for creating new objects in GUI
+        if self.barcode_map is not None:
             cfg['barcodes']['map file'] = self.barcode_map.filename
 
         return cfg
 
-
     def calculate(self):
         """
-        Counts the barcodes using :py:meth:`BarcodeSeqLib.count` and combines them into 
-        identifier counts using the :py:class:`BarcodeMap`.
+        Counts the barcodes using :py:meth:`BarcodeSeqLib.count` and combines
+        them into identifier counts using the :py:class:`BarcodeMap`.
         """
         if not self.check_store("/main/identifiers/counts"):
             BarcodeSeqLib.calculate(self) # count the barcodes
             df_dict = dict()
             barcode_identifiers = dict()
 
-            logging.info("Converting barcodes to identifiers", extra={'oname' : self.name})
+            logging.info(
+                msg="Converting barcodes to identifiers",
+                extra={'oname' : self.name}
+            )
             # store mapped barcodes
-            self.save_filtered_counts("barcodes", "index in self.barcode_map.keys() & count >= self.barcode_min_count")
+            self.save_filtered_counts(
+                label="barcodes",
+                query="index in self.barcode_map.keys() & "
+                      "count >= self.barcode_min_count"
+            )
 
             # count identifiers associated with the barcodes
             for bc, count in self.store['/main/barcodes/counts'].iterrows():
@@ -110,32 +129,38 @@ class BcidSeqLib(BarcodeSeqLib):
                 barcode_identifiers[bc] = identifier
 
             # save counts, filtering based on the min count
-            self.save_counts('identifiers', {k:v for k,v in df_dict.items() if v >= self.identifier_min_count}, raw=False)
+            min_counts = {
+                k: v for k, v in df_dict.items()
+                if v >= self.identifier_min_count
+            }
+            self.save_counts('identifiers', min_counts, raw=False)
             del df_dict
 
             # write the active subset of the BarcodeMap to the store
             barcodes = list(barcode_identifiers.keys())
-            barcode_identifiers = pd.DataFrame({'value' : [barcode_identifiers[bc] for bc in barcodes]}, index=barcodes)
+            data = {'value' : [barcode_identifiers[bc] for bc in barcodes]}
+            barcode_identifiers = pd.DataFrame(data, index=barcodes)
             del barcodes
             barcode_identifiers.sort_values('value', inplace=True)
-            self.store.put("/raw/barcodemap", barcode_identifiers, data_columns=barcode_identifiers.columns, format="table")
+            self.store.put(
+                "/raw/barcodemap",
+                barcode_identifiers,
+                data_columns=barcode_identifiers.columns,
+                format="table"
+            )
             del barcode_identifiers
-
             #self.report_filter_stats()
             self.save_filter_stats()
-        
 
-
-    def make_plots(self):
+    def make_plots(self, subdirectory=None, keys=None):
         """
         Make plots for :py:class:`~seqlib.seqlib.BcidSeqLib` objects.
-
         Creates plot of the number of barcodes mapping to each identifier.
         """
         if self.plots_requested:
             SeqLib.make_plots(self)
             # open the PDF file
-            pdf = PdfPages(os.path.join(self.plot_dir, "barcodes_per_identifier.pdf"))
+            path = os.path.join(self.plot_dir, "barcodes_per_identifier.pdf")
+            pdf = PdfPages(path)
             barcodemap_plot(self, pdf)
             pdf.close()
-

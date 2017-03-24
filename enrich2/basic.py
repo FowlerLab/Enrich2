@@ -15,11 +15,12 @@
 #  You should have received a copy of the GNU General Public License
 #  along with Enrich2.  If not, see <http://www.gnu.org/licenses/>.
 
+
+import sys
+import logging
+
 from .variant import VariantSeqLib
 from .fqread import read_fastq, split_fastq_path
-import pandas as pd
-import logging
-import sys
 
 
 class BasicSeqLib(VariantSeqLib):
@@ -54,8 +55,9 @@ class BasicSeqLib(VariantSeqLib):
                     raise IOError("FASTQ file error: unrecognized extension "
                                   "[{}]".format(self.name))
             except IOError as fqerr:
-                raise IOError("FASTQ file error [{}]: {}".format(self.name,
-                                                                 fqerr))
+                raise IOError(
+                    "FASTQ file error [{}]: {}".format(self.name, fqerr)
+                )
 
     def serialize(self):
         """
@@ -63,9 +65,7 @@ class BasicSeqLib(VariantSeqLib):
         dumping to a config file.
         """
         cfg = VariantSeqLib.serialize(self)
-
         cfg['fastq'] = self.serialize_fastq()
-
         return cfg
 
     def configure_fastq(self, cfg):
@@ -99,9 +99,7 @@ class BasicSeqLib(VariantSeqLib):
         """
         Serialize this object's FASTQ_ file handling and filtering options.
         """
-        fastq = {
-            'filters': self.serialize_filters()
-        }
+        fastq = dict(filters=self.serialize_filters())
         fastq['reads'] = self.reads
 
         if self.revcomp_reads:
@@ -126,6 +124,7 @@ class BasicSeqLib(VariantSeqLib):
         df_dict = dict()
 
         logging.info("Counting variants", extra={'oname': self.name})
+
         max_mut_variants = 0
         for fq in read_fastq(self.reads):
             fq.trim_length(self.trim_length, start=self.trim_start)
@@ -148,11 +147,17 @@ class BasicSeqLib(VariantSeqLib):
         del df_dict
 
         if self.aligner is not None:
-            logging.info("Aligned {} variants".format(self.aligner.calls),
-                         extra={'oname': self.name})
+            logging.info(
+                "Aligned {} variants".format(self.aligner.calls),
+                extra={'oname': self.name}
+            )
             self.aligner_cache = None
-        logging.info("Removed {} total variants with excess mutations"
-                     "".format(max_mut_variants), extra={'oname': self.name})
+
+        logging.info(
+            msg="Removed {} total variants with excess "
+            "mutations".format(max_mut_variants),
+            extra={'oname': self.name}
+        )
         self.save_filter_stats()
 
     def calculate(self):
@@ -165,8 +170,9 @@ class BasicSeqLib(VariantSeqLib):
                     self.counts_from_file(self.counts_file)
                 else:
                     self.counts_from_reads()
-            self.save_filtered_counts('variants',
-                                      "count >= self.variant_min_count")
+            self.save_filtered_counts(
+                'variants', "count >= self.variant_min_count"
+            )
         self.count_synonymous()
 
 

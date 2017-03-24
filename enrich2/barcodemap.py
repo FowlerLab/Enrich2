@@ -15,10 +15,12 @@
 #  You should have received a copy of the GNU General Public License
 #  along with Enrich2.  If not, see <http://www.gnu.org/licenses/>.
 
+
 import re
-import gzip
 import bz2
+import gzip
 import os.path
+
 
 re_barcode = re.compile("^[ACGT]+$")
 re_variant_dna = re.compile("^[ACGTN]+$")
@@ -61,8 +63,8 @@ class BarcodeMap(dict):
                 handle = open(mapfile, "rt")
         except IOError:
             raise IOError(
-                "Could not open barcode map file '{}' [{}]".format(mapfile,
-                                                                   self.name))
+                "Could not open barcode map file '{}' [{}]".format(
+                    mapfile, self.name))
 
         # handle each line
         for line in handle:
@@ -99,4 +101,3 @@ class BarcodeMap(dict):
                 self[barcode] = value
 
         handle.close()
-

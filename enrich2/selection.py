@@ -16,31 +16,27 @@
 #  along with Enrich2.  If not, see <http://www.gnu.org/licenses/>.
 
 
-from .basic import BasicSeqLib
-from .barcodevariant import BcvSeqLib
-from .barcodeid import BcidSeqLib
-from .barcode import BarcodeSeqLib
-from .overlap import OverlapSeqLib
-from .idonly import IdOnlySeqLib
-from .config_check import seqlib_type
-from .storemanager import StoreManager
 import os
-import re
-import math
-import itertools
-import time
+import logging
 import pandas as pd
 import numpy as np
-import logging
+
+import scipy.stats as stats
 import statsmodels.api as sm
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_pdf import PdfPages
-import scipy.stats as stats
+
+from .barcodevariant import BcvSeqLib
+from .barcodeid import BcidSeqLib
+from .config_check import seqlib_type
+from .storemanager import StoreManager
 from .sfmap import sfmap_plot
-from .plots import fit_axes, fit_axes_text, volcano_plot, configure_axes, plot_colors, weights_plot
-from .constants import WILD_TYPE_VARIANT, SYNONYMOUS_VARIANT, AA_CODES
+from .plots import fit_axes, fit_axes_text, volcano_plot
+from .plots import configure_axes, plot_colors, weights_plot
+from .constants import WILD_TYPE_VARIANT, SYNONYMOUS_VARIANT
 from .variant import protein_variant
 from .dataframe import singleton_dataframe
+
 
 def regression_apply(row, timepoints, weighted):
     """
@@ -75,7 +71,6 @@ def regression_apply(row, timepoints, weighted):
     return pd.Series(data=values, index=index)
 
 
-
 class Selection(StoreManager):
     """
     Class for a single selection replicate, consisting of multiple 
@@ -92,7 +87,6 @@ class Selection(StoreManager):
         self.barcode_maps = dict()
         self._wt = None
 
-
     def _children(self):
         """
         Return the :py:class:`~seqlib.seqlib.SeqLib` objects as a list, 
@@ -102,7 +96,6 @@ class Selection(StoreManager):
         for tp in self.timepoints:
             libs.extend(sorted(self.libraries[tp], key=lambda x: x.name))
         return libs
-
 
     def remove_child_id(self, tree_id):
         """
@@ -120,11 +113,9 @@ class Selection(StoreManager):
         if empty is not None:
             del self.libraries[empty]
 
-
     @property
     def timepoints(self):
         return sorted(self.libraries.keys())
-
 
     @property
     def wt(self):
@@ -134,10 +125,10 @@ class Selection(StoreManager):
             return self._wt
         else:
             if self._wt is not None:
-                raise ValueError("Selection should not contain wild type sequence [{}]".format(self.name))
+                raise ValueError("Selection should not contain wild type "
+                                 "sequence [{}]".format(self.name))
             else:
                 return None
-        
 
     def configure(self, cfg, configure_children=True):
         """
@@ -150,7 +141,8 @@ class Selection(StoreManager):
         StoreManager.configure(self, cfg)
         if configure_children:
             if 'libraries' not in cfg:
-                raise KeyError("Missing required config value {} [{}]".format('libraries', self.name))
+                raise KeyError("Missing required config value "
+                               "{} [{}]".format('libraries', self.name))
 
             for lib_cfg in cfg['libraries']:
                 libtype = seqlib_type(lib_cfg)
@@ -161,43 +153,51 @@ class Selection(StoreManager):
                     # don't re-parse the barcode maps if possible
                     mapfile = lib_cfg['barcodes']['map file']
                     if mapfile in list(self.barcode_maps.keys()):
-                        lib.configure(lib_cfg, barcode_map=self.barcode_maps[mapfile])
+                        lib.configure(
+                            lib_cfg, barcode_map=self.barcode_maps[mapfile])
                     else:
                         lib.configure(lib_cfg)
                         self.barcode_maps[mapfile] = lib.barcode_map
                     self.add_child(lib)
                 else:
-                    # requires that the SeqLib derived classes be imported into the 
-                    # module namespace using "from x import y" style
+                    # requires that the SeqLib derived classes be
+                    # imported into the module namespace
+                    # using "from x import y" style
                     lib = globals()[libtype]()
                     lib.configure(lib_cfg)
                     self.add_child(lib)
 
-
     def validate(self):
         """
-        Raises an informative ``ValueError`` if the time points in the analysis are not suitable.
-
-        Calls validate method on all child SeqLibs.
+        Raises an informative ``ValueError`` if the time points in the
+        analysis are not suitable. Calls validate method on all child SeqLibs.
         """
         # check the time points
         if 0 not in self.timepoints:
             raise ValueError("Missing timepoint 0 [{}]".format(self.name))
+
         if self.timepoints[0] != 0:
             raise ValueError("Invalid negative timepoint [{}]".format(self.name))
+
         if len(self.timepoints) < 2:
             raise ValueError("Multiple timepoints required [{}]".format(self.name))
+
         elif len(self.timepoints) < 3 and self.scoring_method in ("WLS", "OLS"):
-            raise ValueError("Insufficient number of timepoints for regression scoring [{}]".format(self.name))
+            raise ValueError("Insufficient number of timepoints for "
+                             "regression scoring [{}]".format(self.name))
         
         # check the wild type sequences
         if self.has_wt_sequence():
             for child in self.children[1:]:
                 if self.children[0].wt != child.wt:
-                    logging.warning("Inconsistent wild type sequences", extra={'oname' : self.name})
+                    logging.warning(
+                        msg="Inconsistent wild type sequences",
+                        extra={'oname' : self.name}
+                    )
                     break
         
-        # check that we're not doing wild type normalization on something with no wild type
+        # check that we're not doing wild type normalization
+        # on something with no wild type
         if not self.has_wt_sequence() and self.logr_method == "wt":
             raise ValueError("No wild type sequence for wild "
                              "type normalization [{}]".format(self.name))
@@ -206,28 +206,24 @@ class Selection(StoreManager):
         for child in self.children:
             child.validate()
 
-
     def serialize(self):
         """
-        Format this object (and its children) as a config object suitable for dumping to a config file.
+        Format this object (and its children) as a config object
+        suitable for dumping to a config file.
         """
         cfg = StoreManager.serialize(self)
         cfg['libraries'] = [child.serialize() for child in self.children]
         return cfg
 
-
     def add_child(self, child):
         if child.name in self.child_names():
-            raise ValueError("Non-unique sequencing library name '{}' [{}]".format(child.name, self.name))
-
+            raise ValueError("Non-unique sequencing library name "
+                             "'{}' [{}]".format(child.name, self.name))
         child.parent = self
-
-        # add it to the libraries dictionary
         try:
             self.libraries[child.timepoint].append(child)
         except KeyError:
             self.libraries[child.timepoint] = [child]
-
 
     def is_barcodevariant(self):
         """
@@ -239,7 +235,6 @@ class Selection(StoreManager):
         return all(isinstance(lib, BcvSeqLib) for lib in self.children) and \
             len(list(self.barcode_maps.keys())) == 1
 
-
     def is_barcodeid(self):
         """
         Return ``True`` if all :py:class:`~seqlib.SeqLib` in the 
@@ -250,7 +245,6 @@ class Selection(StoreManager):
         return all(isinstance(lib, BcidSeqLib) for lib in self.children) and \
             len(list(self.barcode_maps.keys())) == 1
 
-
     def is_coding(self):
         """
         Return ``True`` if the all :py:class:`~seqlib.seqlib.SeqLib` in the 
@@ -259,7 +253,6 @@ class Selection(StoreManager):
         """
         return all(x.is_coding() for x in self.children)
 
-
     def has_wt_sequence(self):
         """
         Return ``True`` if the all :py:class:`~seqlib.seqlib.SeqLib` in the 
@@ -267,7 +260,6 @@ class Selection(StoreManager):
         ``False``.
         """
         return all(x.has_wt_sequence() for x in self.children)
-
 
     def merge_counts_unfiltered(self, label):
         """
@@ -281,7 +273,10 @@ class Selection(StoreManager):
             return
 
         # calculate counts for each SeqLib
-        logging.info("Counting for each time point ({})".format(label), extra={'oname' : self.name})
+        logging.info(
+            msg="Counting for each time point ({})".format(label),
+            extra={'oname' : self.name}
+        )
         for lib in self.children:
             lib.calculate()
 
@@ -290,9 +285,13 @@ class Selection(StoreManager):
 
         destination = "/main/{}/counts_unfiltered".format(label)
         if destination in list(self.store.keys()):
-            # need to remove the current destination table because we are using append
-            # append is required because it takes the "min_itemsize" argument, and put doesn't
-            logging.info("Replacing existing '{}'".format(destination), extra={'oname' : self.name})
+            # need to remove the current destination table because we are
+            # using append, append is required because it takes
+            # the "min_itemsize" argument, and put doesn't
+            logging.info(
+                msg="Replacing existing '{}'".format(destination),
+                extra={'oname' : self.name}
+            )
             self.store.remove(destination)
 
         # seqlib count table name for this element type
@@ -302,8 +301,12 @@ class Selection(StoreManager):
         complete_index = pd.Index([])
         for tp in self.timepoints:
             for lib in self.libraries[tp]:
-                complete_index = complete_index.union(pd.Index(lib.store.select_column(lib_table, 'index')))
-        logging.info("Created shared index for count data ({} {})".format(len(complete_index), label), extra={'oname' : self.name})
+                complete_index = complete_index.union(
+                    pd.Index(lib.store.select_column(lib_table, 'index'))
+                )
+        logging.info(
+            "Created shared index for count data ({} {})".format(
+                len(complete_index), label), extra={'oname' : self.name})
 
         # min_itemsize value
         max_index_length = complete_index.map(len).max()
@@ -321,9 +324,13 @@ class Selection(StoreManager):
             )
 
             for tp in self.timepoints:
-                c = self.libraries[tp][0].store.select(lib_table, "index = index_chunk")
+                c = self.libraries[tp][0].store.select(
+                    lib_table, "index = index_chunk"
+                )
                 for lib in self.libraries[tp][1:]:
-                    c = c.add(lib.store.select(lib_table, "index = index_chunk"), fill_value=0)
+                    c = c.add(lib.store.select(
+                        lib_table, "index = index_chunk"), fill_value=0
+                    )
                 c.columns = ["c_{}".format(tp)]
                 if tp == 0:
                     tp_frame = c
@@ -332,11 +339,17 @@ class Selection(StoreManager):
 
             # save the unfiltered counts
             if "/main/{}/counts_unfiltered".format(label) not in self.store:
-                self.store.append("/main/{}/counts_unfiltered".format(label), tp_frame.astype(float), min_itemsize={'index' : max_index_length}, data_columns=list(tp_frame.columns))
+                self.store.append(
+                    "/main/{}/counts_unfiltered".format(label),
+                    tp_frame.astype(float),
+                    min_itemsize={'index' : max_index_length},
+                    data_columns=list(tp_frame.columns)
+                )
             else:
-                self.store.append("/main/{}/counts_unfiltered".format(label), tp_frame.astype(float))
-
-
+                self.store.append(
+                    "/main/{}/counts_unfiltered".format(label),
+                    tp_frame.astype(float)
+                )
 
     def filter_counts(self, label):
         """
@@ -350,17 +363,24 @@ class Selection(StoreManager):
         synonymous variants, the counts are re-aggregated using only the 
         complete cases in the underlying element type.
         """
-        if (self.is_barcodeid() or self.is_barcodevariant()) and label != 'barcodes':
+        valid_type = (self.is_barcodeid() or self.is_barcodevariant())
+        if valid_type and label != 'barcodes':
             # calculate proper combined counts
-            #df = self.store.select("/main/barcodes/counts") # this should exist because of the order of label calculations
+            # df = self.store.select("/main/barcodes/counts")
+            # this should exist because of the order of label calculations
             # redo the barcode->variant/id mapping with the filtered counts
             # NOT YET IMPLEMENTED
-            df = self.store.select("/main/{}/counts_unfiltered".format(label))  # just do this for now
+            # TODO: just do this for now
+            df = self.store.select("/main/{}/counts_unfiltered".format(label))
         else:
             df = self.store.select("/main/{}/counts_unfiltered".format(label))
         df.dropna(axis="index", how="any", inplace=True)
-        self.store.put("/main/{}/counts".format(label), df.astype(float), format="table", data_columns=df.columns)
-
+        self.store.put(
+            "/main/{}/counts".format(label),
+            df.astype(float),
+            format="table",
+            data_columns=df.columns
+        )
 
     def combine_barcode_maps(self):
         if self.check_store("/main/barcodemap"):
@@ -371,13 +391,17 @@ class Selection(StoreManager):
             if bcm is None:
                 bcm = lib.store['/raw/barcodemap']
             else:
-                bcm = bcm.join(lib.store['/raw/barcodemap'], rsuffix=".drop", how="outer")
+                bcm = bcm.join(lib.store['/raw/barcodemap'],
+                               rsuffix=".drop", how="outer")
                 new = bcm.loc[pd.isnull(bcm)['value']]
                 bcm.loc[new.index, 'value'] = new['value.drop']
                 bcm.drop("value.drop", axis="columns", inplace=True)
         bcm.sort_values("value", inplace=True)
-        self.store.put("/main/barcodemap", bcm, format="table", data_columns=bcm.columns)
-
+        self.store.put(
+            "/main/barcodemap", bcm,
+            format="table",
+            data_columns=bcm.columns
+        )
 
     def calculate(self):
         """
@@ -385,12 +409,16 @@ class Selection(StoreManager):
         for all data in the :py:class:`~selection.Selection`.
         """
         if len(self.labels) == 0:
-            raise ValueError("No data present across all sequencing libraries [{}]".format(self.name))
+            raise ValueError("No data present across all "
+                             "sequencing libraries [{}]".format(self.name))
+
         for label in self.labels:
             self.merge_counts_unfiltered(label)
             self.filter_counts(label)
+
         if self.is_barcodevariant() or self.is_barcodeid():
             self.combine_barcode_maps()
+
         if self.scoring_method == "counts":
             pass
         elif self.scoring_method == "ratios":
@@ -401,62 +429,78 @@ class Selection(StoreManager):
                 self.calc_simple_ratios(label)
         elif self.scoring_method in ("WLS", "OLS"):
             if len(self.timepoints) <= 2:
-                raise ValueError("Regression-based scoring requires three or more time points.")
+                raise ValueError("Regression-based scoring "
+                                 "requires three or more time points.")
             for label in self.labels:
                 self.calc_log_ratios(label)
                 if self.scoring_method == "WLS":
                     self.calc_weights(label)
                 self.calc_regression(label)
         else:
-            raise ValueError('Invalid scoring method "{}" [{}]'.format(self.scoring_method, self.name))
+            raise ValueError('Invalid scoring method "{}" '
+                             '[{}]'.format(self.scoring_method, self.name))
 
-        if self.scoring_method in ("ratios" , "WLS", "OLS") and self.component_outliers:
+        methods = ("ratios" , "WLS", "OLS")
+        if self.scoring_method in methods and self.component_outliers:
             if self.is_barcodevariant() or self.is_barcodeid():
                 self.calc_outliers("barcodes")
             if self.is_coding():
                 self.calc_outliers("variants")
 
-
-
     def calc_simple_ratios(self, label):
         """
-        Calculate simplified (original Enrich) ratios scores. This method does not produce standard errors.
+        Calculate simplified (original Enrich) ratios scores.
+        This method does not produce standard errors.
         """
         if self.check_store("/main/{}/scores".format(label)):
             return
 
-        logging.info("Calculating simple ratios ({})".format(label), extra={'oname' : self.name})
+        logging.info("Calculating simple ratios "
+                     "({})".format(label), extra={'oname' : self.name})
         c_last = 'c_{}'.format(self.timepoints[-1])
-        df = self.store.select("/main/{}/counts".format(label), "columns in ['c_0', c_last]")
+        df = self.store.select(
+            "/main/{}/counts".format(label),
+            "columns in ['c_0', c_last]"
+        )
 
-        # perform operations on the numpy values of the data frame for easier broadcasting
-        ratios = (df[c_last].values.astype("float") / df[c_last].sum(axis="index")) / (df['c_0'].values.astype("float") / df['c_0'].sum(axis="index"))
+        # perform operations on the numpy values of the
+        # dataframe for easier broadcasting
+        num = df[c_last].values.astype("float") / df[c_last].sum(axis="index")
+        denom = df['c_0'].values.astype("float") / df['c_0'].sum(axis="index")
+        ratios =  num / denom
+
         # make it a data frame again
         ratios = pd.DataFrame(data=ratios, index=df.index, columns=['ratio'])
         ratios['score'] = np.log2(ratios['ratio'])
         ratios['SE'] = np.nan
         ratios = ratios[['score', 'SE', 'ratio']]   # re-order columns
 
-        self.store.put("/main/{}/scores".format(label), ratios, format="table", data_columns=ratios.columns)
-
+        self.store.put(
+            "/main/{}/scores".format(label), ratios,
+            format="table", data_columns=ratios.columns
+        )
 
     def calc_ratios(self, label):
         """
-        Calculate frequency ratios and standard errors between the last timepoint and the input.
-
-        Ratios can be calculated using one of three methods:
-
-        * wt
-        * complete
-        * full
-
+        Calculate frequency ratios and standard errors between the
+        last timepoint and the input. Ratios can be calculated using
+        one of three methods:
+            - wt
+            - complete
+            - full
         """
         if self.check_store("/main/{}/scores".format(label)):
             return
 
-        logging.info("Calculating ratios ({})".format(label), extra={'oname' : self.name})
+        logging.info(
+            "Calculating ratios ({})".format(label),
+            extra={'oname' : self.name}
+        )
         c_last = 'c_{}'.format(self.timepoints[-1])
-        df = self.store.select("/main/{}/counts".format(label), "columns in ['c_0', c_last]")
+        df = self.store.select(
+            "/main/{}/counts".format(label),
+            "columns in ['c_0', c_last]"
+        )
 
         if self.logr_method == "wt":
             if "variants" in self.labels:
@@ -464,32 +508,50 @@ class Selection(StoreManager):
             elif "identifiers" in self.labels:
                 wt_label = "identifiers"
             else:
-                raise ValueError('Failed to use wild type log ratio method, suitable data table not present [{}]'.format(self.name))
-            shared_counts = self.store.select("/main/{}/counts".format(wt_label), "columns in ['c_0', c_last] & index='{}'".format(WILD_TYPE_VARIANT))
+                raise ValueError('Failed to use wild type log '
+                                 'ratio method, suitable data '
+                                 'table not present [{}]'.format(self.name))
+            shared_counts = self.store.select(
+                "/main/{}/counts".format(wt_label),
+                "columns in ['c_0', c_last] & index='{}'".format(
+                    WILD_TYPE_VARIANT
+                )
+            )
             if len(shared_counts) == 0: # wild type not found
-                raise ValueError('Failed to use wild type log ratio method, wild type sequence not present [{}]'.format(self.name))
+                raise ValueError('Failed to use wild type log '
+                                 'ratio method, wild type '
+                                 'sequence not present [{}]'.format(self.name))
             shared_counts = shared_counts.values + 0.5
+
         elif self.logr_method == "complete":
-            shared_counts = self.store.select("/main/{}/counts".format(label), "columns in ['c_0', c_last]").sum(axis="index").values + 0.5
+            shared_counts = self.store.select(
+                "/main/{}/counts".format(label),
+                "columns in ['c_0', c_last]").sum(axis="index").values + 0.5
         elif self.logr_method == "full":
-            shared_counts = self.store.select("/main/{}/counts_unfiltered".format(label), "columns in ['c_0', c_last]").sum(axis="index", skipna=True).values + 0.5
+            shared_counts = self.store.select(
+                "/main/{}/counts_unfiltered".format(label),
+                "columns in ['c_0', c_last]").sum(
+                axis="index", skipna=True).values + 0.5
         else:
-            raise ValueError('Invalid log ratio method "{}" [{}]'.format(self.logr_method, self.name))
+            raise ValueError('Invalid log ratio method "{}" '
+                             '[{}]'.format(self.logr_method, self.name))
 
         ratios = np.log(df[['c_0', c_last]].values + 0.5) - np.log(shared_counts)
         ratios = ratios[:, 1] - ratios[:, 0]    # selected - input
-
-        ratios = pd.DataFrame(data=ratios, index=df.index, columns=['logratio'])
+        ratios = pd.DataFrame(ratios, index=df.index, columns=['logratio'])
 
         shared_variance = np.sum(1. / shared_counts)
-        ratios['variance'] = np.sum(1. / (df[['c_0', c_last]].values + 0.5), axis=1) + shared_variance
+        summed = np.sum(1. / (df[['c_0', c_last]].values + 0.5), axis=1)
 
+        ratios['variance'] = summed + shared_variance
         ratios['score'] = ratios['logratio']
         ratios['SE'] = np.sqrt(ratios['variance'])
-        ratios = ratios[['score', 'SE', 'logratio', 'variance']]   # re-order columns
 
-        self.store.put("/main/{}/scores".format(label), ratios, format="table", data_columns=ratios.columns)
-
+        # re-order columns
+        ratios = ratios[['score', 'SE', 'logratio', 'variance']]
+        self.store.put(
+            "/main/{}/scores".format(label), ratios,
+            format="table", data_columns=ratios.columns)
 
     def calc_log_ratios(self, label):
         """
@@ -498,13 +560,17 @@ class Selection(StoreManager):
         if self.check_store("/main/{}/log_ratios".format(label)):
             return
 
-        logging.info("Calculating log ratios ({})".format(label), extra={'oname' : self.name})
+        logging.info(
+            "Calculating log ratios ({})".format(label),
+            extra={'oname' : self.name}
+        )
         ratios = self.store.select("/main/{}/counts".format(label))
         index = ratios.index
         c_n = ['c_{}'.format(x) for x in self.timepoints]
         ratios = np.log(ratios + 0.5)
 
-        # perform operations on the numpy values of the data frame for easier broadcasting
+        # perform operations on the numpy values of the data
+        # frame for easier broadcasting
         ratios = ratios[c_n].values
         if self.logr_method == "wt":
             if "variants" in self.labels:
@@ -512,22 +578,38 @@ class Selection(StoreManager):
             elif "identifiers" in self.labels:
                 wt_label = "identifiers"
             else:
-                raise ValueError('Failed to use wild type log ratio method, suitable data table not present [{}]'.format(self.name))
-            wt_counts = self.store.select("/main/{}/counts".format(wt_label), "columns=c_n & index='{}'".format(WILD_TYPE_VARIANT))
+                raise ValueError('Failed to use wild type log ratio method, '
+                                 'suitable data table not '
+                                 'present [{}]'.format(self.name))
+            wt_counts = self.store.select(
+                "/main/{}/counts".format(wt_label),
+                "columns=c_n & index='{}'".format(WILD_TYPE_VARIANT))
+
             if len(wt_counts) == 0: # wild type not found
-                raise ValueError('Failed to use wild type log ratio method, wild type sequence not present [{}]'.format(self.name))
+                raise ValueError('Failed to use wild type log ratio method, '
+                                 'wild type sequence not '
+                                 'present [{}]'.format(self.name))
             ratios = ratios - np.log(wt_counts.values + 0.5)
+
         elif self.logr_method == "complete":
-            ratios = ratios - np.log(self.store.select("/main/{}/counts".format(label), "columns=c_n").sum(axis="index").values + 0.5)
+            ratios = ratios - np.log(
+                self.store.select("/main/{}/counts".format(label),
+                                  "columns=c_n").sum(axis="index").values + 0.5)
         elif self.logr_method == "full":
-            ratios = ratios - np.log(self.store.select("/main/{}/counts_unfiltered".format(label), "columns=c_n").sum(axis="index", skipna=True).values + 0.5)
+            ratios = ratios - np.log(self.store.select(
+                "/main/{}/counts_unfiltered".format(label),
+                "columns=c_n").sum(axis="index", skipna=True).values + 0.5)
         else:
-            raise ValueError('Invalid log ratio method "{}" [{}]'.format(self.logr_method, self.name))
+            raise ValueError('Invalid log ratio method "{}" [{}]'.format(
+                self.logr_method, self.name)
+            )
 
         # make it a data frame again
-        ratios = pd.DataFrame(data=ratios, index=index, columns=['L_{}'.format(x) for x in self.timepoints])
-        self.store.put("/main/{}/log_ratios".format(label), ratios, format="table", data_columns=ratios.columns)
-
+        columns = ['L_{}'.format(x) for x in self.timepoints]
+        ratios = pd.DataFrame(data=ratios, index=index, columns=columns)
+        self.store.put(
+            "/main/{}/log_ratios".format(label), ratios,
+            format="table", data_columns=ratios.columns)
 
     def calc_weights(self, label):
         """

@@ -15,15 +15,19 @@
 #  You should have received a copy of the GNU General Public License
 #  along with Enrich2.  If not, see <http://www.gnu.org/licenses/>.
 
+
+import os.path
 import logging
+import pandas as pd
+
+from matplotlib.backends.backend_pdf import PdfPages
+
 from .seqlib import SeqLib
 from .variant import VariantSeqLib
 from .barcode import BarcodeSeqLib
 from .barcodemap import BarcodeMap
-import pandas as pd
 from .plots import barcodemap_plot
-from matplotlib.backends.backend_pdf import PdfPages
-import os.path
+
 
 class BcvSeqLib(VariantSeqLib, BarcodeSeqLib):
     """
@@ -58,21 +62,27 @@ class BcvSeqLib(VariantSeqLib, BarcodeSeqLib):
                 if barcode_map.filename == cfg['barcodes']['map file']:
                     self.barcode_map = barcode_map
                 else:
-                    raise ValueError("Attempted to assign non-matching barcode map [{}]".format(self.name))
+                    raise ValueError("Attempted to assign non-matching "
+                                     "barcode map [{}]".format(self.name))
             else:
-                self.barcode_map = BarcodeMap(cfg['barcodes']['map file'], is_variant=True)
+                self.barcode_map = BarcodeMap(
+                    cfg['barcodes']['map file'], is_variant=True
+                )
         except KeyError as key:
-            raise KeyError("Missing required config value {key} [{name}]".format(key=key, name=self.name))
+            raise KeyError("Missing required config value "
+                           "{key} [{name}]".format(key=key, name=self.name))
 
 
     def serialize(self):
         """
-        Format this object (and its children) as a config object suitable for dumping to a config file.
+        Format this object (and its children) as a config object suitable
+        for dumping to a config file.
         """
         cfg = VariantSeqLib.serialize(self)
         cfg.update(BarcodeSeqLib.serialize(self))
 
-        if self.barcode_map is not None:    # required for creating new objects in GUI
+        # required for creating new objects in GUI
+        if self.barcode_map is not None:
             cfg['barcodes']['map file'] = self.barcode_map.filename
 
         return cfg
@@ -80,17 +90,23 @@ class BcvSeqLib(VariantSeqLib, BarcodeSeqLib):
 
     def calculate(self):
         """
-        Counts the barcodes using :py:meth:`BarcodeSeqLib.count` and combines them into 
-        variant counts using the :py:class:`BarcodeMap`.
+        Counts the barcodes using :py:meth:`BarcodeSeqLib.count`
+        and combines them into variant counts using the :py:class:`BarcodeMap`.
         """
         if not self.check_store("/main/variants/counts"):
             BarcodeSeqLib.calculate(self) # count the barcodes
             df_dict = dict()
             barcode_variants = dict()
 
-            logging.info("Converting barcodes to variants", extra={'oname' : self.name})
+            logging.info(
+                "Converting barcodes to variants", extra={'oname' : self.name})
+
             # store mapped barcodes
-            self.save_filtered_counts('barcodes', "index in self.barcode_map.keys() & count >= self.barcode_min_count")
+            self.save_filtered_counts(
+                label='barcodes',
+                query="index in self.barcode_map.keys() & "
+                "count >= self.barcode_min_count"
+            )
 
             # count variants associated with the barcodes
             max_mut_barcodes = 0
@@ -112,25 +128,42 @@ class BcvSeqLib(VariantSeqLib, BarcodeSeqLib):
                     barcode_variants[bc] = mutations
             
             # save counts, filtering based on the min count
-            self.save_counts('variants', {k:v for k,v in df_dict.items() if v >= self.variant_min_count}, raw=False)
+            counts = {
+                k: v for k, v in df_dict.items()
+                if v >= self.variant_min_count
+            }
+            self.save_counts('variants', counts, raw=False)
             del df_dict
 
             # write the active subset of the BarcodeMap to the store
             barcodes = list(barcode_variants.keys())
-            barcode_variants = pd.DataFrame({'value' : [barcode_variants[bc] for bc in barcodes]}, index=barcodes)
+            data = {'value' : [barcode_variants[bc] for bc in barcodes]}
+            barcode_variants = pd.DataFrame(data, index=barcodes)
             del barcodes
+
             barcode_variants.sort_values('value', inplace=True)
-            self.store.put("/raw/barcodemap", barcode_variants, data_columns=barcode_variants.columns, format="table")
+            self.store.put(
+                "/raw/barcodemap",
+                barcode_variants,
+                data_columns=barcode_variants.columns,
+                format="table"
+            )
             del barcode_variants
 
             if self.aligner is not None:
-                logging.info("Aligned {} variants".format(self.aligner.calls), extra={'oname' : self.name})
+                logging.info(
+                    "Aligned {} variants".format(self.aligner.calls),
+                    extra={'oname' : self.name}
+                )
                 self.aligner_cache = None
+
             #self.report_filter_stats()
-            logging.info("Removed {} unique barcodes ({} total variants) "
-                         "with excess mutations".format(max_mut_barcodes,
-                                                        max_mut_variants),
-                         extra={'oname': self.name})
+            logging.info(
+                msg="Removed {} unique barcodes ({} total variants) with "
+                    "excess mutations".format(
+                    max_mut_barcodes, max_mut_variants),
+                extra={'oname': self.name}
+            )
             self.save_filter_stats()
         
         self.count_synonymous()
@@ -145,7 +178,8 @@ class BcvSeqLib(VariantSeqLib, BarcodeSeqLib):
         if self.plots_requested:
             SeqLib.make_plots(self)
             # open the PDF file
-            pdf = PdfPages(os.path.join(self.plot_dir, "barcodes_per_variant.pdf"))
+            path = os.path.join(self.plot_dir, "barcodes_per_variant.pdf")
+            pdf = PdfPages(path)
             barcodemap_plot(self, pdf)
             pdf.close()
 

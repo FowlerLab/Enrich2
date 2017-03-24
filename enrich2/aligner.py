@@ -14,6 +14,8 @@
 #
 #  You should have received a copy of the GNU General Public License
 #  along with Enrich2.  If not, see <http://www.gnu.org/licenses/>.
+
+
 """
 Module for alignment of variants to the wild type sequence.
 
@@ -22,7 +24,9 @@ counting variants. It is only recommended for users who need to count
 insertion and deletion variants (i.e. not coding sequences).
 """
 
+
 import numpy as np
+
 
 #: Default similarity matrix used by the aligner.
 #: User-defined matrices must have this format.

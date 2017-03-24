@@ -18,6 +18,7 @@
 
 import logging
 import sys
+
 from .seqlib import SeqLib
 from .fqread import read_fastq, split_fastq_path
 
@@ -57,8 +58,8 @@ class BarcodeSeqLib(SeqLib):
             else:
                 self.barcode_min_count = 0
         except KeyError as key:
-            raise KeyError("Missing required config value {}".format(key),
-                           self.name)
+            raise KeyError("Configuration Error: Missing required "
+                           "config value {}".format(key), self.name)
 
         # if counts are specified, copy them later
         # else handle the FASTQ config options and check the files
@@ -66,8 +67,8 @@ class BarcodeSeqLib(SeqLib):
             self.configure_fastq(cfg)
             try:
                 if split_fastq_path(self.reads) is None:
-                    raise ValueError("FASTQ file error: unrecognized file "
-                                     "extension", self.name)
+                    raise ValueError("FASTQ file error: Unrecognized "
+                                     "file extension", self.name)
             except IOError as fqerr:
                 raise IOError("FASTQ file error: {}".format(fqerr), self.name)
 
@@ -106,8 +107,8 @@ class BarcodeSeqLib(SeqLib):
 
             self.filters = cfg['fastq']['filters']
         except KeyError as key:
-            raise KeyError("Missing required config value {}".format(key),
-                           self.name)
+            raise KeyError("Configuration Error: Missing required "
+                           "config value {}".format(key), self.name)
 
     def serialize_fastq(self):
         """
@@ -154,7 +155,7 @@ class BarcodeSeqLib(SeqLib):
                 except KeyError:
                     df_dict[fqr.sequence.upper()] = 1
 
-        self.save_counts('barcodes', df_dict, raw=True)
+        self.save_counts(label='barcodes', df_dict=df_dict, raw=True)
         del df_dict
 
     def calculate(self):
@@ -179,7 +180,8 @@ class BarcodeSeqLib(SeqLib):
                 self.counts_from_reads()
 
         if len(self.labels) == 1:  # only barcodes
-            self.save_filtered_counts('barcodes',
-                                      "count >= self.barcode_min_count")
+            self.save_filtered_counts(
+                label='barcodes',
+                query="count >= self.barcode_min_count"
+            )
             self.save_filter_stats()
-
