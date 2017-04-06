@@ -299,7 +299,7 @@ class SeqLib(StoreManager):
                 self.filter_stats['avg quality'] += 1
                 filter_flags['avg quality'] = True
 
-        if self.filters['max N'] > 0:
+        if self.filters['max N'] >= 0:
             if fq.sequence.upper().count('N') > self.filters['max N']:
                 self.filter_stats['max N'] += 1
                 filter_flags['max N'] = True
