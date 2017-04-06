@@ -516,7 +516,8 @@ def corr_axes(ax, x, y, score_min, score_max, **kwargs):
             transform=ax.transAxes, fontsize=8)
 
 
-def hexbin_corr_axes(ax, x, y, score_min, score_max, cbar_ax=None):
+def hexbin_corr_axes(ax, x, y, score_min, score_max, cbar_ax=None, gridsize=50,
+                     cmap='YlGnBu_r'):
     """
     Plot the correlation between scores in two replicates using a hexbin. This 
     function is preferable to corr_axes when plotting a large number of data 
@@ -544,22 +545,22 @@ def hexbin_corr_axes(ax, x, y, score_min, score_max, cbar_ax=None):
 
     # plot bolder zero lines
     ax.plot(ax.get_xlim(), [0., 0.], linestyle='-',
-            color=plot_colors['accent3'], linewidth=1)
+            color=plot_colors['accent3'], linewidth=2)
     ax.plot([0., 0.], ax.get_ylim(), linestyle='-',
-            color=plot_colors['accent3'], linewidth=1)
+            color=plot_colors['accent3'], linewidth=2)
 
     # plot the points
-    hb = ax.hexbin(x, y, mincnt=1, cmap='YlGnBu_r', gridsize=50)
+    hb = ax.hexbin(x, y, mincnt=1, cmap=cmap, gridsize=gridsize)
     hb.set_zorder(3)    # on top of the zero lines
 
     # plot the fit line
     fit = np.polyfit(x, y, 1)
     ax.plot(ax.get_xlim(), np.poly1d(fit)(ax.get_xlim()), linestyle='--',
-            color=plot_colors['accent2'], zorder=4)
+            linewidth=1, color=plot_colors['accent2'], zorder=4)
 
     # plot the text with regression line info
     r, _ = scipy.stats.pearsonr(x, y)
-    ax.text(0.05, 0.95, "r^2 = {:.2g}".format(r ** 2),
+    ax.text(0.05, 0.95, "r^2 = {:.3g}".format(r ** 2),
             horizontalalignment='left', verticalalignment='top',
             transform=ax.transAxes)
 
@@ -573,7 +574,7 @@ def hexbin_corr_axes(ax, x, y, score_min, score_max, cbar_ax=None):
     return hb
 
 
-def density_ax(ax, ys, xmin, xmax, xlabel, line_params):
+def density_ax(ax, ys, xmin, xmax, xlabel, line_params, legend_loc='best'):
 
     if len(ys) != len(line_params):
         raise ValueError("All y-value sets must have a linestyle")
@@ -588,7 +589,7 @@ def density_ax(ax, ys, xmin, xmax, xlabel, line_params):
     for i in xrange(len(ys)):
         ax.plot(xs, d_ys[i].evaluate(xs), label=ys[i].name, **line_params[i])
 
-    ax.legend(**legend_params)
+    ax.legend(loc=legend_loc, **legend_params)
 
     ax.set_xlabel(xlabel, **label_params)
     ax.set_ylabel("Density", **label_params)
