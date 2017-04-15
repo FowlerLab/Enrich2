@@ -1,0 +1,6 @@
+(+)	H,K,R
+(-)	D,E
+Polar-neutral	C,M,N,Q,S,T
+Non-polar	A,G,I,L,P,V
+Aromatic	F,W,Y
+	*

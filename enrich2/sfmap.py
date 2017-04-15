@@ -49,7 +49,8 @@ NT_LIST = ['A', 'C', 'G', 'T']
 
 
 def parse_aa_list(fname):
-    groups_dict = OrderedDict()
+    group_labels = list()
+    groups = list()
     found_aa = list()
     with open(fname) as handle:
         for line in handle:
@@ -66,7 +67,8 @@ def parse_aa_list(fname):
                 raise ValueError("Invalid amino acid in AA list file [{}]"
                                  "".format("SFMAP.PY"))
             else:
-                groups_dict[label] = aa
+                group_labels.append(label)
+                groups.append(aa)
                 found_aa.extend(aa)
     if any(x not in found_aa for x in AA_LIST):
         raise ValueError("Not all amino acids assigned in AA list file [{}]"
@@ -75,10 +77,10 @@ def parse_aa_list(fname):
         raise ValueError("Duplicate assignments in AA list file [{}]"
                          "".format("SFMAP.PY"))
     pos = -1
-    label_groups = list()
-    for label in groups_dict.keys():
-        label_groups.append((label, pos + 1, pos + len(groups_dict[label])))
-        pos = pos + len(groups_dict[label])
+    aa_label_groups = list()
+    for i, label in enumerate(group_labels):
+        aa_label_groups.append((label, pos + 1, pos + len(groups[i])))
+        pos = pos + len(groups[i])
 
     return found_aa, label_groups
 
