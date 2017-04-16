@@ -1,4 +1,4 @@
-#  Copyright 2016 Alan F Rubin
+#  Copyright 2016-2017 Alan F Rubin
 #
 #  This file is part of Enrich2.
 #
@@ -93,13 +93,15 @@ class BcvSeqLib(VariantSeqLib, BarcodeSeqLib):
             self.save_filtered_counts('barcodes', "index in self.barcode_map.keys() & count >= self.barcode_min_count")
 
             # count variants associated with the barcodes
+            max_mut_barcodes = 0
+            max_mut_variants = 0
             for bc, count in self.store['/main/barcodes/counts'].iterrows():
                 count = count['count']
                 variant = self.barcode_map[bc]
                 mutations = self.count_variant(variant)
-                if mutations is None: # variant has too many mutations
-                    self.filter_stats['max mutations'] += count
-                    self.filter_stats['total'] += count
+                if mutations is None:  # variant has too many mutations
+                    max_mut_barcodes += 1
+                    max_mut_variants += count
                     if self.report_filtered:
                         self.report_filtered_variant(variant, count)
                 else:
@@ -125,19 +127,13 @@ class BcvSeqLib(VariantSeqLib, BarcodeSeqLib):
                 logging.info("Aligned {} variants".format(self.aligner.calls), extra={'oname' : self.name})
                 self.aligner_cache = None
             #self.report_filter_stats()
+            logging.info("Removed {} unique barcodes ({} total variants) "
+                         "with excess mutations".format(max_mut_barcodes, 
+                                                        max_mut_variants),
+                         extra={'oname': self.name})
             self.save_filter_stats()
         
         self.count_synonymous()
-
-
-    def report_filtered_variant(self, variant, count):
-        """
-        Outputs a summary of the filtered variant to *handle*. Internal filter 
-        names are converted to messages using the ``SeqLib.filter_messages`` 
-        dictionary. Related to :py:meth:`SeqLib.report_filtered`.
-        """
-        logging.debug("Filtered variant (quantity={n}) ({messages})\n{read!s}".format(
-                    n=count, messages=StoreManager.filter_messages['max mutations'], read=variant), file=handle, extra={'oname' : self.name})
 
 
     def make_plots(self):

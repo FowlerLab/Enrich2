@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #
-#  Copyright 2016 Alan F Rubin
+#  Copyright 2016-2017 Alan F Rubin
 #
 #  This file is part of Enrich2.
 #
@@ -19,7 +19,7 @@
 
 
 from __future__ import print_function
-import argparse
+from argparse import ArgumentParser, RawDescriptionHelpFormatter
 import logging
 import json
 import sys
@@ -27,15 +27,27 @@ import os.path
 import enrich2.config_check as config_check
 from enrich2.experiment import Experiment
 from enrich2.selection import Selection
-from enrich2.basic import BasicSeqLib
-from enrich2.barcodevariant import BcvSeqLib
 from enrich2.barcode import BarcodeSeqLib
+from enrich2.barcodeid import BcidSeqLib
+from enrich2.barcodevariant import BcvSeqLib
+from enrich2.basic import BasicSeqLib
 from enrich2.overlap import OverlapSeqLib
-from enrich2.storemanager import available_scoring_methods, available_logr_methods
+from enrich2.idonly import IdOnlySeqLib
+from enrich2.storemanager import SCORING_METHODS, LOGR_METHODS
 from enrich2.gui.configurator import Configurator
+from enrich2.sfmap import parse_aa_list
+
+
+__author__ = "Alan F Rubin"
+__copyright__ = "Copyright 2016-2017, Alan F Rubin"
+__license__ = "GPLv3"
+__version__ = "1.0.0"
+__maintainer__ = "Alan F Rubin"
+__email__ = "alan.rubin@wehi.edu.au"
+
 
 #: Name of the driver script. Used for logging output.
-driver_name = os.path.basename(sys.argv[0])
+DRIVER_NAME = os.path.basename(sys.argv[0])
 
 
 #: Format string for log entries (console or file).
@@ -61,16 +73,14 @@ def start_logging(log_file, log_level):
         logging.basicConfig(level=log_level, format=LOG_FORMAT)
 
 
-
 def main_gui():
     """
     Entry point for GUI.
-    
+
     """
     start_logging(None, logging.DEBUG)
     app = Configurator()
     app.mainloop()
-
 
 
 def main_cmd():
@@ -79,28 +89,51 @@ def main_cmd():
 
     """
     # build description string based on available methods
-    desc_string = "Command-line driver for Enrich2." + \
+    desc_string = "Command-line driver for Enrich2 v{}".format(__version__) + \
         "\n\nscoring methods:\n" + \
-        "\n".join(["  {:22}{}".format(k, v) for k, v in available_scoring_methods.items()]) + \
+        "\n".join(["  {:22}{}".format(k, v) for k, v in
+                   SCORING_METHODS.items()]) + \
         "\n\nlog ratio methods:\n" + \
-        "\n".join(["  {:22}{}".format(k, v) for k, v in available_logr_methods.items()]) 
+        "\n".join(["  {:22}{}".format(k, v) for k, v in
+                   LOGR_METHODS.items()])
 
     # create parser and add description
-    parser = argparse.ArgumentParser(description=desc_string, formatter_class=argparse.RawDescriptionHelpFormatter)
+    parser = ArgumentParser(prog="Enrich2", description=desc_string,
+                            formatter_class=RawDescriptionHelpFormatter)
 
     # add command line arguments
     parser.add_argument("config", help="JSON configuration file")
-    parser.add_argument("scoring_method", help="scoring method", choices=available_scoring_methods.keys())
-    parser.add_argument("logr_method", help="log ratio method", choices=available_logr_methods.keys())
+    parser.add_argument("scoring_method", help="scoring method",
+                        choices=SCORING_METHODS.keys())
+    parser.add_argument("logr_method", help="log ratio method",
+                        choices=LOGR_METHODS.keys())
+
+    # add support for semantic version checking
+    parser.add_argument("--version", action="version",
+                        version="%(prog)s {}".format(__version__))
 
     # add analysis options
-    parser.add_argument("--log", dest="log_file", metavar="FILE", help="path to log file")
-    parser.add_argument("--no-plots", help="don't make plots", dest="plots_requested", action="store_false", default=True)
-    parser.add_argument("--no-tsv", help="don't generate tsv files", dest="tsv_requested", action="store_false", default=True)
-    parser.add_argument("--recalculate", help="force recalculation", dest="force_recalculate", action="store_true", default=False)
-    parser.add_argument("--component-outliers", help="calculate component outlier stats", dest="component_outliers", action="store_true", default=False)
-    parser.add_argument("--output-dir", help="override the config file's output directory", dest="output_dir_override", metavar="DIR")
-    
+    parser.add_argument("--log", metavar="FILE", dest="log_file",
+                        help="path to log file")
+    parser.add_argument("--no-plots", dest="plots_requested",
+                        action="store_false", default=True,
+                        help="don't make plots")
+    parser.add_argument("--no-tsv", dest="tsv_requested",
+                        action="store_false", default=True,
+                        help="don't generate tsv files")
+    parser.add_argument("--recalculate", dest="force_recalculate",
+                        action="store_true", default=False,
+                        help="force recalculation")
+    parser.add_argument("--component-outliers", dest="component_outliers",
+                        action="store_true", default=False,
+                        help="calculate component outlier stats")
+    parser.add_argument("--output-dir", metavar="DIR",
+                        dest="output_dir_override",
+                        help="override the config file's output directory")
+    parser.add_argument("--sfmap-aa-file", metavar="FILE",
+                        dest="sfmap_aa_file",
+                        help="amino acid groups for sequence-function maps")
+
     args = parser.parse_args()
 
     # start the logs
@@ -110,23 +143,42 @@ def main_cmd():
     try:
         cfg = json.load(open(args.config, "U"))
     except IOError:
-        raise IOError("Failed to open '{}' [{}]".format(args.config, driver_name))
+        raise IOError("Failed to open '{}' [{}]".format(
+            args.config, DRIVER_NAME))
     except ValueError:
-        raise ValueError("Improperly formatted .json file [{}]".format(driver_name))
+        raise ValueError("Improperly formatted .json file [{}]".format(
+            DRIVER_NAME))
 
     # identify config file type and create the object
     if config_check.is_experiment(cfg):
-        logging.info("Detected an Experiment config file", extra={'oname' : driver_name})
+        logging.info("Detected an Experiment config file",
+                     extra={'oname': DRIVER_NAME})
         obj = Experiment()
     elif config_check.is_selection(cfg):
-        logging.info("Detected a Selection config file", extra={'oname' : driver_name})
+        logging.info("Detected a Selection config file",
+                     extra={'oname': DRIVER_NAME})
         obj = Selection()
     elif config_check.is_seqlib(cfg):
         seqlib_type = config_check.seqlib_type(cfg)
-        logging.info("Detected a {} config file".format(seqlib_type), extra={'oname' : driver_name})
-        obj = globals()[seqlib_type]()
+        logging.info("Detected a %s config file", seqlib_type,
+                     extra={'oname': DRIVER_NAME})
+        if seqlib_type == "BarcodeSeqLib":
+            obj = BarcodeSeqLib()
+        elif seqlib_type == "BcidSeqLib":
+            obj = BcidSeqLib()
+        elif seqlib_type == "BcvSeqLib":
+            obj = BcvSeqLib()
+        elif seqlib_type == "BasicSeqLib":
+            obj = BasicSeqLib()
+        elif seqlib_type == "OverlapSeqLib":
+            obj = OverlapSeqLib()
+        elif seqlib_type == "IdOnlySeqLib":
+            obj = IdOnlySeqLib()
+        else:
+            raise ValueError("Unrecognized SeqLib type '{}' [{}]".format(
+                seqlib_type, DRIVER_NAME))
     else:
-        raise ValueError("Unrecognized .json config [{}]".format(driver_name))
+        raise ValueError("Unrecognized .json config [{}]".format(DRIVER_NAME))
 
     # set analysis options
     obj.force_recalculate = args.force_recalculate
@@ -142,31 +194,39 @@ def main_cmd():
     else:
         obj.output_dir_override = False
 
+    if args.sfmap_aa_file is not None:
+        obj.plot_options = dict()
+        obj.plot_options['aa_list'], obj.plot_options['aa_label_groups'] = \
+            parse_aa_list(args.sfmap_aa_file)
+
     # configure the object
     obj.configure(cfg)
 
     # make sure objects are valid
     try:
         obj.validate()
-    except ValueError, e:
-        logging.error("Invalid settings: {}".format(e), extra={'oname' : driver_name})
+    except ValueError:
+        logging.exception("Invalid configuration",
+                          extra={'oname': DRIVER_NAME})
     else:
         # open HDF5 files for the object and all child objects
         obj.store_open(children=True)
 
         # perform the analysis
         obj.calculate()
-        
+
         # generate desired output
         obj.make_plots()
         try:
             obj.make_plots()
-        except Exception, e:
-            logging.warning("Calculations completed, but plotting failed: {}".format(e), extra={'oname' : driver_name})
+        except Exception:
+            logging.exception("Calculations completed, but plotting failed.",
+                              extra={'oname': DRIVER_NAME})
         try:
             obj.write_tsv()
-        except Exception, e:
-            logging.warning("Calculations completed, but tsv output failed: {}".format(e), extra={'oname' : driver_name})
+        except Exception:
+            logging.exception("Calculations completed, but TSV ouput failed.",
+                              extra={'oname': DRIVER_NAME})
 
         # clean up
         obj.store_close(children=True)

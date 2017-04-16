@@ -1,4 +1,4 @@
-#  Copyright 2016 Alan F Rubin
+#  Copyright 2016-2017 Alan F Rubin
 #
 #  This file is part of Enrich2.
 #
@@ -31,14 +31,16 @@ from ..barcode import BarcodeSeqLib
 from ..overlap import OverlapSeqLib
 from ..seqlib import SeqLib
 from ..variant import VariantSeqLib
+from ..idonly import IdOnlySeqLib
 
 
 seqlib_label_text = OrderedDict([("BcvSeqLib", "Barcoded Variant"),
                                  ("BcidSeqLib", "Barcoded Identifier"),
                                  ("OverlapSeqLib", "Overlap"),
-                                 ("BasicSeqLib", "Basic"), 
-                                 ("BarcodeSeqLib", "Barcodes Only")])
-
+                                 ("BasicSeqLib", "Basic"),
+                                 ("BarcodeSeqLib", "Barcodes Only"),
+                                 ("IdOnlySeqLib", "Identifiers Only"),
+                                 ])
 
 
 class CreateSeqLibDialog(tkSimpleDialog.Dialog):
@@ -50,17 +52,16 @@ class CreateSeqLibDialog(tkSimpleDialog.Dialog):
         self.element_type = None
         tkSimpleDialog.Dialog.__init__(self, parent_window, title)
 
-
     def body(self, master):
         message = ttk.Label(master, text="SeqLib type:")
         message.grid(column=0, row=0)
 
         for i, k in enumerate(seqlib_label_text.keys()):
-            rb = ttk.Radiobutton(master, text=seqlib_label_text[k], variable=self.element_tkstring, value=k)
+            rb = ttk.Radiobutton(master, text=seqlib_label_text[k],
+                                 variable=self.element_tkstring, value=k)
             rb.grid(column=0, row=(i + 1), sticky="w")
             if i == 0:
                 rb.invoke()
-
 
     def buttonbox(self):
         """
@@ -68,13 +69,13 @@ class CreateSeqLibDialog(tkSimpleDialog.Dialog):
         """
         box = tk.Frame(self)
 
-        w = tk.Button(box, text="OK", width=10, command=self.ok, default="active")
+        w = tk.Button(box, text="OK", width=10, command=self.ok, 
+                      default="active")
         w.pack(side="left", padx=5, pady=5)
 
         self.bind("<Return>", self.ok)
 
         box.pack()
-
 
     def apply(self):
         try:

@@ -1,4 +1,4 @@
-#  Copyright 2016 Alan F Rubin
+#  Copyright 2016-2017 Alan F Rubin
 #
 #  This file is part of Enrich2.
 #
@@ -16,33 +16,46 @@
 #  along with Enrich2.  If not, see <http://www.gnu.org/licenses/>.
 
 from __future__ import print_function
-import matplotlib.pyplot as plt
-import numpy as np
 import collections
 import logging
+import numpy as np
+import matplotlib.pyplot as plt
 import scipy.stats
+from statsmodels.nonparametric.kde import KDEUnivariate
 
+tick_params = {'labelsize': 6,
+               'pad': 2}
+
+label_params = {'fontsize': 8,
+                'labelpad': 2}
+
+legend_params = {'fontsize': 8}
+
+letter_params = {'fontsize': 10,
+                 'weight': 'bold',
+                 'horizontalalignment': 'left',
+                 'verticalalignment': 'center'}
 
 #: Default colors for Enrich2 plots.
 #: Standard defaults are based on ColorBrewer Set1 and Pastel1.
 plot_colors = {
-    "bright1" : "#377eb8",
-    "bright2" : "#4daf4a",
-    "bright3" : "#ff7f00",
-    "bright4" : "#984ea3",
-    "bright5" : "#e41a1c",
-    "bright6" : "#a65628",
-    "pastel1" : "#b3cde3",
-    "pastel2" : "#ccebc5",
-    "pastel3" : "#fed9a6",
-    "pastel4" : "#decbe4",
-    "pastel5" : "#fbb4ae",
-    "pastel6" : "#e5d8bd",
-    "accent1" : "#000000",
-    "accent2" : "#545454",
-    "accent3" : "#bebebe",
-    "accent4" : "#999999",
-    "missing" : "#808080",
+    "bright1": "#377eb8",
+    "bright2": "#4daf4a",
+    "bright3": "#ff7f00",
+    "bright4": "#984ea3",
+    "bright5": "#e41a1c",
+    "bright6": "#a65628",
+    "pastel1": "#b3cde3",
+    "pastel2": "#ccebc5",
+    "pastel3": "#fed9a6",
+    "pastel4": "#decbe4",
+    "pastel5": "#fbb4ae",
+    "pastel6": "#e5d8bd",
+    "accent1": "#000000",
+    "accent2": "#545454",
+    "accent3": "#bebebe",
+    "accent4": "#999999",
+    "missing": "#808080",
 }
 
 
@@ -51,9 +64,9 @@ plot_colors = {
 #: ``'sequential'`` is used for library diversity plots.
 #: ``'hexbin'`` is used for volcano plots.
 plot_cmaps = {
-    "diverging" : "RdBu_r",
-    "sequential" : "BuPu",
-    "hexbin" : "YlGnBu_r"
+    "diverging": "RdBu_r",
+    "sequential": "BuPu",
+    "hexbin": "YlGnBu_r"
 }
 
 
@@ -135,35 +148,35 @@ def fit_axes(ax, xvalues, yvalues, slope, intercept, xlabels=None):
     # plot residual lines
     fit_yvalues = [x * slope + intercept for x in xvalues]
     for x, y1, y2 in zip(xvalues, yvalues, fit_yvalues):
-        ax.plot((x, x), (y1, y2), color=plot_colors['bright1'], linestyle="-", 
+        ax.plot((x, x), (y1, y2), color=plot_colors['bright1'], linestyle="-",
                 alpha=0.5)
 
     # plot the fit line
-    ax.plot(ax.get_xlim(), [x * slope + intercept for x in ax.get_xlim()], 
+    ax.plot(ax.get_xlim(), [x * slope + intercept for x in ax.get_xlim()],
             color=plot_colors['bright3'], linestyle="--")
 
 
 def fit_axes_text(ax, cornertext=None, centertext=None, centerwrap=40):
     """
-    Add text to a fit plot in either the bottom left corner and/or the top 
+    Add text to a fit plot in either the bottom left corner and/or the top
     middle.
 
     *ax* is the axes object containing the fit plot.
 
-    *cornertext* is displayed in the lower left corner of the plot. Typically 
-    this includes details about the fit (slope, standard error, etc.). If it 
+    *cornertext* is displayed in the lower left corner of the plot. Typically
+    this includes details about the fit (slope, standard error, etc.). If it
     is ``None``, no text is displayed.
 
-    *centertext* is displayed in a smaller font in the upper center of the 
-    plot. Typically this is the HGVS_ variant string or the barcode for the 
-    element whose fit is plotted. The string is split on commas into a 
+    *centertext* is displayed in a smaller font in the upper center of the
+    plot. Typically this is the HGVS_ variant string or the barcode for the
+    element whose fit is plotted. The string is split on commas into a
     multi-line string as required given its length (see *centerwrap*).
 
     *centerwrap* is the maximum length of each line in the *centertext* string.
 
     """
     if cornertext is not None:
-        ax.text(0.05, 0.05, cornertext, horizontalalignment='left', 
+        ax.text(0.05, 0.05, cornertext, horizontalalignment='left',
                 verticalalignment='bottom', transform=ax.transAxes)
 
     if centertext is not None:
@@ -178,16 +191,17 @@ def fit_axes_text(ax, cornertext=None, centertext=None, centerwrap=40):
             else:
                 text += ",\n" + x
                 length = len(x)
-        ax.text(0.5, 0.95, text, horizontalalignment='center', 
+        ax.text(0.5, 0.95, text, horizontalalignment='center',
                 verticalalignment='top', transform=ax.transAxes, fontsize=8)
 
 
-def volcano_plot(df, pdf, title=None, colors=None, log_bins=True, phred_max=100):
+def volcano_plot(df, pdf, title=None, colors=None, log_bins=True,
+                 logp_max=10):
     """
     Create a volcano plot of p-values vs. functional scores.
 
-    *df* is a DataFrame containing ``'score'`` and ``'pvalue_raw'`` columns. 
-        Each element (barcode, variant, etc.) has its own row. Other columns 
+    *df* is a DataFrame containing ``'score'`` and ``'pvalue_raw'`` columns.
+        Each element (barcode, variant, etc.) has its own row. Other columns
         will be ignored.
 
     *pdf* is the open PdfPages file object.
@@ -197,17 +211,17 @@ def volcano_plot(df, pdf, title=None, colors=None, log_bins=True, phred_max=100)
     *colors* is the name of the `matplotlib cmap`_ used.
         If *colors* is ``None``, the default hexbin cmap will be used.
 
-    *log_bins* sets whether or not the counts in each hexbin should be log10 
+    *log_bins* sets whether or not the counts in each hexbin should be log10
     transformed.
 
-    *phred_max* sets the maximum phred-transformed p-value that will be plotted.
-        p-values smaller than this will be set to the given max.
+    *logp_max* sets the maximum minus log-transformed p-value that will be
+        plotted. p-values smaller than this will be set to the given max.
 
     """
-    df = df.loc[:, ('pvalue_raw', 'score')]    # relevant subset of the data frame
+    df = df.loc[:, ('pvalue_raw', 'score')]
     df.dropna(axis="index", how="any", inplace=True)
-    df['pvalue_raw'] = -10 * np.log10(df['pvalue_raw']) # phred transform
-    df.loc[df['pvalue_raw'] > phred_max, 'pvalue_raw'] = phred_max  # set max
+    df['pvalue_raw'] = -np.log10(df['pvalue_raw'])
+    df.loc[df['pvalue_raw'] > logp_max, 'pvalue_raw'] = logp_max  # set max
 
     # create the figure
     fig, ax = plt.subplots()
@@ -219,16 +233,15 @@ def volcano_plot(df, pdf, title=None, colors=None, log_bins=True, phred_max=100)
         bins = "log"
     else:
         bins = None
-    hexbin = ax.hexbin(x=df['score'].values, y=df['pvalue_raw'].values, 
+    hexbin = ax.hexbin(x=df['score'].values, y=df['pvalue_raw'].values,
                        cmap=colors, bins=bins, mincnt=1, edgecolor="none",
                        gridsize=DEFAULT_GRIDSIZE)
 
     # set the labels
     if title is not None:
         ax.set_title(title)
-    ax.set_ylabel("-10 log10(raw p-value)")
+    ax.set_ylabel("-log10(raw p-value)")
     ax.set_xlabel("Score")
-
 
     # space the boundaries out so the points aren't on the edges
     ax.set_xlim([1.05 * df['score'].min(), 1.05 * df['score'].max()])
@@ -247,13 +260,14 @@ def volcano_plot(df, pdf, title=None, colors=None, log_bins=True, phred_max=100)
     plt.close(fig)
 
 
-def barcodemap_plot(obj, pdf, log=False, bins=DEFAULT_BINS, 
+def barcodemap_plot(obj, pdf, log=False, bins=DEFAULT_BINS,
                     color=plot_colors['bright3']):
     """
     Plot the number of barcodes assigned to each variant.
 
     Args:
-        obj (:py:class:`~enrich2.barcodevariant.BcvSeqLib`): object with counts to plot
+        obj (:py:class:`~enrich2.barcodevariant.BcvSeqLib`): object with counts
+            to plot
 
         pdf (|mpl_PdfPages|): destination file handle
 
@@ -267,13 +281,14 @@ def barcodemap_plot(obj, pdf, log=False, bins=DEFAULT_BINS,
         data = collections.Counter(obj.store['/raw/barcodemap']['value'])
     except KeyError:
         logging.warning("Failed to generate barcode-variant histogram "
-                        "(barcode map data not found)", 
-                        extra={'oname' : obj.name})
+                        "(barcode map data not found)",
+                        extra={'oname': obj.name})
         return
 
     if len(data.keys()) <= 1:
-        logging.warning("Not enough elements to make barcodemap plot", extra={'oname' : seqlib.name})
-        return 
+        logging.warning("Not enough elements to make barcodemap plot",
+                        extra={'oname': seqlib.name})
+        return
 
     # create the plot and set up the axes
     fig, ax = plt.subplots()
@@ -298,8 +313,8 @@ def barcodemap_plot(obj, pdf, log=False, bins=DEFAULT_BINS,
 
 def overlap_merge_plot(obj, pdf):
     """
-    Plot the location of all mismatches in the overlap region (split into 
-    resolved and unresolved) and the location of the first mismatch in the 
+    Plot the location of all mismatches in the overlap region (split into
+    resolved and unresolved) and the location of the first mismatch in the
     overlap region.
 
     Args:
@@ -312,8 +327,8 @@ def overlap_merge_plot(obj, pdf):
         data = obj.store['/raw/overlap_mismatches']
     except KeyError:
         logging.warning("Failed to generate overlap mismatch plot "
-                        "(mismatch data not found)", 
-                        extra={'oname' : obj.name})
+                        "(mismatch data not found)",
+                        extra={'oname': obj.name})
         return
 
     # create the plot and set up the axes
@@ -326,11 +341,11 @@ def overlap_merge_plot(obj, pdf):
     xpos = np.arange(len(data.index))   # x values starting at 0
 
     # plot the stacked barplot for unresolved and resolved mismatches
-    ax.bar(xpos, data['resolved'], width, 
-           color=plot_colors['bright1'], 
+    ax.bar(xpos, data['resolved'], width,
+           color=plot_colors['bright1'],
            label="Resolved Mismatches")
     ax.bar(xpos, data['unresolved'], width, bottom=data['resolved'],
-           color=plot_colors['bright2'], 
+           color=plot_colors['bright2'],
            label="Unresolved Mismatches")
 
     # plot the barplot for first mismatches
@@ -351,10 +366,10 @@ def overlap_merge_plot(obj, pdf):
     plt.close(fig)
 
 
-def counts_plot(seqlib, label, pdf, log=False, bins=DEFAULT_BINS, 
+def counts_plot(seqlib, label, pdf, log=False, bins=DEFAULT_BINS,
                 color=plot_colors['bright1']):
     """
-    Plot a histogram of processed counts. Excludes counts for wild type and 
+    Plot a histogram of processed counts. Excludes counts for wild type and
     synonymous variants.
 
     Args:
@@ -368,13 +383,15 @@ def counts_plot(seqlib, label, pdf, log=False, bins=DEFAULT_BINS,
 
         color (str): histogram bar color
     """
-    data = seqlib.store.select("/main/{}/counts".format(label), 
-        where="columns=count & index != WILD_TYPE_VARIANT & "
-              "index != SYNONYMOUS_VARIANT").values
+    data = seqlib.store.select("/main/{}/counts".format(label),
+                               where="columns=count & "
+                                     "index != WILD_TYPE_VARIANT & "
+                                     "index != SYNONYMOUS_VARIANT").values
 
     if len(data) <= 1:
-        logging.warning("Not enough elements to make '{}' counts plot".format(label), extra={'oname' : seqlib.name})
-        return 
+        logging.warning("Not enough elements to make '{}' counts plot"
+                        "".format(label), extra={'oname': seqlib.name})
+        return
 
     # create the plot and set up the axes
     fig, ax = plt.subplots()
@@ -411,8 +428,9 @@ def weights_plot(selection, label, pdf):
 
     """
     # get the data and drop NA values
-    data = selection.store.select("/main/{}/weights".format(label), 
-        where="index != WILD_TYPE_VARIANT & index != SYNONYMOUS_VARIANT")
+    data = selection.store.select("/main/{}/weights".format(label),
+                                  where="index != WILD_TYPE_VARIANT & "
+                                        "index != SYNONYMOUS_VARIANT")
     data.dropna(axis="index", how="any", inplace=True)
 
     # normalize the weights to [0..1]
@@ -424,31 +442,30 @@ def weights_plot(selection, label, pdf):
     configure_axes(ax)
 
     # add a horizontal line to show the weights if all weights were equal
-    ax.axhline(y=1.0 / len(selection.timepoints), lw=1, linestyle="--", 
+    ax.axhline(y=1.0 / len(selection.timepoints), lw=1, linestyle="--",
                color=plot_colors['accent1'])
 
     # plot the boxplot, setting the colors for each part of the plot
     ax.boxplot(data, notch=False, showmeans=True, meanline=True,
-       sym=None, # workaround for flierprops being ignored otherwise
-       boxprops=dict(color=plot_colors['bright1']),
-       flierprops=dict(markeredgecolor=plot_colors['bright1'], 
-                       marker="+"),
-       medianprops=dict(color=plot_colors['bright2'], 
-                        linestyle="-"),
-       meanprops=dict(color=plot_colors['bright2'], 
-                      linestyle=":"),
-       capprops=dict(color=plot_colors['bright1'], 
-                     linestyle="-"),
-       whiskerprops=dict(color=plot_colors['bright1'], 
-                         linestyle="--"))
+               sym=None,  # workaround for flierprops being ignored otherwise
+               boxprops=dict(color=plot_colors['bright1']),
+               flierprops=dict(markeredgecolor=plot_colors['bright1'],
+                               marker="+"),
+               medianprops=dict(color=plot_colors['bright2'],
+                                linestyle="-"),
+               meanprops=dict(color=plot_colors['bright2'],
+                              linestyle=":"),
+               capprops=dict(color=plot_colors['bright1'],
+                             linestyle="-"),
+               whiskerprops=dict(color=plot_colors['bright1'],
+                                 linestyle="--"))
 
     # add the title and axes labels
-    ax.set_title("Regression Weights for {}\n{}".format(label.title(), 
+    ax.set_title("Regression Weights for {}\n{}".format(label.title(),
                  selection.name))
     ax.set_xlabel("Time Point")
     ax.set_ylabel("Proportional Weight")
     ax.set_xticklabels(selection.timepoints)
-
 
     # save the figure and clean up
     pdf.savefig(fig)
@@ -458,85 +475,92 @@ def weights_plot(selection, label, pdf):
 def corr_axes(ax, x, y, score_min, score_max, **kwargs):
     """
     Plot the correlation between scores in two replicates.
-    
+
     Args:
         ax (matplotlib.axes.Axes): axes object used for plotting
-        
+
         x (vector): scores for the first replicate
-        
+
         y (vector): scores for the second replicate
-        
+
         score_min: minimum score in all plots
-        
+
         score_max: maximum score in all plots
-        
+
         **kwargs: arguments to pass to ax.plot for plotting the points (point style, color, etc.)
     """
     configure_axes(ax, xgrid=True)
 
     # set the axes limits
     ax.set_xlim([score_min * 1.05, score_max * 1.05])
-    ax.set_ylim([score_min * 1.05, score_max * 1.05])    
-    
+    ax.set_ylim([score_min * 1.05, score_max * 1.05])
+
     # plot bolder zero lines
-    ax.plot(ax.get_xlim(), [0.,0.], linestyle='-', color=plot_colors['accent3'], linewidth=1)
-    ax.plot([0.,0.], ax.get_ylim(), linestyle='-', color=plot_colors['accent3'], linewidth=1)
+    ax.plot(ax.get_xlim(), [0., 0.], linestyle='-',
+            color=plot_colors['accent3'], linewidth=1)
+    ax.plot([0., 0.], ax.get_ylim(), linestyle='-',
+            color=plot_colors['accent3'], linewidth=1)
 
     # plot the points
     ax.plot(x, y, **kwargs)
 
     # plot the fit line
     fit = np.polyfit(x, y, 1)
-    ax.plot(ax.get_xlim(), np.poly1d(fit)(ax.get_xlim()), linestyle='--', color=plot_colors['accent2'])
-    
+    ax.plot(ax.get_xlim(), np.poly1d(fit)(ax.get_xlim()), linestyle='--',
+            color=plot_colors['accent2'])
+
     # plot the text with regression line info
     r, _ = scipy.stats.pearsonr(x, y)
-    ax.text(0.05, 0.95, "r^2 = {:.2g}".format(r **2), 
+    ax.text(0.05, 0.95, "r^2 = {:.2g}".format(r ** 2),
             horizontalalignment='left', verticalalignment='top',
             transform=ax.transAxes, fontsize=8)
 
 
-def hexbin_corr_axes(ax, x, y, score_min, score_max, cbar_ax=None):
+def hexbin_corr_axes(ax, x, y, score_min, score_max, cbar_ax=None, gridsize=50,
+                     cmap='YlGnBu_r'):
     """
     Plot the correlation between scores in two replicates using a hexbin. This 
     function is preferable to corr_axes when plotting a large number of data 
     points.
-    
+
     Args:
         ax (matplotlib.axes.Axes): axes object used for plotting
-        
+
         x (vector): scores for the first replicate
-        
+
         y (vector): scores for the second replicate
-        
+
         score_min: minimum score in all plots
-        
+
         score_max: maximum score in all plots
 
         cbar_ax (matplotlib.axes.Axes): axes object used for plotting the colorbar (optional)
-        
+
     """
     configure_axes(ax, xgrid=True)
 
     # set the axes limits
     ax.set_xlim([score_min * 1.05, score_max * 1.05])
-    ax.set_ylim([score_min * 1.05, score_max * 1.05])    
+    ax.set_ylim([score_min * 1.05, score_max * 1.05])
 
     # plot bolder zero lines
-    ax.plot(ax.get_xlim(), [0.,0.], linestyle='-', color=plot_colors['accent3'], linewidth=1)
-    ax.plot([0.,0.], ax.get_ylim(), linestyle='-', color=plot_colors['accent3'], linewidth=1)
+    ax.plot(ax.get_xlim(), [0., 0.], linestyle='-',
+            color=plot_colors['accent3'], linewidth=2)
+    ax.plot([0., 0.], ax.get_ylim(), linestyle='-',
+            color=plot_colors['accent3'], linewidth=2)
 
     # plot the points
-    hb = ax.hexbin(x, y, mincnt=1, cmap='YlGnBu_r', gridsize=50)
+    hb = ax.hexbin(x, y, mincnt=1, cmap=cmap, gridsize=gridsize)
     hb.set_zorder(3)    # on top of the zero lines
-    
+
     # plot the fit line
     fit = np.polyfit(x, y, 1)
-    ax.plot(ax.get_xlim(), np.poly1d(fit)(ax.get_xlim()), linestyle='--', color=plot_colors['accent2'], zorder=4)
-    
+    ax.plot(ax.get_xlim(), np.poly1d(fit)(ax.get_xlim()), linestyle='--',
+            linewidth=1, color=plot_colors['accent2'], zorder=4)
+
     # plot the text with regression line info
     r, _ = scipy.stats.pearsonr(x, y)
-    ax.text(0.05, 0.95, "r^2 = {:.2g}".format(r **2), 
+    ax.text(0.05, 0.95, "r^2 = {:.3g}".format(r ** 2),
             horizontalalignment='left', verticalalignment='top',
             transform=ax.transAxes)
 
@@ -546,7 +570,27 @@ def hexbin_corr_axes(ax, x, y, score_min, score_max, cbar_ax=None):
         cbar.ax.tick_params(bottom=False, top=False, left=False, right=False)
         cbar.set_label("Count")
         cbar.outline.set_visible(False)
-        
+
     return hb
 
 
+def density_ax(ax, ys, xmin, xmax, xlabel, line_params, legend_loc='best'):
+
+    if len(ys) != len(line_params):
+        raise ValueError("All y-value sets must have a linestyle")
+
+    configure_axes(ax, xgrid=True)
+
+    d_ys = [KDEUnivariate(y.values) for y in ys]
+    [d_y.fit() for d_y in d_ys]
+
+    xs = np.linspace(xmin, xmax, 1000)
+
+    for i in xrange(len(ys)):
+        ax.plot(xs, d_ys[i].evaluate(xs), label=ys[i].name, **line_params[i])
+
+    ax.legend(loc=legend_loc, **legend_params)
+
+    ax.set_xlabel(xlabel, **label_params)
+    ax.set_ylabel("Density", **label_params)
+    ax.tick_params(axis='both', which='major', **tick_params)

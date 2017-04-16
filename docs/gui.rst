@@ -47,7 +47,7 @@ experiment was performed (see :ref:`intro-seqlibs`).
 
 .. note:: To avoid re-counting the reads when multiple Selections share the same input library, use the same object name for the input library in each Selection.
 
-Most parameters are specified in SeqLib objects, including the wild type sequence, FASTQ_ filtering options, and the location of the sequencing files (see :ref:`seqlib-configuration`).
+Most parameters are specified in SeqLib objects, such as the wild type sequence, filtering options, and the location of the sequencing files or counts files (see :ref:`seqlib-configuration`).
 
 .. note:: Time points can have multiple sequencing libraries, which are added together before scores are calculated.
 
@@ -110,7 +110,7 @@ Normalization method
 
 * Wild Type
 
-	Recommended if your selection has a wild type sequence. Normalizes counts by the wild type count as described in the `Enrich2 manuscript`_.
+	Recommended if your selection has a wild type sequence. Normalizes counts by the wild type count as described in the `Enrich2 manuscript`_. For designs with identifiers instead of variants, the special wild type identifier "_wt" can be used.
 
 * Library Size (Complete Cases)
 

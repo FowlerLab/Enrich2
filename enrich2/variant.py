@@ -1,4 +1,4 @@
-#  Copyright 2016 Alan F Rubin
+#  Copyright 2016-2017 Alan F Rubin
 #
 #  This file is part of Enrich2.
 #
@@ -27,19 +27,52 @@ import numpy as np
 import os.path
 from .plots import counts_plot
 from matplotlib.backends.backend_pdf import PdfPages
-from .constants import WILD_TYPE_VARIANT, SYNONYMOUS_VARIANT, CODON_TABLE, AA_CODES
+from .constants import WILD_TYPE_VARIANT, SYNONYMOUS_VARIANT
+from .constants import CODON_TABLE, AA_CODES
 
-#: Default number of maximum mutation. Must be set to avoid data frame performance errors.
+#: Default number of maximum mutation. 
+#: Must be set to avoid data frame performance errors.
 DEFAULT_MAX_MUTATIONS = 10
 
-#: Regular expression that matches a single amino acid substitution in HGVS_ format.
-re_protein = re.compile("(?P<match>p\.(?P<pre>[A-Z][a-z][a-z])(?P<pos>-?\d+)(?P<post>[A-Z][a-z][a-z]))")
+#: Matches a single amino acid substitution in HGVS_ format.
+re_protein = re.compile(
+    "(?P<match>p\.(?P<pre>[A-Z][a-z][a-z])(?P<pos>-?\d+)"
+    "(?P<post>[A-Z][a-z][a-z]))")
 
-#: Regular expression that matches a single coding nucleotide substitution in HGVS_ format.
-re_coding = re.compile("(?P<match>c\.(?P<pos>-?\d+)(?P<pre>[ACGT])>(?P<post>[ACGT]) \(p\.\S+\))")
+#: Matches a single nucleotide substitution (coding or noncoding)
+#: in HGVS_ format.
+re_nucleotide = re.compile(
+    "(?P<match>[nc]\.(?P<pos>-?\d+)(?P<pre>[ACGT])>(?P<post>[ACGT]))")
 
-#: Regular expression that matches a single noncoding nucleotide substitution in HGVS_ format.
-re_noncoding = re.compile("(?P<match>n\.(?P<pos>-?\d+)(?P<pre>[ACGT])>(?P<post>[ACGT]))")
+#: Matches a single coding nucleotide substitution in HGVS_ format.
+re_coding = re.compile(
+    "(?P<match>c\.(?P<pos>-?\d+)(?P<pre>[ACGT])>(?P<post>[ACGT]) "
+    "\(p\.(?:=|[A-Z][a-z][a-z]-?\d+[A-Z][a-z][a-z])\))")
+
+#: Matches a single noncoding nucleotide substitution in HGVS_ format.
+re_noncoding = re.compile(
+    "(?P<match>n\.(?P<pos>-?\d+)(?P<pre>[ACGT])>(?P<post>[ACGT]))")
+
+
+def valid_variant(s, is_coding=True):
+    """
+    Returns True if s is a valid coding or noncoding variant, else False.
+    """
+    if s == WILD_TYPE_VARIANT:
+        return True
+    else:
+        if is_coding:
+            for mut in s.split(", "):
+                match = re_coding.match(mut)
+                if match is None:
+                    return False
+            return True
+        else:
+            for mut in s.split(", "):
+                match = re_noncoding.match(mut)
+                if match is None:
+                    return False
+            return True
 
 
 def hgvs2single(s):
@@ -58,22 +91,24 @@ def single2hgvs(s):
     Convert single-letter amino acid changes in the form
     <pre><pos><post> into HGVS strings that match Enrich2 
     output.
-    
+
     Searches the string s for all instances of the above
     pattern and returns a list of Enrich2 variants.
-    
     """
     t = re.findall('[A-Z*]\d+[A-Z*]', s)
-    return ["p.{}{}{}".format(AA_CODES[x[0]], x[1:-1], AA_CODES[x[-1]]) for x in t]
+    return ["p.{}{}{}".format(AA_CODES[x[0]], x[1:-1], AA_CODES[x[-1]])
+            for x in t]
 
 
 def get_variant_type(variant):
     """
-    Use regular expressions to determine whether the variant is protein, 
+    Use regular expressions to determine whether the variant is protein,
     coding, or noncoding.
 
     :param str variant: variant string
-    :return: ``'protein'``, ``'coding'``, or ``'noncoding'`` depending on which regular expression matches, else ``None``. Note that both wild type and synonymous special variants will return ``None``.
+    :return: ``'protein'``, ``'coding'``, or ``'noncoding'`` depending on \
+    which regular expression matches, else ``None``. Note that both wild type \
+    and synonymous special variants will return ``None``.
     :rtype: str
     """
     v = variant.split(', ')[0]  # test first token of multi-mutant
@@ -127,9 +162,9 @@ def has_unresolvable(variant):
     """
     Tests if the HGVS_ *variant* has an unresolvable amino acid change.
 
-    Unresolvable amino acid changes are most commonly caused by the presence 
-    of N or X nucleotides, resulting in a non-translatable codon. They are 
-    also found when a frameshift causes the last part of the coding sequence 
+    Unresolvable amino acid changes are most commonly caused by the presence
+    of N or X nucleotides, resulting in a non-translatable codon. They are
+    also found when a frameshift causes the last part of the coding sequence
     to not have three nucleotides.
 
     :param str variant: variant string
@@ -140,13 +175,13 @@ def has_unresolvable(variant):
         return True
     else:
         return False
-    
+
 
 def protein_variant(variant):
     """
-    Return an HGVS_ variant string containing only the protein changes in a 
-    coding HGVS_ variant string. If all variants are synonymous, returns the 
-    synonymous variant code. If the variant is wild type, returns the wild 
+    Return an HGVS_ variant string containing only the protein changes in a
+    coding HGVS_ variant string. If all variants are synonymous, returns the
+    synonymous variant code. If the variant is wild type, returns the wild
     type variant.
 
     :param str variant: coding variant string
@@ -164,7 +199,7 @@ def protein_variant(variant):
         if len(matches) == 0:
             raise ValueError("Invalid coding variant string.")
         # uniqify and remove synonymous
-        seen = {"p.=" : True}
+        seen = {"p.=": True}
         unique_matches = list()
         for v in matches:
             if v in seen:
@@ -178,13 +213,12 @@ def protein_variant(variant):
             return ", ".join(unique_matches)
 
 
-
 class VariantSeqLib(SeqLib):
     """
-    Abstract :py:class:`~seqlib.seqlib.SeqLib` class for for Enrich libraries containing 
-    variants. Implements core functionality for assessing variants, either 
-    coding or noncoding. Subclasess must evaluate the variant DNA sequences 
-    that are being counted.
+    Abstract :py:class:`~seqlib.seqlib.SeqLib` class for for Enrich libraries
+    containing variants. Implements core functionality for assessing variants,
+    either coding or noncoding. Subclasess must evaluate the variant DNA
+    sequences that are being counted.
     """
     def __init__(self):
         SeqLib.__init__(self)
@@ -192,14 +226,13 @@ class VariantSeqLib(SeqLib):
         self.aligner = None
         self.aligner_cache = None
         self.variant_min_count = None
-        self.add_label('variants')
+        self.max_mutations = None
         # 'synonymous' label may be added in configure() if wt is coding
-        self.default_filters.update({'max mutations' : DEFAULT_MAX_MUTATIONS})
-
+        self.add_label('variants')
 
     def configure(self, cfg):
         """
-        Set up the object using the config object *cfg*, usually derived from 
+        Set up the object using the config object *cfg*, usually derived from
         a ``.json`` file.
         """
         SeqLib.configure(self, cfg)
@@ -221,26 +254,31 @@ class VariantSeqLib(SeqLib):
             else:
                 self.variant_min_count = 0
 
+            if 'max mutations' in cfg['variants']:
+                self.max_mutations = int(cfg['variants']['max mutations'])
+            else:
+                self.max_mutations = DEFAULT_MAX_MUTATIONS
+
         except KeyError as key:
-            raise KeyError("Missing required config value {key} [{name}]".format(key=key, name=self.name))
-
-
+            raise KeyError("Missing required config value {key} [{name}]"
+                           "".format(key=key, name=self.name))
 
     def serialize(self):
         """
-        Format this object (and its children) as a config object suitable for dumping to a config file.
+        Format this object (and its children) as a config object suitable for
+        dumping to a config file.
         """
         cfg = SeqLib.serialize(self)
 
-        if 'variants' not in cfg:
-            cfg['variants'] = {
-                'wild type' : self.wt.serialize(),
-                'use aligner' : self.aligner is not None,
-                'min count' : self.variant_min_count
-            }
+        cfg['variants'] = dict()
+        cfg['variants']['wild type'] = self.wt.serialize()
+        cfg['variants']['use aligner'] = self.aligner is not None
+        if self.max_mutations != DEFAULT_MAX_MUTATIONS:
+            cfg['variants']['max mutations'] = self.max_mutations
+        if self.variant_min_count > 0:
+            cfg['variants']['min count'] = self.variant_min_count
 
         return cfg
-
 
     def is_coding(self):
         """
@@ -248,27 +286,29 @@ class VariantSeqLib(SeqLib):
         """
         return self.wt.is_coding()
 
-
-    def has_wt(self):
+    def has_wt_sequence(self):
         """
-        Returns ``True``, because :py:class:`~seqlib.seqlib.VariantSeqLib` objects have
-        a wild type sequence. Raises a ValueError if the wild type sequence is not set properly.
+        Returns ``True``, because :py:class:`~seqlib.seqlib.VariantSeqLib`
+        objects have a wild type sequence. Raises a ValueError if the wild type
+        sequence is not set properly.
         """
         if self.wt is not None:
             return True
         else:
             raise ValueError("Wild type not set properly [{}]".format(self.name))
 
-
     def align_variant(self, variant_dna):
         """
-        Use the local :py:class:`~seqlib.aligner.Aligner` instance to align the *variant_dna* to the 
-        wild type sequence. Returns a list of HGVS_ variant strings.
+        Use the local :py:class:`~seqlib.aligner.Aligner` instance to align the
+        *variant_dna* to the wild type sequence. Returns a list of HGVS_
+        variant strings.
 
-        Aligned variants are stored in a local dictionary to avoid recomputing alignments. This 
-        dictionary should be cleared after all variants are counted, to save memory.
+        Aligned variants are stored in a local dictionary to avoid recomputing
+        alignments. This dictionary should be cleared after all variants are
+        counted, to save memory.
 
-        .. warning:: Using the :py:class:`~seqlib.aligner.Aligner` dramatically increases runtime.
+        .. warning:: Using the :py:class:`~seqlib.aligner.Aligner` \
+        dramatically increases runtime.
         """
         if variant_dna in self.aligner_cache.keys():
             return self.aligner_cache[variant_dna]
@@ -279,7 +319,8 @@ class VariantSeqLib(SeqLib):
             if cat == "match":
                 continue
             elif cat == "mismatch":
-                mut = "{pre}>{post}".format(pre=self.wt.dna_seq[x], post=variant_dna[y])
+                mut = "{pre}>{post}".format(pre=self.wt.dna_seq[x],
+                                            post=variant_dna[y])
             elif cat == "insertion":
                 if y > length:
                     dup = variant_dna[y:y + length]
@@ -287,8 +328,9 @@ class VariantSeqLib(SeqLib):
                         mut = "dup{seq}".format(seq=dup)
                     else:
                         mut = "_{pos}ins{seq}".format(pos=x + 2, seq=dup)
-                else:                                    
-                    mut = "_{pos}ins{seq}".format(pos=x + 2, seq=variant_dna[y:y + length])
+                else:
+                    mut = "_{pos}ins{seq}".format(pos=x + 2,
+                                                  seq=variant_dna[y:y + length])
             elif cat == "deletion":
                 mut = "_{pos}del".format(pos=x + length)
             mutations.append((x, mut))
@@ -296,24 +338,23 @@ class VariantSeqLib(SeqLib):
         self.aligner_cache[variant_dna] = mutations
         return mutations
 
-
     def count_variant(self, variant_dna, include_indels=True):
         """
         Identifies mutations and counts the *variant_dna* sequence.
         The algorithm attempts to call variants by comparing base-by-base.
-        If the *variant_dna* and wild type DNA are different lengths, or if there
-        are an excess of mismatches (indicating a possible indel), local
-        alignment is performed using :py:meth:`align_variant` if this option 
+        If the *variant_dna* and wild type DNA are different lengths, or if
+        there are an excess of mismatches (indicating a possible indel), local
+        alignment is performed using :py:meth:`align_variant` if this option
         has been selected in the configuration.
 
-        Each variant is stored as a tab-delimited string of mutations in HGVS_ 
-        format. Returns a list of HGVS_ variant strings. Returns an empty list 
+        Each variant is stored as a tab-delimited string of mutations in HGVS_
+        format. Returns a list of HGVS_ variant strings. Returns an empty list
         if the variant is wild type. Returns None if the variant was discarded
         due to excess mismatches.
         """
         if not re.match("^[ACGTNXacgtnx]+$", variant_dna):
             raise ValueError("Variant DNA sequence contains unexpected "
-                              "characters [{}]".format(self.name))
+                             "characters [{}]".format(self.name))
 
         variant_dna = variant_dna.upper()
 
@@ -326,11 +367,12 @@ class VariantSeqLib(SeqLib):
             mutations = list()
             for i in xrange(len(variant_dna)):
                 if variant_dna[i] != self.wt.dna_seq[i]:
-                    mutations.append((i, "{pre}>{post}".format(pre=self.wt.dna_seq[i], post=variant_dna[i])))
-                    if len(mutations) > self.filters['max mutations']:
+                    mutations.append((i, "{pre}>{post}".format(
+                        pre=self.wt.dna_seq[i], post=variant_dna[i])))
+                    if len(mutations) > self.max_mutations:
                         if self.aligner is not None:
                             mutations = self.align_variant(variant_dna)
-                            if len(mutations) > self.filters['max mutations']:
+                            if len(mutations) > self.max_mutations:
                                 # too many mutations post-alignment
                                 return None
                             else:
@@ -346,7 +388,7 @@ class VariantSeqLib(SeqLib):
             for i in xrange(0, len(variant_dna), 3):
                 try:
                     variant_protein += CODON_TABLE[variant_dna[i:i + 3]]
-                except KeyError: # garbage codon due to indel, X, or N
+                except KeyError:  # garbage codon due to indel, X, or N
                     variant_protein += '?'
 
             for pos, change in mutations:
@@ -354,12 +396,16 @@ class VariantSeqLib(SeqLib):
                 ref_pro_pos = pos / 3 + self.wt.protein_offset + 1
                 mut = "c.{pos}{change}".format(pos=ref_dna_pos, change=change)
                 if has_indel(change):
-                    mut += " (p.{pre}{pos}fs)".format(pre=AA_CODES[self.wt.protein_seq[pos / 3]], pos=ref_pro_pos)
+                    mut += " (p.{pre}{pos}fs)".format(
+                        pre=AA_CODES[self.wt.protein_seq[pos / 3]],
+                        pos=ref_pro_pos)
                 elif variant_protein[pos / 3] == self.wt.protein_seq[pos / 3]:
                     mut += " (p.=)"
                 else:
-                    mut += " (p.{pre}{pos}{post})".format(pre=AA_CODES[self.wt.protein_seq[pos / 3]], pos=ref_pro_pos,
-                             post=AA_CODES[variant_protein[pos / 3]])
+                    mut += " (p.{pre}{pos}{post})".format(
+                        pre=AA_CODES[self.wt.protein_seq[pos / 3]],
+                        pos=ref_pro_pos,
+                        post=AA_CODES[variant_protein[pos / 3]])
                 mutation_strings.append(mut)
         else:
             for pos, change in mutations:
@@ -373,30 +419,32 @@ class VariantSeqLib(SeqLib):
             variant_string = WILD_TYPE_VARIANT
         return variant_string
 
-
     def count_synonymous(self):
         """
-        Combine counts for synonymous variants (defined as variants that differ 
+        Combine counts for synonymous variants (defined as variants that differ
         at the nucleotide level but not at the amino acid level) and store them 
         under the ``synonymous`` label.
 
         This method should be called only after ``variants`` have been counted.
 
         .. note:: The total number of ``synonymous`` variants may be greater \
-        than the total number of ``variants`` after filtering. This is because \
-        ``variants`` are combined into ``synonymous`` entries at the \
+        than the total number of ``variants`` after filtering. This is \
+        because ``variants`` are combined into ``synonymous`` entries at the \
         :py:class:`~seqlib.seqlib.SeqLib` level before count-based filtering, \
         allowing filtered ``variants`` to contribute counts to their \
         ``synonymous`` entry.
         """
         if not self.is_coding():
-            logging.warning("Cannot count synonymous mutations in noncoding data", extra={'oname' : self.name})
+            logging.warning(
+                "Cannot count synonymous mutations in noncoding data",
+                extra={'oname': self.name})
             return
 
         if self.check_store("/main/synonymous/counts"):
             return
 
-        logging.info("Counting synonymous variants", extra={'oname' : self.name})
+        logging.info("Counting synonymous variants",
+                     extra={'oname': self.name})
 
         df_dict = dict()
 
@@ -414,3 +462,13 @@ class VariantSeqLib(SeqLib):
 
         self.save_counts('synonymous', df_dict, raw=False)
         del df_dict
+
+    def report_filtered_variant(self, variant, count):
+        """
+        Outputs a summary of the filtered variant to *handle*. Internal filter
+        names are converted to messages using the ``SeqLib.filter_messages``
+        dictionary. Related to :py:meth:`SeqLib.report_filtered`.
+        """
+        logging.debug("Filtered variant (quantity={n}) (excess mutations)"
+                      "\n{read!s}".format(n=count, read=variant),
+                      extra={'oname': self.name})

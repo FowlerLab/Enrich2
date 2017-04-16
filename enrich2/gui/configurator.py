@@ -1,4 +1,4 @@
-#  Copyright 2016 Alan F Rubin
+#  Copyright 2016-2017 Alan F Rubin
 #
 #  This file is part of Enrich2.
 #
@@ -37,9 +37,10 @@ from ..basic import BasicSeqLib
 from ..barcodevariant import BcvSeqLib
 from ..barcode import BarcodeSeqLib
 from ..overlap import OverlapSeqLib
+from ..idonly import IdOnlySeqLib
 from ..seqlib import SeqLib
 from ..variant import VariantSeqLib
-from ..storemanager import available_scoring_methods, available_logr_methods
+from ..storemanager import SCORING_METHODS, LOGR_METHODS
 
 
 def write_json(d, handle):
@@ -158,8 +159,8 @@ class Configurator(tk.Tk):
         scoring_heading = ttk.Label(options_frame, text="Scoring Method")
         scoring_heading.grid(column=0, row=row)
         row += 1
-        for i, k in enumerate(available_scoring_methods.keys()):
-            rb = ttk.Radiobutton(options_frame, text=available_scoring_methods[k].title(), variable=self.scoring_method, value=k)
+        for i, k in enumerate(SCORING_METHODS.keys()):
+            rb = ttk.Radiobutton(options_frame, text=SCORING_METHODS[k].title(), variable=self.scoring_method, value=k)
             rb.grid(column=0, row=row, sticky="w")
             row += 1
             if i == 0:
@@ -168,8 +169,8 @@ class Configurator(tk.Tk):
         logr_heading = ttk.Label(options_frame, text="Normalization Method")
         logr_heading.grid(column=0, row=row)
         row += 1
-        for i, k in enumerate(available_logr_methods.keys()):
-            rb = ttk.Radiobutton(options_frame, text=available_logr_methods[k].title(), variable=self.logr_method, value=k)
+        for i, k in enumerate(LOGR_METHODS.keys()):
+            rb = ttk.Radiobutton(options_frame, text=LOGR_METHODS[k].title(), variable=self.logr_method, value=k)
             rb.grid(column=0, row=row, sticky="w")
             row += 1
             if i == 0:

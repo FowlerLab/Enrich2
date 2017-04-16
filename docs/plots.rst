@@ -16,6 +16,24 @@ Experiment plots
     
     Cell color indicates the score for the single change (row) at the given position (column). Positive scores (in red) indicate better performance in the assay, and negative scores (in blue) indicate worse performance. Grey squares denote changes that were not measured. Diagonal lines in each cell represent the standard error for the score, and are scaled such that the highest standard error on the plot covers the entire diagonal. Standard errors that are less than 2% of this maximum value are not plotted. Cells containing circles have the wild type residue at that position.
 
+    .. _sfmap_aa_file:
+
+    Custom amino acid ordering and groups can be specified by running Enrich2 in command line mode and using the ``--sfmap-aa-file`` option. Each line of the file begins with an optional label followed by a single tab character and then a comma-separated list of single-letter amino acid codes. All amino acid codes must be present exactly once.
+
+    The following amino acid grouping files are provided:
+
+    Default (:download:`click to download <_static/sfmap_aa_files/aagroup_default.txt>`)
+
+        This grouping is used when no file is specified. `Reference <http://www.sigmaaldrich.com/life-science/metabolomics/learning-center/amino-acid-reference-chart.html>`__
+
+    .. literalinclude:: _static/sfmap_aa_files/aagroup_default.txt
+
+    Helical Propensity (:download:`click to download <_static/sfmap_aa_files/aagroup_helical_propensity.txt>`)
+
+        `Reference <https://www.ncbi.nlm.nih.gov/pmc/articles/PMC1299714/>`__
+
+    .. literalinclude:: _static/sfmap_aa_files/aagroup_helical_propensity.txt
+
 Selection plots
 --------------------------------------------
 
@@ -27,7 +45,9 @@ Selection plots
     
     .. image:: _static/plots/diversity.png
 
-    Variant frequencies are visualized in the style of a sequence-function map. Separate protein- and nucleotide-level diversity maps for each time point are generated. 
+    Variant frequencies are visualized in the style of a sequence-function map. Separate protein- and nucleotide-level diversity maps for each time point are generated.
+
+    Custom amino acid ordering and groups can be specified by running Enrich2 in command line mode and using the ``--sfmap-aa-file`` option. :ref:`See above <sfmap_aa_file>` for more details.
 
 * Counts per time point
 

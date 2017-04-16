@@ -1,4 +1,4 @@
-#  Copyright 2016 Alan F Rubin
+#  Copyright 2016-2017 Alan F Rubin
 #
 #  This file is part of Enrich2.
 #
@@ -21,6 +21,7 @@ from .barcodevariant import BcvSeqLib
 from .barcodeid import BcidSeqLib
 from .barcode import BarcodeSeqLib
 from .overlap import OverlapSeqLib
+from .idonly import IdOnlySeqLib
 from .config_check import seqlib_type
 from .storemanager import StoreManager
 import os
@@ -127,7 +128,7 @@ class Selection(StoreManager):
 
     @property
     def wt(self):
-        if self.has_wt():
+        if self.has_wt_sequence():
             if self._wt is None:
                 self._wt = self.children[0].wt.duplicate(self.name)
             return self._wt
@@ -190,15 +191,15 @@ class Selection(StoreManager):
             raise ValueError("Insufficient number of timepoints for regression scoring [{}]".format(self.name))
         
         # check the wild type sequences
-        if self.has_wt():
+        if self.has_wt_sequence():
             for child in self.children[1:]:
                 if self.children[0].wt != child.wt:
                     logging.warning("Inconsistent wild type sequences", extra={'oname' : self.name})
                     break
         
         # check that we're not doing wild type normalization on something with no wild type
-        if not self.has_wt() and self.logr_method == "wt":
-            raise ValueError("No wild type sequence for wild type normalization [{}]".format(self.name))
+        #if not self.has_wt_sequence() and self.logr_method == "wt":
+        #    raise ValueError("No wild type sequence for wild type normalization [{}]".format(self.name))
 
         # validate children
         for child in self.children:
@@ -258,13 +259,13 @@ class Selection(StoreManager):
         return all(x.is_coding() for x in self.children)
 
 
-    def has_wt(self):
+    def has_wt_sequence(self):
         """
         Return ``True`` if the all :py:class:`~seqlib.seqlib.SeqLib` in the 
         :py:class:`~selection.Selection` have a wild type sequence, else 
         ``False``.
         """
-        return all(x.has_wt() for x in self.children)
+        return all(x.has_wt_sequence() for x in self.children)
 
 
     def merge_counts_unfiltered(self, label):
@@ -454,7 +455,13 @@ class Selection(StoreManager):
         df = self.store.select("/main/{}/counts".format(label), "columns in ['c_0', c_last]")
 
         if self.logr_method == "wt":
-            shared_counts = self.store.select("/main/variants/counts", "columns in ['c_0', c_last] & index='{}'".format(WILD_TYPE_VARIANT))
+            if "variants" in self.labels:
+                wt_label = "variants"
+            elif "identifiers" in self.labels:
+                wt_label = "identifiers"
+            else:
+                raise ValueError('Failed to use wild type log ratio method, suitable data table not present [{}]'.format(self.name))
+            shared_counts = self.store.select("/main/{}/counts".format(wt_label), "columns in ['c_0', c_last] & index='{}'".format(WILD_TYPE_VARIANT))
             if len(shared_counts) == 0: # wild type not found
                 raise ValueError('Failed to use wild type log ratio method, wild type sequence not present [{}]'.format(self.name))
             shared_counts = shared_counts.values + 0.5
@@ -496,7 +503,16 @@ class Selection(StoreManager):
         # perform operations on the numpy values of the data frame for easier broadcasting
         ratios = ratios[c_n].values
         if self.logr_method == "wt":
-            ratios = ratios - np.log(self.store.select("/main/variants/counts", "columns=c_n & index='{}'".format(WILD_TYPE_VARIANT)).values + 0.5)
+            if "variants" in self.labels:
+                wt_label = "variants"
+            elif "identifiers" in self.labels:
+                wt_label = "identifiers"
+            else:
+                raise ValueError('Failed to use wild type log ratio method, suitable data table not present [{}]'.format(self.name))
+            wt_counts = self.store.select("/main/{}/counts".format(wt_label), "columns=c_n & index='{}'".format(WILD_TYPE_VARIANT))
+            if len(wt_counts) == 0: # wild type not found
+                raise ValueError('Failed to use wild type log ratio method, wild type sequence not present [{}]'.format(self.name))
+            ratios = ratios - np.log(wt_counts.values + 0.5)
         elif self.logr_method == "complete":
             ratios = ratios - np.log(self.store.select("/main/{}/counts".format(label), "columns=c_n").sum(axis="index").values + 0.5)
         elif self.logr_method == "full":
@@ -524,7 +540,16 @@ class Selection(StoreManager):
         #variances = 1.0 / (variances[c_n].values + 0.5) + 1.0 / (variances[['c_0']].values + 0.5)
         variances = 1.0 / (variances[c_n].values + 0.5)
         if self.logr_method == "wt":
-            variances = variances + 1.0 / (self.store.select("/main/variants/counts", "columns=c_n & index='{}'".format(WILD_TYPE_VARIANT)).values + 0.5)
+            if "variants" in self.labels:
+                wt_label = "variants"
+            elif "identifiers" in self.labels:
+                wt_label = "identifiers"
+            else:
+                raise ValueError('Failed to use wild type log ratio method, suitable data table not present [{}]'.format(self.name))
+            wt_counts = self.store.select("/main/{}/counts".format(wt_label), "columns=c_n & index='{}'".format(WILD_TYPE_VARIANT))
+            if len(wt_counts) == 0: # wild type not found
+                raise ValueError('Failed to use wild type log ratio method, wild type sequence not present [{}]'.format(self.name))
+            variances = variances + 1.0 / (wt_counts.values + 0.5)
         elif self.logr_method == "complete":
             variances = variances + 1.0 / (self.store.select("/main/{}/counts".format(label), "columns=c_n").sum(axis="index").values + 0.5)
         elif self.logr_method == "full":
@@ -591,8 +616,12 @@ class Selection(StoreManager):
         logging.info("Creating wild type fit plot", extra={'oname' : self.name})
 
         # get the data and calculate log ratios
-        data = self.store.select("/main/variants/counts", where='index = "{}"'.format(WILD_TYPE_VARIANT)).ix[0]
-        sums = self.store['/main/variants/counts'].sum(axis="index")  # sum of complete cases (N')
+        if "variants" in self.labels:
+            wt_label = "variants"
+        elif "identifiers" in self.labels:
+            wt_label = "identifiers"
+        data = self.store.select("/main/{}/counts".format(wt_label), where='index = "{}"'.format(WILD_TYPE_VARIANT)).ix[0]
+        sums = self.store['/main/{}/counts'.format(wt_label)].sum(axis="index")  # sum of complete cases (N')
         yvalues = np.log(data + 0.5) - np.log(sums + 0.5)
         xvalues = [tp / float(max(self.timepoints)) for tp in self.timepoints]
 
@@ -837,6 +866,8 @@ class Selection(StoreManager):
 
         Uses :py:func:`~sfmap.sfmap_plot` for the plotting.
         """
+        plot_options = self.get_root().plot_options
+        
         if cname.startswith("c_"):
             counts = True
         elif cname == "score":
@@ -864,11 +895,17 @@ class Selection(StoreManager):
             df_name += "counts_unfiltered"
         else:
             df_name += "scores"
-        data, wtseq = singleton_dataframe(self.store[df_name][cname], self.wt, coding=coding)
+        if plot_options is not None:
+            data, wtseq = singleton_dataframe(self.store[df_name][cname], self.wt, coding=coding, aa_list=plot_options['aa_list'])
+        else:
+            data, wtseq = singleton_dataframe(self.store[df_name][cname], self.wt, coding=coding)
         if counts:
             data_se = None
         else:
-            data_se, _ = singleton_dataframe(self.store[df_name]["SE"], self.wt, coding=coding)
+            if plot_options is not None:
+                data_se, _ = singleton_dataframe(self.store[df_name]["SE"], self.wt, coding=coding, aa_list=plot_options['aa_list'])
+            else:
+                data_se, _ = singleton_dataframe(self.store[df_name]["SE"], self.wt, coding=coding)
 
 
         # format the title
@@ -895,7 +932,14 @@ class Selection(StoreManager):
         else:
             style = "scores"
 
-        sfmap_plot(df=data, pdf=pdf, style=style, df_se=data_se, dimensions="tall", wt=wtseq, title=title)
+        if plot_options is not None:
+            sfmap_plot(df=data, pdf=pdf, style=style, df_se=data_se,
+                       dimensions="tall", wt=wtseq, title=title,
+                       aa_list=plot_options['aa_list'],
+                       aa_label_groups=plot_options['aa_label_groups'])
+        else:
+            sfmap_plot(df=data, pdf=pdf, style=style, df_se=data_se,
+                       dimensions="tall", wt=wtseq, title=title)
 
 
     def barcodemap_mapping(self):
