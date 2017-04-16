@@ -239,7 +239,7 @@ class SeqLib(StoreManager):
         It contains the number of reads filtered for each category, plus the
         total number filtered.
 
-        .. note:: Reads are checked for all quality-based criteria before
+        .. note:: Reads are checked for all quality-based criteria before \
         filtering.
         """
         with open(os.path.join(self.output_dir, fix_filename(self.name) +
