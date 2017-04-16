@@ -221,7 +221,7 @@ def volcano_plot(df, pdf, title=None, colors=None, log_bins=True,
     df = df.loc[:, ('pvalue_raw', 'score')]
     df.dropna(axis="index", how="any", inplace=True)
     df['pvalue_raw'] = -np.log10(df['pvalue_raw'])
-    df.loc[df['pvalue_raw'] > logp_max, 'pvalue_raw'] = phred_max  # set max
+    df.loc[df['pvalue_raw'] > logp_max, 'pvalue_raw'] = logp_max  # set max
 
     # create the figure
     fig, ax = plt.subplots()
