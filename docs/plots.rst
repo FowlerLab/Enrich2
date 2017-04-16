@@ -22,15 +22,17 @@ Experiment plots
 
     The following amino acid grouping files are provided:
 
-    Default (:download:`click to download <_static/sfmap_aa_files/aa_default.txt>`)
+    Default (:download:`click to download <_static/sfmap_aa_files/aagroup_default.txt>`)
 
-        This grouping is used when no file is specified.
+        This grouping is used when no file is specified. `Reference <http://www.sigmaaldrich.com/life-science/metabolomics/learning-center/amino-acid-reference-chart.html>`_
 
-    .. literalinclude:: _static/sfmap_aa_files/aa_default.txt
+    .. literalinclude:: _static/sfmap_aa_files/aagroup_default.txt
 
-    Helical (:download:`click to download <_static/sfmap_aa_files/aa_helical.txt>`)
+    Helical Propensity (:download:`click to download <_static/sfmap_aa_files/aagroup_helical_propensity.txt>`)
 
-    .. literalinclude:: _static/sfmap_aa_files/aa_helical.txt
+        `Reference <https://www.ncbi.nlm.nih.gov/pmc/articles/PMC1299714/>`_
+
+    .. literalinclude:: _static/sfmap_aa_files/aagroup_helical_propensity.txt
 
 Selection plots
 --------------------------------------------

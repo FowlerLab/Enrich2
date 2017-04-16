@@ -1,4 +1,0 @@
-Helical	M,A,L,E,K
-Non-helical	R,Q,I,W,S,Y,F,H,V,N,T,C,D
-Disruptive	G,P
-	*

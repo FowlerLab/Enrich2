@@ -1,0 +1,4 @@
+High helical propensity	A,L,R,M,K,Q,E,I,W
+Low helical propensity	S,Y,F,V,H,N,T,C,E
+Disruptive	G,P
+	*

@@ -31,8 +31,9 @@ from .plots import plot_cmaps, plot_colors
 AA_LIST = ['H', 'K', 'R',                 # (+)
            'D', 'E',                      # (-)
            'C', 'M', 'N', 'Q', 'S', 'T',  # Polar-neutral
-           'A', 'G', 'I', 'L', 'P', 'V',  # Non-polar
+           'A', 'I', 'L', 'V',            # Non-polar
            'F', 'W', 'Y',                 # Aromatic
+           'G', 'P',                      # Unique
            '*']
 
 #: List of tuples for amino acid physiochemical property groups.
@@ -41,8 +42,9 @@ AA_LIST = ['H', 'K', 'R',                 # (+)
 AA_LABEL_GROUPS = [("(+)", 0, 2),
                    ("(-)", 3, 4),
                    ("Polar-neutral", 5, 10),
-                   ("Non-polar", 11, 16),
-                   ("Aromatic", 17, 19)]
+                   ("Non-polar", 11, 14),
+                   ("Aromatic", 15, 17),
+                   ("Unique", 18, 19)]
 
 #: List of nucleotides in row order for sequence-function maps.
 NT_LIST = ['A', 'C', 'G', 'T']
@@ -55,6 +57,8 @@ def parse_aa_list(fname):
     with open(fname) as handle:
         for line in handle:
             if line.startswith('#'):
+                continue
+            if len(line) == 0:
                 continue
             try:
                 label, aa = line.split('\t')
