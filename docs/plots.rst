@@ -24,13 +24,13 @@ Experiment plots
 
     Default (:download:`click to download <_static/sfmap_aa_files/aagroup_default.txt>`)
 
-        This grouping is used when no file is specified. `Reference <http://www.sigmaaldrich.com/life-science/metabolomics/learning-center/amino-acid-reference-chart.html>`_
+        This grouping is used when no file is specified. `Reference <http://www.sigmaaldrich.com/life-science/metabolomics/learning-center/amino-acid-reference-chart.html>`__
 
     .. literalinclude:: _static/sfmap_aa_files/aagroup_default.txt
 
     Helical Propensity (:download:`click to download <_static/sfmap_aa_files/aagroup_helical_propensity.txt>`)
 
-        `Reference <https://www.ncbi.nlm.nih.gov/pmc/articles/PMC1299714/>`_
+        `Reference <https://www.ncbi.nlm.nih.gov/pmc/articles/PMC1299714/>`__
 
     .. literalinclude:: _static/sfmap_aa_files/aagroup_helical_propensity.txt
 
