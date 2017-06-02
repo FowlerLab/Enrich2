@@ -1,3 +1,5 @@
+[![DOI](https://zenodo.org/badge/69113902.svg)](https://zenodo.org/badge/latestdoi/69113902)
+
 Enrich2
 =======
 
