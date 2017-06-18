@@ -10,7 +10,7 @@ Enrich2 runs on Python 2.7 and has the following dependencies:
 
 * `NumPy <http://www.numpy.org/>`_ version 1.10.4 or higher
 * `SciPy <http://www.scipy.org/>`_ version 0.16.0 or higher
-* `pandas <http://pandas.pydata.org/>`_ version 0.18.0 or higher
+* `pandas <http://pandas.pydata.org/>`_ version 0.18 or 0.19
 * `PyTables <http://www.pytables.org/>`_ version 3.2.0 or higher
 * `Statsmodels <http://statsmodels.sourceforge.net/>`_ version 0.6.1 or higher
 * `matplotlib <http://matplotlib.org/>`_ version 1.4.3 or higher

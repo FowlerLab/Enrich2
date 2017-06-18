@@ -22,6 +22,7 @@ requirements = [
     'numpy >= 1.10.4',
     'scipy >= 0.16.0',
     'pandas >= 0.18.0',
+    'pandas < 0.20',
     'statsmodels >= 0.6.1',
     'matplotlib >= 1.4.3',
 ]
