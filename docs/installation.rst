@@ -24,7 +24,11 @@ The configuration GUI requires `Tkinter <https://docs.python.org/2/library/tkint
 Installation and example dataset
 -------------------------------------------------------
 
-#. Make sure the `required packages`_ are installed.
+1. Make sure the `required packages`_ are installed.
+
+    a. To set up a new `Anaconda <https://store.continuum.io/cshop/anaconda/>`_ environment for Enrich2, use the following environment file (:download:`click to download <_static/enrich2_env.yml>`). Detailed instructions for setting up conda environments can be found in the `conda documentation <https://conda.io/docs/using/envs.html>`_.
+    
+        .. literalinclude:: _static/enrich2_env.yml
 
 #. `Download Enrich2 <https://github.com/FowlerLab/Enrich2/archive/master.zip>`_ from the `GitHub repository <https://github.com/FowlerLab/Enrich2/>`_ and unzip it.
 
