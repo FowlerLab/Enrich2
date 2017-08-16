@@ -87,7 +87,7 @@ def main_gui():
 
     """
     start_logging(None, logging.DEBUG)
-    app = Configurator()
+    app = Configurator(__version__)
     app.mainloop()
 
 
