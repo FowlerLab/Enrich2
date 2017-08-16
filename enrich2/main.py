@@ -20,6 +20,14 @@
 
 from __future__ import print_function
 from argparse import ArgumentParser, RawDescriptionHelpFormatter
+import platform
+if platform.system() == "Darwin":
+    # Explicitly set the backend to avoid the NSInvalidArgumentException when
+    # running in GUI mode. Advanced users who want to use another matplotlib
+    # backend when running in MacOS on the command line can modify this section
+    # accordingly.
+    import matplotlib
+    matplotlib.use("TkAgg")
 import logging
 import json
 import sys
