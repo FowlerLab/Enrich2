@@ -8,7 +8,7 @@ The software is freely available from https://github.com/FowlerLab/Enrich2/ unde
 
 For an example dataset, visit https://github.com/FowlerLab/Enrich2-Example/.
 
-To cite Enrich2, please reference `Enrich2: a statistical framework for analyzing deep mutational scanning data <http://biorxiv.org>`_.
+To cite Enrich2, please reference `A statistical framework for analyzing deep mutational scanning data <https://doi.org/10.1186/s13059-017-1272-5>`_.
 
 Enrich2 was written by `Alan F Rubin <mailto:alan.rubin@wehi.edu.au>`_ |ORCID_icon| http://orcid.org/0000-0003-1474-605X
 

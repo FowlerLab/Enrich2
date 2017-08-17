@@ -3,7 +3,7 @@
 Enrich2
 =======
 
-Enrich2 is a general software tool for processing, analyzing, and visualizing data from deep mutational scanning experiments. For more information or to cite Enrich2, please refer to [Enrich2: a statistical framework for analyzing deep mutational scanning data](http://biorxiv.org).
+Enrich2 is a general software tool for processing, analyzing, and visualizing data from deep mutational scanning experiments. For more information or to cite Enrich2, please refer to [A statistical framework for analyzing deep mutational scanning data](https://doi.org/10.1186/s13059-017-1272-5).
 
 [Enrich2 documentation](https://enrich2.readthedocs.io) is available on [Read the Docs](https://readthedocs.org/).
 
