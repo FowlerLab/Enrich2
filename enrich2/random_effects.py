@@ -45,4 +45,5 @@ def rml_estimator(y, sigma2i, iterations=50):
                                          axis=0) / (sw - (sw2 / sw))
         eps = np.abs(sigma2ML - sigma2ML_new)
         sigma2ML = sigma2ML_new
-    return betaML, sigma2ML, eps
+    var_betaML = 1 / np.sum(1 / (sigma2i + sigma2ML), axis=0)
+    return betaML, var_betaML, eps
