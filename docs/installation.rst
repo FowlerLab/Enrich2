@@ -10,7 +10,7 @@ Enrich2 runs on Python 2.7 and has the following dependencies:
 
 * `NumPy <http://www.numpy.org/>`_ version 1.10.4 or higher
 * `SciPy <http://www.scipy.org/>`_ version 0.16.0 or higher
-* `pandas <http://pandas.pydata.org/>`_ version 0.18.0 or higher
+* `pandas <http://pandas.pydata.org/>`_ version 0.18 or 0.19
 * `PyTables <http://www.pytables.org/>`_ version 3.2.0 or higher
 * `Statsmodels <http://statsmodels.sourceforge.net/>`_ version 0.6.1 or higher
 * `matplotlib <http://matplotlib.org/>`_ version 1.4.3 or higher
@@ -24,7 +24,11 @@ The configuration GUI requires `Tkinter <https://docs.python.org/2/library/tkint
 Installation and example dataset
 -------------------------------------------------------
 
-#. Make sure the `required packages`_ are installed.
+1. Make sure the `required packages`_ are installed.
+
+    a. To set up a new `Anaconda <https://store.continuum.io/cshop/anaconda/>`_ environment for Enrich2, use the following environment file (:download:`click to download <_static/enrich2_env.yml>`). Detailed instructions for setting up conda environments can be found in the `conda documentation <https://conda.io/docs/using/envs.html>`_.
+    
+        .. literalinclude:: _static/enrich2_env.yml
 
 #. `Download Enrich2 <https://github.com/FowlerLab/Enrich2/archive/master.zip>`_ from the `GitHub repository <https://github.com/FowlerLab/Enrich2/>`_ and unzip it.
 

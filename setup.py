@@ -22,11 +22,13 @@ requirements = [
     'numpy >= 1.10.4',
     'scipy >= 0.16.0',
     'pandas >= 0.18.0',
+    'pandas < 0.20',
     'statsmodels >= 0.6.1',
     'matplotlib >= 1.4.3',
 ]
 
-# dirty workaround to deal with Enthought Canopy referring to the tables module as pytables
+# workaround to deal with Enthought Canopy referring to the tables module
+# as pytables
 if 'Canopy' in sys.executable:
     requirements.append('pytables >= 3.2.0')
 else:
@@ -34,22 +36,23 @@ else:
 
 setup(
     name="Enrich2",
-    version="1.0.0",
+    version="1.1.1",
 
     packages=find_packages(),
     package_data={
-        'test' : ['test_files/*/*'],
+        'test': ['test_files/*/*'],
     },
 
-    entry_points = {
-        'console_scripts' : ['enrich_cmd = enrich2.main:main_cmd'],
-        'gui_scripts' : ['enrich_gui = enrich2.main:main_gui'],
+    entry_points={
+        'console_scripts': ['enrich_cmd = enrich2.main:main_cmd'],
+        'gui_scripts': ['enrich_gui = enrich2.main:main_gui'],
     },
 
     author="Alan F Rubin",
     author_email="alan.rubin@wehi.edu.au",
-    description="Analysis program for calculating variant scores from deep mutational scanning data.",
+    description="Analysis program for calculating variant scores from "
+    "deep mutational scanning data.",
     url="https://github.com/FowlerLab/Enrich2/",
 
-    install_requires =  requirements,
+    install_requires=requirements,
 )

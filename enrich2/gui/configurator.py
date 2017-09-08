@@ -54,9 +54,9 @@ def write_json(d, handle):
 
 
 class Configurator(tk.Tk):
-    def __init__(self):
+    def __init__(self, version):
         tk.Tk.__init__(self)
-        self.title("Enrich 2 Configurator")
+        self.title("Enrich 2 Configurator v{}".format(version))
 
         self.treeview = None
         self.treeview_popup_target_id = None

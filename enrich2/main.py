@@ -20,6 +20,14 @@
 
 from __future__ import print_function
 from argparse import ArgumentParser, RawDescriptionHelpFormatter
+import platform
+if platform.system() == "Darwin":
+    # Explicitly set the backend to avoid the NSInvalidArgumentException when
+    # running in GUI mode. Advanced users who want to use another matplotlib
+    # backend when running in MacOS on the command line can modify this section
+    # accordingly.
+    import matplotlib
+    matplotlib.use("TkAgg")
 import logging
 import json
 import sys
@@ -41,7 +49,7 @@ from enrich2.sfmap import parse_aa_list
 __author__ = "Alan F Rubin"
 __copyright__ = "Copyright 2016-2017, Alan F Rubin"
 __license__ = "GPLv3"
-__version__ = "1.0.0"
+__version__ = "1.1.1"
 __maintainer__ = "Alan F Rubin"
 __email__ = "alan.rubin@wehi.edu.au"
 
@@ -79,7 +87,7 @@ def main_gui():
 
     """
     start_logging(None, logging.DEBUG)
-    app = Configurator()
+    app = Configurator(__version__)
     app.mainloop()
 
 
