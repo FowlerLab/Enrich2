@@ -272,7 +272,7 @@ rst_epilog = """
 
 .. _HDF5: http://pandas.pydata.org/pandas-docs/stable/io.html#hdf5-pytables
 
-.. _Enrich2 manuscript: http://biorxiv.org/content/early/2016/09/25/075150
+.. _Enrich2 manuscript: https://genomebiology.biomedcentral.com/articles/10.1186/s13059-017-1272-5
 
 .. Replacement aliases for intersphinx library documentation
 
