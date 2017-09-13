@@ -394,9 +394,9 @@ class Experiment(StoreManager):
                     data.loc[:, idx[cnd, 'epsilon']] = 0.
                 # multiple replicates
                 else:
-                    betaML, sigma2ML, eps = rml_estimator(y, sigma2i)
+                    betaML, var_betaML, eps = rml_estimator(y, sigma2i)
                     data.loc[:, idx[cnd, 'score']] = betaML
-                    data.loc[:, idx[cnd, 'SE']] = np.sqrt(sigma2ML)
+                    data.loc[:, idx[cnd, 'SE']] = np.sqrt(var_betaML)
                     data.loc[:, idx[cnd, 'epsilon']] = eps
 
                 # special case for normalized wild type variant
