@@ -3,5 +3,5 @@
 Polar-neutral	C,M,N,Q,S,T
 Non-polar	A,I,L,V
 Aromatic	F,W,Y
-Unique	G,P	
+Unique	G,P
 	*
