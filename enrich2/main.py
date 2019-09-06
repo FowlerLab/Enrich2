@@ -20,7 +20,11 @@
 
 from __future__ import print_function
 from argparse import ArgumentParser, RawDescriptionHelpFormatter
+import logging
+import json
+import sys
 import platform
+import os.path
 if platform.system() == "Darwin":
     # Explicitly set the backend to avoid the NSInvalidArgumentException when
     # running in GUI mode. Advanced users who want to use another matplotlib
@@ -28,10 +32,12 @@ if platform.system() == "Darwin":
     # accordingly.
     import matplotlib
     matplotlib.use("TkAgg")
-import logging
-import json
-import sys
-import os.path
+elif os.path.exists("/.dockerenv"):
+    # Explicitly set the backend for running inside Docker. This may fail for
+    # older versions of docker or alternative containerization tools such as
+    # Singularity.
+    import matplotlib
+    matplotlib.use("Agg")
 import enrich2.config_check as config_check
 from enrich2.experiment import Experiment
 from enrich2.selection import Selection
