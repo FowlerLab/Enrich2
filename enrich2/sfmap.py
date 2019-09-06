@@ -86,7 +86,7 @@ def parse_aa_list(fname):
         aa_label_groups.append((label, pos + 1, pos + len(groups[i])))
         pos = pos + len(groups[i])
 
-    return found_aa, label_groups
+    return found_aa, aa_label_groups
 
 
 def recentered_cmap(cmap, vmin, vmax):
