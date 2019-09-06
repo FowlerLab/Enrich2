@@ -1,4 +1,4 @@
-#  Copyright 2016-2017 Alan F Rubin
+#  Copyright 2016-2019 Alan F Rubin
 #
 #  This file is part of Enrich2.
 #
@@ -35,7 +35,7 @@ else:
 
 setup(
     name="Enrich2",
-    version="1.2.0",
+    version="1.2.1",
 
     packages=find_packages(),
     package_data={

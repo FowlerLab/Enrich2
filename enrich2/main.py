@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #
-#  Copyright 2016-2017 Alan F Rubin
+#  Copyright 2016-2019 Alan F Rubin
 #
 #  This file is part of Enrich2.
 #
@@ -53,9 +53,9 @@ from enrich2.sfmap import parse_aa_list
 
 
 __author__ = "Alan F Rubin"
-__copyright__ = "Copyright 2016-2017, Alan F Rubin"
+__copyright__ = "Copyright 2016-2019, Alan F Rubin"
 __license__ = "GPLv3"
-__version__ = "1.2.0"
+__version__ = "1.2.1"
 __maintainer__ = "Alan F Rubin"
 __email__ = "alan.rubin@wehi.edu.au"
 
