@@ -18,29 +18,11 @@
 import sys
 from setuptools import setup, find_packages
 
-requirements = [
-    'numpy >= 1.10.4, < 1.17',
-    'scipy >= 0.16.0, < 1.3 ',
-    'pandas >= 0.18.0, < 0.20',
-    'statsmodels >= 0.6.1',
-    'matplotlib >= 1.4.3, < 2',
-]
-
-# workaround to deal with Enthought Canopy referring to the tables module
-# as pytables
-if 'Canopy' in sys.executable:
-    requirements.append('pytables >= 3.2.0')
-else:
-    requirements.append('tables >= 3.2.0')
-
 setup(
     name="Enrich2",
     version="1.2.1",
 
     packages=find_packages(),
-    package_data={
-        'test': ['test_files/*/*'],
-    },
 
     entry_points={
         'console_scripts': ['enrich_cmd = enrich2.main:main_cmd'],
@@ -53,5 +35,12 @@ setup(
     "deep mutational scanning data.",
     url="https://github.com/FowlerLab/Enrich2/",
 
-    install_requires=requirements,
+    install_requires=[
+        'numpy >= 1.10.4',
+        'scipy >= 0.16.0 ',
+        'pandas >= 0.18.0',
+        'statsmodels >= 0.6.1',
+        'matplotlib >= 1.4.3',
+        'tables >= 3.2.0',
+    ]
 )
