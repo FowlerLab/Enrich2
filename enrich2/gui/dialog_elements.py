@@ -3,7 +3,6 @@ import Tkinter as tk
 import ttk
 import tkMessageBox
 import tkFileDialog
-import re
 import os.path
 
 DEFAULT_COLUMNS = 3

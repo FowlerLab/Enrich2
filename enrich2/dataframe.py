@@ -1,8 +1,7 @@
-import re
 import pandas as pd
 import numpy as np
 import logging
-from .constants import WILD_TYPE_VARIANT, SYNONYMOUS_VARIANT, AA_CODES
+from .constants import WILD_TYPE_VARIANT
 import collections
 from .variant import mutation_count, re_protein, re_coding, re_noncoding
 from .barcodemap import re_barcode, re_identifier

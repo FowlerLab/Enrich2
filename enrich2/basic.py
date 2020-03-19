@@ -1,6 +1,5 @@
 from .variant import VariantSeqLib
 from .fqread import read_fastq, split_fastq_path
-import pandas as pd
 import logging
 import sys
 

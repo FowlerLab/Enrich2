@@ -1,7 +1,5 @@
 import logging
 from .seqlib import SeqLib
-import pandas as pd
-import os.path
 
 
 class IdOnlySeqLib(SeqLib):

@@ -3,7 +3,6 @@ import Tkinter as tk
 import ttk
 import tkSimpleDialog
 import tkMessageBox
-import sys
 import logging
 
 logger = logging.getLogger(__name__)

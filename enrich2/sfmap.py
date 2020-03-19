@@ -1,7 +1,6 @@
 from __future__ import print_function
 import logging
 import numpy as np
-from collections import OrderedDict
 import matplotlib.pyplot as plt
 from matplotlib.colors import LinearSegmentedColormap
 from matplotlib.patches import Circle

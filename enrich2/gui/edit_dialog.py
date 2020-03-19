@@ -3,15 +3,10 @@ import Tkinter as tk
 import ttk
 import tkSimpleDialog
 import tkMessageBox
-import tkFileDialog
-import json
 from sys import maxsize
 from collections import OrderedDict
 from .dialog_elements import FileEntry, IntegerEntry, Checkbox, StringEntry, \
     SectionLabel, DEFAULT_COLUMNS
-from ..experiment import Experiment
-from ..condition import Condition
-from ..selection import Selection
 from ..basic import BasicSeqLib
 from ..barcodevariant import BcvSeqLib
 from ..barcodeid import BcidSeqLib

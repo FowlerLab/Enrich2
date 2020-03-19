@@ -3,7 +3,6 @@ import Tkinter as tk
 import ttk
 import tkFileDialog
 import tkMessageBox
-import tkSimpleDialog
 import platform
 import json
 from ..config_check import is_seqlib, is_experiment, is_selection, seqlib_type
@@ -16,13 +15,8 @@ from .runner_window import RunnerWindow, RunnerSavePrompt
 from ..experiment import Experiment
 from ..condition import Condition
 from ..selection import Selection
-from ..basic import BasicSeqLib
-from ..barcodevariant import BcvSeqLib
-from ..barcode import BarcodeSeqLib
 from ..overlap import OverlapSeqLib
-from ..idonly import IdOnlySeqLib
 from ..seqlib import SeqLib
-from ..variant import VariantSeqLib
 from ..storemanager import SCORING_METHODS, LOGR_METHODS
 
 

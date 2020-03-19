@@ -3,12 +3,11 @@ import logging
 import pandas as pd
 import numpy as np
 import scipy.stats as stats
-import re
 from matplotlib.backends.backend_pdf import PdfPages
 import os.path
 from .storemanager import StoreManager
 from .condition import Condition
-from .constants import WILD_TYPE_VARIANT, SYNONYMOUS_VARIANT
+from .constants import WILD_TYPE_VARIANT
 from .sfmap import sfmap_plot
 from .dataframe import singleton_dataframe
 from .random_effects import rml_estimator

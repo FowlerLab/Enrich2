@@ -1,15 +1,9 @@
 from __future__ import print_function
 import re
-import sys
 from .aligner import Aligner
 from .seqlib import SeqLib
 from .wildtype import WildTypeSequence
-import pandas as pd
 import logging
-import numpy as np
-import os.path
-from .plots import counts_plot
-from matplotlib.backends.backend_pdf import PdfPages
 from .constants import WILD_TYPE_VARIANT, SYNONYMOUS_VARIANT
 from .constants import CODON_TABLE, AA_CODES
 

@@ -1,17 +1,9 @@
 from __future__ import print_function
-from .basic import BasicSeqLib
 from .barcodevariant import BcvSeqLib
 from .barcodeid import BcidSeqLib
-from .barcode import BarcodeSeqLib
-from .overlap import OverlapSeqLib
-from .idonly import IdOnlySeqLib
 from .config_check import seqlib_type
 from .storemanager import StoreManager
 import os
-import re
-import math
-import itertools
-import time
 import pandas as pd
 import numpy as np
 import logging
@@ -21,7 +13,7 @@ from matplotlib.backends.backend_pdf import PdfPages
 import scipy.stats as stats
 from .sfmap import sfmap_plot
 from .plots import fit_axes, fit_axes_text, volcano_plot, configure_axes, plot_colors, weights_plot
-from .constants import WILD_TYPE_VARIANT, SYNONYMOUS_VARIANT, AA_CODES
+from .constants import WILD_TYPE_VARIANT, SYNONYMOUS_VARIANT
 from .variant import protein_variant
 from .dataframe import singleton_dataframe
 
