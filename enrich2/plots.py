@@ -474,8 +474,8 @@ def corr_axes(ax, x, y, score_min, score_max, **kwargs):
     configure_axes(ax, xgrid=True)
 
     # set the axes limits
-    ax.set_xlim([score_min * 1.05, score_max * 1.05])
-    ax.set_ylim([score_min * 1.05, score_max * 1.05])
+    ax.set_xlim(left=score_min * 1.05, right=score_max * 1.05)
+    ax.set_ylim(bottom=score_min * 1.05, top=score_max * 1.05)
 
     # plot bolder zero lines
     ax.plot(ax.get_xlim(), [0., 0.], linestyle='-',
