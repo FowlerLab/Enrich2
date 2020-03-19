@@ -36,7 +36,7 @@ from enrich2.sfmap import parse_aa_list
 
 __author__ = "Alan F Rubin"
 __copyright__ = "Copyright 2016-2020, Alan F Rubin"
-__license__ = "GPLv3"
+__license__ = "BSD-3-Clause"
 __version__ = "1.2.1"
 __maintainer__ = "Alan F Rubin"
 __email__ = "alan.rubin@wehi.edu.au"
