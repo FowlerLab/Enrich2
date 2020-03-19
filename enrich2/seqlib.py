@@ -162,10 +162,10 @@ class SeqLib(StoreManager):
         log. The dictionary *filter_flags* contains ``True``
         values for each filtering option that applies to *fq*. Keys in
         *filter_flags* are converted to messages using the
-        ``StoreManager.filter_messages`` dictionary.
+        ``SeqLib.filter_messages`` dictionary.
         """
         self.logger.debug("Filtered read ({messages})\n{read!s}".format(
-                      messages=', '.join(StoreManager.filter_messages[x]
+                      messages=', '.join(SeqLib.filter_messages[x]
                                          for x in filter_flags if
                                          filter_flags[x]),
                       name=self.name, read=fq))

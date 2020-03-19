@@ -222,11 +222,11 @@ class OverlapSeqLib(VariantSeqLib):
                 if not fwd.is_chaste():
                     chaste = False
                     if self.report_filtered:
-                        self.report_filtered_read(fwd, filter_flags)
+                        self.report_filtered_read(fwd, 'chastity')
                 if not rev.is_chaste():
                     chaste = False
                     if self.report_filtered:
-                        self.report_filtered_read(rev, filter_flags)
+                        self.report_filtered_read(rev, 'chastity')
                 if not chaste:
                     self.filter_stats['chastity'] += 1
                     self.filter_stats['total'] += 1

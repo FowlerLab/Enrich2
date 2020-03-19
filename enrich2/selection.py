@@ -285,6 +285,7 @@ class Selection(StoreManager):
         max_index_length = complete_index.map(len).max()
 
         # perform operation in chunks
+        tp_frame = None
         for i in xrange(0, len(complete_index), self.chunksize):
             # don't duplicate the index if the chunksize is large
             if self.chunksize < len(complete_index):
@@ -597,6 +598,8 @@ class Selection(StoreManager):
             wt_label = "variants"
         elif "identifiers" in self.labels:
             wt_label = "identifiers"
+        else:
+            raise ValueError('Invalid selection type for wild type fit plot [{}]'.format(self.name))
         data = self.store.select("/main/{}/counts".format(wt_label), where='index = "{}"'.format(WILD_TYPE_VARIANT)).ix[0]
         sums = self.store['/main/{}/counts'.format(wt_label)].sum(axis="index")  # sum of complete cases (N')
         yvalues = np.log(data + 0.5) - np.log(sums + 0.5)
@@ -647,11 +650,10 @@ class Selection(StoreManager):
 
         # retrieves the whole DF because one case was hanging when trying to use select
         # totally unexplained, should fix later
-        #ratio_data = self.store.select("/main/{}/log_ratios".format(label), "index=se_data.index")
         ratio_data = self.store.select("/main/{}/log_ratios".format(label)).loc[se_data.index]
         
-        fig, axarr = plt.subplots(7, 3, sharex=True, sharey=True)
-        fig.subplots_adjust(hspace=0, wspace=0) # eliminate white space between the subplots
+        fig, axarr = plt.subplots(7, 3, sharex='all', sharey='all')
+        fig.subplots_adjust(hspace=0, wspace=0)  # eliminate white space between the subplots
         fig.set_size_inches((10, 17))
         fig.suptitle("Representative {} Fits\n{} ({})".format(self.scoring_method, self.name, label.title()))
         fig.subplots_adjust(top=0.958)           # eliminate white space after the title
@@ -926,7 +928,7 @@ class Selection(StoreManager):
             try:
                 mapping[v].update([bc])
             except KeyError:
-                mapping[v] = set([bc])
+                mapping[v] = {bc}
         return mapping
 
 

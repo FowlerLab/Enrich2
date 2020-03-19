@@ -355,7 +355,7 @@ def counts_plot(seqlib, label, pdf, log=False, bins=DEFAULT_BINS,
     synonymous variants.
 
     Args:
-        obj (SeqLib): object with counts to plot
+        seqlib (SeqLib): object with counts to plot
 
         label (str): data label (barcode, variant, etc.)
 

@@ -29,6 +29,7 @@ class BarcodeMap(dict):
 
     """
     def __init__(self, mapfile, is_variant=False):
+        super(BarcodeMap, self).__init__()
         self.name = "barcodemap_{}".format(os.path.basename(mapfile))
         self.filename = mapfile
         self.is_variant = is_variant

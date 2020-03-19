@@ -613,13 +613,13 @@ class StoreManager(object):
         """
         raise NotImplementedError("must be implemented by subclass")
 
-    def make_plots(self, subdirectory=None, keys=None):
+    def make_plots(self):
         """
         Pure virtual method for creating plots.
         """
         raise NotImplementedError("must be implemented by subclass")
 
-    def write_tsv(self, subdirectory=None, keys=None):
+    def write_tsv(self):
         """
         Pure virtual method for writing tsv files.
         """

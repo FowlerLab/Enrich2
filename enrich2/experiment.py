@@ -500,14 +500,6 @@ class Experiment(StoreManager):
         for s in self.selection_list():
             s.write_tsv()
 
-    def is_coding(self):
-        """
-        Return ``True`` if the all :py:class:`~selection.Selection` in the 
-        :py:class:`~experiment.Experiment` score protein-coding variants, else 
-        ``False``.
-        """
-        return all(x.is_coding() for x in self.selection_list())
-
     def sfmap_wrapper(self, condition, pdf, coding):
         """
         Create a sequence function map for scores in *condition*.

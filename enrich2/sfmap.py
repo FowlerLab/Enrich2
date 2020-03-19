@@ -123,8 +123,7 @@ def recentered_cmap(cmap, vmin, vmax):
 def sfmap_axes(df, ax, style, wt, df_se=None, tall=False, colors=None,
                missing_color=None, vmin=None, vmax=None, vmax_se=None,
                show_positions=True, show_wt=True, show_variants=True,
-               aa_list=AA_LIST, aa_label_groups=AA_LABEL_GROUPS,
-               nt_list=NT_LIST):
+               aa_list=AA_LIST, aa_label_groups=AA_LABEL_GROUPS):
     """
     Create heatmap of scores or counts for each position in *df* using the axes
     instance *ax*. Returns the |mpl_pcolormesh| (requred to create the color

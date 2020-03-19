@@ -312,6 +312,8 @@ class VariantSeqLib(SeqLib):
                                                   seq=variant_dna[y:y + length])
             elif cat == "deletion":
                 mut = "_{pos}del".format(pos=x + length)
+            else:
+                raise ValueError('Unable to resolve mutation [{}]'.format(self.name))
             mutations.append((x, mut))
 
         self.aligner_cache[variant_dna] = mutations
