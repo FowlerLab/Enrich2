@@ -29,6 +29,7 @@ class Experiment(StoreManager):
         StoreManager.__init__(self)
         self.conditions = list()
         self._wt = None
+        self.logger = logging.getLogger("{}.{}".format(__name__, self.__class__))
 
     @property
     def wt(self):
@@ -49,6 +50,7 @@ class Experiment(StoreManager):
         usually from a ``.json`` configuration file.
         """
         StoreManager.configure(self, cfg)
+        self.logger = logging.getLogger("{}.{} - {}".format(__name__, self.__class__.__name__, self.name))
         if configure_children:
             if 'conditions' not in cfg:
                 raise KeyError("Missing required config value {} [{}]"
@@ -116,8 +118,7 @@ class Experiment(StoreManager):
         if self.has_wt_sequence():
             for child in self.selection_list()[1:]:
                 if self.selection_list()[0].wt != child.wt:
-                    logging.warning("Inconsistent wild type sequences",
-                                    extra={'oname': self.name})
+                    self.logger.warning("Inconsistent wild type sequences")
                     break
 
         for child in self.children:
@@ -200,8 +201,7 @@ class Experiment(StoreManager):
 
         # create columns multi-index
         # has to be lex-sorted for multi-slicing to work
-        logging.info("Creating column multi-index for counts ({})"
-                     "".format(label), extra={'oname': self.name})
+        self.logger.info("Creating column multi-index for counts ({})".format(label))
         conditions_index = list()
         selections_index = list()
         values_index = list()
@@ -219,8 +219,7 @@ class Experiment(StoreManager):
                                                    "timepoint"])
 
         # create union index
-        logging.info("Creating row index for counts ({})".format(label),
-                     extra={'oname': self.name})
+        self.logger.info("Creating row index for counts ({})".format(label))
         combined = None
         first = True
         for s in self.selection_list():
@@ -235,8 +234,7 @@ class Experiment(StoreManager):
                     "columns='index'").index, how="outer")
 
         # create and fill the data frames
-        logging.info("Populating Experiment data frame with counts ({})"
-                     "".format(label), extra={'oname': self.name})
+        self.logger.info("Populating Experiment data frame with counts ({})".format(label))
         data = pd.DataFrame(index=combined, columns=columns)
         for cnd in self.children:
             for sel in cnd.children:
@@ -257,8 +255,7 @@ class Experiment(StoreManager):
 
         # create columns multi-index
         # has to be lex-sorted for multi-slicing to work
-        logging.info("Creating column multi-index for scores ({})"
-                     "".format(label), extra={'oname': self.name})
+        self.logger.info("Creating column multi-index for scores ({})")
         conditions_index = list()
         selections_index = list()
         values_index = list()
@@ -280,8 +277,7 @@ class Experiment(StoreManager):
                                                    "value"])
 
         # create union index
-        logging.info("Creating row index for scores ({})".format(label),
-                     extra={'oname': self.name})
+        self.logger.info("Creating row index for scores ({})".format(label))
         combined = None
         first = True
         for s in self.selection_list():
@@ -295,8 +291,7 @@ class Experiment(StoreManager):
                     how="outer")
 
         # create and fill the data frames
-        logging.info("Populating Experiment data frame with scores ({})"
-                     "".format(label), extra={'oname': self.name})
+        self.logger.info("Populating Experiment data frame with scores ({})".format(label))
         data = pd.DataFrame(index=combined, columns=columns)
         for cnd in self.children:
             for sel in cnd.children:
@@ -316,8 +311,7 @@ class Experiment(StoreManager):
 
         idx = pd.IndexSlice
 
-        logging.info("Identifying subset shared across all Selections ({})"
-                     "".format(label), extra={'oname': self.name})
+        self.logger.info("Identifying subset shared across all Selections ({})".format(label))
         data = self.store.select("/main/{}/scores_shared_full".format(label))
 
         # identify variants found in all selections in at least one condition
@@ -339,8 +333,7 @@ class Experiment(StoreManager):
         if self.check_store("/main/{}/scores".format(label)):
             return
 
-        logging.info("Calculating per-condition scores ({})".format(label),
-                     extra={'oname': self.name})
+        self.logger.info("Calculating per-condition scores ({})".format(label))
 
         # set up new data frame
         shared_index = self.store.select("/main/{}/scores_shared"
@@ -404,8 +397,7 @@ class Experiment(StoreManager):
         wt = self.store.select("/main/{}/scores".format(label),
                                "index=WILD_TYPE_VARIANT")
         if len(wt) == 0:    # no wild type score
-            logging.info("Failed to find wild type score, skipping wild type "
-                         "p-value calculations", extra={'oname': self.name})
+            self.logger.info("Failed to find wild type score, skipping wild type p-value calculations")
             return
         data = self.store.select("/main/{}/scores".format(label),
                                  "index!=WILD_TYPE_VARIANT")
@@ -471,7 +463,7 @@ class Experiment(StoreManager):
 
     def make_plots(self):
         if self.plots_requested:
-            logging.info("Creating plots", extra={'oname': self.name})
+            self.logger.info("Creating plots")
 
             # sequence-function maps
             if self.scoring_method != "counts":
@@ -503,8 +495,7 @@ class Experiment(StoreManager):
         ``'/'``.
         """
         if self.tsv_requested:
-            logging.info("Generating tab-separated output files",
-                         extra={'oname': self.name})
+            self.logger.info("Generating tab-separated output files")
             for k in self.store.keys():
                 self.write_table_tsv(k)
         for s in self.selection_list():
@@ -531,8 +522,7 @@ class Experiment(StoreManager):
         else:
             label = "nucleotide"
 
-        logging.info("Creating sequence-function map ({}, {})"
-                     "".format(condition, label), extra={'oname': self.name})
+        self.logger.info("Creating sequence-function map ({}, {})".format(condition, label))
 
         idx = pd.IndexSlice
 

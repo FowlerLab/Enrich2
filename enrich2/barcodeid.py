@@ -27,7 +27,7 @@ class BcidSeqLib(BarcodeSeqLib):
         self.barcode_map = None
         self.identifier_min_count = None
         self.add_label('identifiers')
-
+        self.logger = logging.getLogger("{}.{}".format(__name__, self.__class__))
 
     def configure(self, cfg, barcode_map=None):
         """
@@ -35,6 +35,7 @@ class BcidSeqLib(BarcodeSeqLib):
         a ``.json`` file.
         """
         BarcodeSeqLib.configure(self, cfg)
+        self.logger = logging.getLogger("{}.{} - {}".format(__name__, self.__class__.__name__, self.name))
         try:
             if 'min count' in cfg['identifiers']:
                 self.identifier_min_count = int(cfg['identifiers']['min count'])
@@ -78,7 +79,7 @@ class BcidSeqLib(BarcodeSeqLib):
             df_dict = dict()
             barcode_identifiers = dict()
 
-            logging.info("Converting barcodes to identifiers", extra={'oname' : self.name})
+            self.logger.info("Converting barcodes to identifiers")
             # store mapped barcodes
             self.save_filtered_counts("barcodes", "index in self.barcode_map.keys() & count >= self.barcode_min_count")
 

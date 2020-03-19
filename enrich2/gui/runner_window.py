@@ -6,6 +6,8 @@ import tkMessageBox
 import sys
 import logging
 
+logger = logging.getLogger(__name__)
+
 
 class RunnerSavePrompt(tkSimpleDialog.Dialog):
     """
@@ -45,7 +47,6 @@ class RunnerWindow(tkSimpleDialog.Dialog):
         self.dialog_text.set("Ready to start analysis...")
 
         tkSimpleDialog.Dialog.__init__(self, parent_window, title)
-
 
     def body(self, master):
         frame = ttk.Frame(master, padding=(12, 6, 12, 6))
@@ -91,7 +92,7 @@ class RunnerWindow(tkSimpleDialog.Dialog):
 
         except Exception, e:
             # display error
-            logging.error(e, extra={'oname' : self.pw.root_element.name})
+            logger.error(e)
             tkMessageBox.showerror("Enrich2 Error", "Enrich2 encountered an error:\n{}".format(e))
 
         else:

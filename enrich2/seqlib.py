@@ -31,6 +31,7 @@ class SeqLib(StoreManager):
 
     def __init__(self):
         StoreManager.__init__(self)
+        self.logger = logging.getLogger("{}.{}".format(__name__, self.__class__))
         self.timepoint = None
         self.counts_file = None
         self.report_filtered = None
@@ -63,9 +64,8 @@ class SeqLib(StoreManager):
             else:
                 unused.append(key)
         if len(unused) > 0:
-            logging.warning("Unused filter parameters ({})"
-                            "".format(', '.join(unused)),
-                            extra={'oname': self.name})
+            self.logger.warning("Unused filter parameters ({})"
+                            "".format(', '.join(unused)))
 
         self.filter_stats.clear()
         for key in self._filters:
@@ -120,6 +120,7 @@ class SeqLib(StoreManager):
         a ``.json`` file.
         """
         StoreManager.configure(self, cfg)
+        self.logger = logging.getLogger("{}.{} - {}".format(__name__, self.__class__.__name__, self.name))
         try:
             self.timepoint = int(cfg['timepoint'])
             if 'report filtered reads' in cfg:
@@ -159,16 +160,16 @@ class SeqLib(StoreManager):
     def report_filtered_read(self, fq, filter_flags):
         """
         Write the :py:class:`~fqread.FQRead` object *fq* to the ``DEBUG``
-        logging . The dictionary *filter_flags* contains ``True``
+        log. The dictionary *filter_flags* contains ``True``
         values for each filtering option that applies to *fq*. Keys in
         *filter_flags* are converted to messages using the
         ``StoreManager.filter_messages`` dictionary.
         """
-        logging.debug("Filtered read ({messages})\n{read!s}".format(
+        self.logger.debug("Filtered read ({messages})\n{read!s}".format(
                       messages=', '.join(StoreManager.filter_messages[x]
                                          for x in filter_flags if
                                          filter_flags[x]),
-                      name=self.name, read=fq), extra={'oname': self.name})
+                      name=self.name, read=fq))
 
     def save_counts(self, label, df_dict, raw):
         """
@@ -184,9 +185,8 @@ class SeqLib(StoreManager):
         df = pd.DataFrame.from_dict(df_dict, orient="index", dtype=np.int32)
         df.columns = ['count']
         df.sort_values('count', ascending=False, inplace=True)
-        logging.info("Counted {n} {label} ({u} unique)".format(
-                n=df['count'].sum(), u=len(df.index), label=label),
-                extra={'oname': self.name})
+        self.logger.info("Counted {n} {label} ({u} unique)".format(
+                n=df['count'].sum(), u=len(df.index), label=label))
         if raw:
             key = "/raw/{}/counts".format(label)
         else:
@@ -202,16 +202,15 @@ class SeqLib(StoreManager):
         For more information on building query strings, see
         http://pandas.pydata.org/pandas-docs/stable/io.html#querying-a-table
         """
-        logging.info("Converting raw {} counts to main counts".format(label),
-                     extra={'oname': self.name})
+        self.logger.info("Converting raw {} counts to main counts".format(label))
         raw_table = "/raw/{}/counts".format(label)
         main_table = "/main/{}/counts".format(label)
         self.map_table(source=raw_table, destination=main_table,
                        source_query=query)
-        logging.info("Counted {n} {label} ({u} unique) after query".format(
+        self.logger.info("Counted {n} {label} ({u} unique) after query".format(
                 n=self.store[main_table]['count'].sum(),
                 u=len(self.store[main_table].index),
-                label=label), extra={'oname': self.name})
+                label=label))
 
     def report_filter_stats(self):
         """
@@ -234,7 +233,7 @@ class SeqLib(StoreManager):
                     print(SeqLib.filter_messages[key], self.filter_stats[key],
                           sep="\t", file=handle)
             print("total", self.filter_stats['total'], sep="\t", file=handle)
-        logging.info("Wrote filtering statistics", extra={'oname': self.name})
+        self.logger.info("Wrote filtering statistics")
 
     def save_filter_stats(self):
         """
@@ -310,7 +309,7 @@ class SeqLib(StoreManager):
         Creates counts histograms for all labels.
         """
         if self.plots_requested:
-            logging.info("Creating plots", extra={'oname': self.name})
+            self.logger.info("Creating plots")
 
             pdf = PdfPages(os.path.join(self.plot_dir, "counts.pdf"))
             for label in self.labels:
@@ -327,8 +326,7 @@ class SeqLib(StoreManager):
         File names are the HDF5 key with ``'_'`` substituted for ``'/'``.
         """
         if self.tsv_requested:
-            logging.info("Generating tab-separated output files",
-                         extra={'oname': self.name})
+            self.logger.info("Generating tab-separated output files")
             for k in self.store.keys():
                 self.write_table_tsv(k)
 
@@ -340,9 +338,8 @@ class SeqLib(StoreManager):
         Copies all tables in the ``'/raw'`` group along with their metadata.
         """
         store = pd.HDFStore(fname)
-        logging.info("Using existing HDF5 data store '{}' for raw data"
-                     "".format(fname),
-                     extra={'oname': self.name})
+        self.logger.info("Using existing HDF5 data store '{}' for raw data"
+                     "".format(fname))
         # this could probably be much more efficient, but the PyTables docs
         # don't explain copying subsets of files adequately
         raw_keys = [key for key in store.keys() if key.startswith("/raw/")]
@@ -358,8 +355,7 @@ class SeqLib(StoreManager):
                 # copy the metadata
                 self.set_metadata(k, self.get_metadata(k, store=store),
                                   update=False)
-                logging.info("Copied raw data '{}'".format(k),
-                             extra={'oname': self.name})
+                self.logger.info("Copied raw data '{}'".format(k))
         store.close()
 
     def counts_from_file_tsv(self, fname):

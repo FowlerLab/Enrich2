@@ -10,6 +10,7 @@ from .constants import AA_CODES
 from .storemanager import ELEMENT_LABELS
 from .sfmap import AA_LIST, NT_LIST
 
+logger = logging.getLogger(__name__)
 
 SingleMut = collections.namedtuple("SingleMut", ['pre', 'post', 'pos', 'key'])
 
@@ -183,8 +184,8 @@ def singleton_dataframe(values, wt, gap_size=5, coding=True,
         try:
             wt_score = values[WILD_TYPE_VARIANT]
         except KeyError:
-            logging.warning("Wild type score not measured, will be missing in "
-                            "plots", extra={'oname': self.name})
+            logger.warning("Wild type score not measured, will be missing in "
+                            "plots")
             wt_score = np.nan
 
     # select only rows with singleton mutations

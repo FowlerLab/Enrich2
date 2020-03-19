@@ -27,6 +27,7 @@ class BcvSeqLib(VariantSeqLib, BarcodeSeqLib):
         VariantSeqLib.__init__(self)
         BarcodeSeqLib.__init__(self)
         self.barcode_map = None
+        self.logger = logging.getLogger("{}.{}".format(__name__, self.__class__))
 
 
     def configure(self, cfg, barcode_map=None):
@@ -36,6 +37,7 @@ class BcvSeqLib(VariantSeqLib, BarcodeSeqLib):
         """
         VariantSeqLib.configure(self, cfg)
         BarcodeSeqLib.configure(self, cfg)
+        self.logger = logging.getLogger("{}.{} - {}".format(__name__, self.__class__.__name__, self.name))
         try:
             if barcode_map is not None:
                 if barcode_map.filename == cfg['barcodes']['map file']:
@@ -71,7 +73,7 @@ class BcvSeqLib(VariantSeqLib, BarcodeSeqLib):
             df_dict = dict()
             barcode_variants = dict()
 
-            logging.info("Converting barcodes to variants", extra={'oname' : self.name})
+            self.logger.info("Converting barcodes to variants")
             # store mapped barcodes
             self.save_filtered_counts('barcodes', "index in self.barcode_map.keys() & count >= self.barcode_min_count")
 
@@ -107,13 +109,12 @@ class BcvSeqLib(VariantSeqLib, BarcodeSeqLib):
             del barcode_variants
 
             if self.aligner is not None:
-                logging.info("Aligned {} variants".format(self.aligner.calls), extra={'oname' : self.name})
+                self.logger.info("Aligned {} variants".format(self.aligner.calls))
                 self.aligner_cache = None
             #self.report_filter_stats()
-            logging.info("Removed {} unique barcodes ({} total variants) "
+            self.logger.info("Removed {} unique barcodes ({} total variants) "
                          "with excess mutations".format(max_mut_barcodes, 
-                                                        max_mut_variants),
-                         extra={'oname': self.name})
+                                                        max_mut_variants))
             self.save_filter_stats()
         
         self.count_synonymous()

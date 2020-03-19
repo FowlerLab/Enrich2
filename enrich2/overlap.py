@@ -59,7 +59,8 @@ class OverlapSeqLib(VariantSeqLib):
         self.merge_mismatches = None
         self.default_filters.update({'merge failure' : True})
         self.default_filters.update({'remove unresolvable' : False})
-        
+        self.logger = logging.getLogger("{}.{}".format(__name__, self.__class__))
+
 
     def configure(self, cfg):
         """
@@ -67,6 +68,7 @@ class OverlapSeqLib(VariantSeqLib):
         a ``.json`` file.
         """
         VariantSeqLib.configure(self, cfg)
+        self.logger = logging.getLogger("{}.{} - {}".format(__name__, self.__class__.__name__, self.name))
 
         # if counts are specified, copy them later
         # else handle the FASTQ config options and check the files
@@ -213,7 +215,7 @@ class OverlapSeqLib(VariantSeqLib):
 
         self.merge_mismatches = pd.DataFrame(data=0, index=[x + self.fwd_start + self.wt.dna_offset for x in xrange(0, self.overlap_length)], columns=["resolved", "unresolved", "first"])
 
-        logging.info("Counting variants", extra={'oname': self.name})
+        self.logger.info("Counting variants")
         max_mut_variants = 0
         for fwd, rev in read_fastq_multi([self.forward, self.reverse]):
             # filter on chastity before merge
@@ -258,10 +260,10 @@ class OverlapSeqLib(VariantSeqLib):
         del df_dict
 
         if self.aligner is not None:
-            logging.info("Aligned {} variants".format(self.aligner.calls), extra={'oname' : self.name})
+            self.logger.info("Aligned {} variants".format(self.aligner.calls))
             self.aligner_cache = None
-        logging.info("Removed {} total variants with excess mutations"
-                     "".format(max_mut_variants), extra={'oname': self.name})
+        self.logger.info("Removed {} total variants with excess mutations"
+                     "".format(max_mut_variants))
         self.save_filter_stats()
 
     def calculate(self):

@@ -74,6 +74,7 @@ class Selection(StoreManager):
         self.libraries = dict()
         self.barcode_maps = dict()
         self._wt = None
+        self.logger = logging.getLogger("{}.{}".format(__name__, self.__class__))
 
 
     def _children(self):
@@ -131,6 +132,7 @@ class Selection(StoreManager):
         *cfg*.
         """
         StoreManager.configure(self, cfg)
+        self.logger = logging.getLogger("{}.{} - {}".format(__name__, self.__class__.__name__, self.name))
         if configure_children:
             if 'libraries' not in cfg:
                 raise KeyError("Missing required config value {} [{}]".format('libraries', self.name))
@@ -177,7 +179,7 @@ class Selection(StoreManager):
         if self.has_wt_sequence():
             for child in self.children[1:]:
                 if self.children[0].wt != child.wt:
-                    logging.warning("Inconsistent wild type sequences", extra={'oname' : self.name})
+                    self.logger.warning("Inconsistent wild type sequences")
                     break
         
         # check that we're not doing wild type normalization on something with no wild type
@@ -263,18 +265,18 @@ class Selection(StoreManager):
             return
 
         # calculate counts for each SeqLib
-        logging.info("Counting for each time point ({})".format(label), extra={'oname' : self.name})
+        self.logger.info("Counting for each time point ({})".format(label))
         for lib in self.children:
             lib.calculate()
 
         # combine all libraries for a given timepoint
-        logging.info("Aggregating SeqLib data", extra={'oname' : self.name})
+        self.logger.info("Aggregating SeqLib data")
 
         destination = "/main/{}/counts_unfiltered".format(label)
         if destination in self.store.keys():
             # need to remove the current destination table because we are using append
             # append is required because it takes the "min_itemsize" argument, and put doesn't
-            logging.info("Replacing existing '{}'".format(destination), extra={'oname' : self.name})
+            self.logger.info("Replacing existing '{}'".format(destination))
             self.store.remove(destination)
 
         # seqlib count table name for this element type
@@ -285,7 +287,7 @@ class Selection(StoreManager):
         for tp in self.timepoints:
             for lib in self.libraries[tp]:
                 complete_index = complete_index.union(pd.Index(lib.store.select_column(lib_table, 'index')))
-        logging.info("Created shared index for count data ({} {})".format(len(complete_index), label), extra={'oname' : self.name})
+        self.logger.info("Created shared index for count data ({} {})".format(len(complete_index), label))
 
         # min_itemsize value
         max_index_length = complete_index.map(len).max()
@@ -297,7 +299,7 @@ class Selection(StoreManager):
                 index_chunk = complete_index[i:i + self.chunksize]
             else:
                 index_chunk = complete_index
-            logging.info("Merging counts for chunk {} ({} rows)".format(i / self.chunksize + 1, len(index_chunk)), extra={'oname' : self.name})
+            self.logger.info("Merging counts for chunk {} ({} rows)".format(i / self.chunksize + 1, len(index_chunk)))
 
             for tp in self.timepoints:
                 c = self.libraries[tp][0].store.select(lib_table, "index = index_chunk")
@@ -404,7 +406,7 @@ class Selection(StoreManager):
         if self.check_store("/main/{}/scores".format(label)):
             return
 
-        logging.info("Calculating simple ratios ({})".format(label), extra={'oname' : self.name})
+        self.logger.info("Calculating simple ratios ({})".format(label))
         c_last = 'c_{}'.format(self.timepoints[-1])
         df = self.store.select("/main/{}/counts".format(label), "columns in ['c_0', c_last]")
 
@@ -433,7 +435,7 @@ class Selection(StoreManager):
         if self.check_store("/main/{}/scores".format(label)):
             return
 
-        logging.info("Calculating ratios ({})".format(label), extra={'oname' : self.name})
+        self.logger.info("Calculating ratios ({})".format(label))
         c_last = 'c_{}'.format(self.timepoints[-1])
         df = self.store.select("/main/{}/counts".format(label), "columns in ['c_0', c_last]")
 
@@ -477,7 +479,7 @@ class Selection(StoreManager):
         if self.check_store("/main/{}/log_ratios".format(label)):
             return
 
-        logging.info("Calculating log ratios ({})".format(label), extra={'oname' : self.name})
+        self.logger.info("Calculating log ratios ({})".format(label))
         ratios = self.store.select("/main/{}/counts".format(label))
         index = ratios.index
         c_n = ['c_{}'.format(x) for x in self.timepoints]
@@ -515,7 +517,7 @@ class Selection(StoreManager):
         if self.check_store("/main/{}/weights".format(label)):
             return
 
-        logging.info("Calculating regression weights ({})".format(label), extra={'oname' : self.name})
+        self.logger.info("Calculating regression weights ({})".format(label))
         variances = self.store.select("/main/{}/counts".format(label))
         c_n = ['c_{}'.format(x) for x in self.timepoints]
         index = variances.index
@@ -558,19 +560,19 @@ class Selection(StoreManager):
             # need to remove the current keys because we are using append
             self.store.remove("/main/{}/scores".format(label))
 
-        logging.info("Calculating {} regression coefficients ({})".format(self.scoring_method, label), extra={'oname' : self.name})
+        self.logger.info("Calculating {} regression coefficients ({})".format(self.scoring_method, label))
         # append is required because it takes the "min_itemsize" argument, and put doesn't
         longest = self.store.select("/main/{}/log_ratios".format(label), "columns='index'").index.map(len).max()
         chunk = 1
         if self.scoring_method == "WLS":
             for data in self.store.select_as_multiple(["/main/{}/log_ratios".format(label), "/main/{}/weights".format(label)], chunksize=self.chunksize):
-                logging.info("Calculating weighted least squares for chunk {} ({} rows)".format(chunk, len(data.index)), extra={'oname' : self.name})
+                self.logger.info("Calculating weighted least squares for chunk {} ({} rows)".format(chunk, len(data.index)))
                 result = data.apply(regression_apply, args=[self.timepoints, True], axis="columns")
                 self.store.append("/main/{}/scores".format(label), result, min_itemsize={"index" : longest})
                 chunk += 1
         elif self.scoring_method == "OLS":
             for data in self.store.select("/main/{}/log_ratios".format(label), chunksize=self.chunksize):
-                logging.info("Calculating ordinary least squares for chunk {} ({} rows)".format(chunk, len(data.index)), extra={'oname' : self.name})
+                self.logger.info("Calculating ordinary least squares for chunk {} ({} rows)".format(chunk, len(data.index)))
                 result = data.apply(regression_apply, args=[self.timepoints, False], axis="columns")
                 self.store.append("/main/{}/scores".format(label), result, min_itemsize={"index" : longest})
                 chunk += 1
@@ -578,7 +580,7 @@ class Selection(StoreManager):
             raise ValueError('Invalid regression scoring method "{}" [{}]'.format(self.scoring_method, self.name))
 
         # need to read from the file, calculate percentiles, and rewrite it
-        logging.info("Calculating slope standard error percentiles ({})".format(label), extra={'oname' : self.name})
+        self.logger.info("Calculating slope standard error percentiles ({})".format(label))
         data = self.store['/main/{}/scores'.format(label)]
         data['score'] = data['slope']
         data['SE'] = data['SE_slope']
@@ -596,7 +598,7 @@ class Selection(StoreManager):
         Only created for selections that use WLS or OLS scoring and have a wild type specified. 
         Uses :py:func:`~plots.fit_axes` for the plotting.
         """
-        logging.info("Creating wild type fit plot", extra={'oname' : self.name})
+        self.logger.info("Creating wild type fit plot")
 
         # get the data and calculate log ratios
         if "variants" in self.labels:
@@ -642,7 +644,7 @@ class Selection(StoreManager):
 
         Uses :py:func:`~plots.fit_axes` for the plotting.
         """
-        logging.info("Creating representative fit plots ({})".format(label), extra={'oname' : self.name})
+        self.logger.info("Creating representative fit plots ({})".format(label))
 
         se_data = self.store.select("/main/{}/scores".format(label), where="columns in ['slope', 'intercept', 'SE_pctile'] & index!='{}' & index!='{}'".format(WILD_TYPE_VARIANT, SYNONYMOUS_VARIANT))
         se_data.sort_values("SE_pctile", inplace=True)
@@ -698,7 +700,7 @@ class Selection(StoreManager):
 
         *pdf* is an open PdfPages instance.
         """
-        logging.info("Creating time point count plots ({})".format(label), extra={'oname' : self.name})
+        self.logger.info("Creating time point count plots ({})".format(label))
 
         counts = self.store['/main/{}/counts'.format(label)].sum(axis="index")
 
@@ -729,7 +731,7 @@ class Selection(StoreManager):
 
         The p-values used are the regression p-values (p-value of non-zero slope). Due to the large number of points, we use a hexbin plot showing the density instead of a scatter plot.
         """
-        logging.info("Creating volcano plot ({})".format(label), extra={'oname' : self.name})
+        self.logger.info("Creating volcano plot ({})".format(label))
 
         # get the data
         data = self.store.select("/main/{}/scores".format(label), "columns=['score', 'pvalue_raw']")
@@ -743,7 +745,7 @@ class Selection(StoreManager):
         This function handles opening and closing the various PDF files for multi-page plots, as well as plotting similar plots for different data labels.
         """
         if self.plots_requested:
-            logging.info("Creating plots", extra={'oname' : self.name})
+            self.logger.info("Creating plots")
 
             # counts per time point
             pdf = PdfPages(os.path.join(self.plot_dir, "timepoint_counts.pdf"))
@@ -817,7 +819,7 @@ class Selection(StoreManager):
         File names are the HDF5 key with ``'_'`` substituted for ``'/'``.
         """
         if self.tsv_requested:
-            logging.info("Generating tab-separated output files", extra={'oname' : self.name})
+            self.logger.info("Generating tab-separated output files")
             for k in self.store.keys():
                 self.write_table_tsv(k)
         for lib in self.children:
@@ -864,9 +866,9 @@ class Selection(StoreManager):
             label = "nucleotide"
 
         if counts:
-            logging.info("Creating diversity map ({})".format(label), extra={'oname' : self.name})
+            self.logger.info("Creating diversity map ({})".format(label))
         else:
-            logging.info("Creating sequence-function map ({})".format(label), extra={'oname' : self.name})
+            self.logger.info("Creating sequence-function map ({})".format(label))
 
         # build the data frame name and get the data
         df_name = "/main/"
@@ -965,10 +967,10 @@ class Selection(StoreManager):
         else:
             raise KeyError("Invalid label '{}' for calc_outliers [{}]".format(label,  self.name))
 
-        logging.info("Identifying outliers ({}-{})".format(label, label2), extra={'oname' : self.name})
+        self.logger.info("Identifying outliers ({}-{})".format(label, label2))
         
         
-        logging.info("Mapping {} to {}".format(label, label2), extra={'oname' : self.name})
+        self.logger.info("Mapping {} to {}".format(label, label2))
         if label == "variants":
             mapping = self.synonymous_variants()
         elif label == "barcodes":
@@ -996,7 +998,7 @@ class Selection(StoreManager):
 
         for i, x in enumerate(df2.index):
             if i % log_chunksize == 0:
-                logging.info("Calculating outlier p-values for chunk {} ({} rows) ({}-{})".format(log_chunk, log_chunksize_list[log_chunk - 1], label, label2), extra={'oname' : self.name})
+                self.logger.info("Calculating outlier p-values for chunk {} ({} rows) ({}-{})".format(log_chunk, log_chunksize_list[log_chunk - 1], label, label2))
                 log_chunk += 1
             try:
                 components = df1.loc[mapping[x]].dropna(axis="index", how="all")

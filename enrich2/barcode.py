@@ -25,6 +25,7 @@ class BarcodeSeqLib(SeqLib):
         self.trim_length = None
         self.barcode_min_count = None
         self.add_label('barcodes')
+        self.logger = logging.getLogger("{}.{}".format(__name__, self.__class__))
 
     def configure(self, cfg):
         """
@@ -32,6 +33,7 @@ class BarcodeSeqLib(SeqLib):
         a ``.json`` file.
         """
         SeqLib.configure(self, cfg)
+        self.logger = logging.getLogger("{}.{} - {}".format(__name__, self.__class__.__name__, self.name))
 
         # handle non-FASTQ config options
         try:
@@ -125,7 +127,7 @@ class BarcodeSeqLib(SeqLib):
             filter_flags[key] = False
 
         # count all the barcodes
-        logging.info("Counting barcodes", extra={'oname': self.name})
+        self.logger.info("Counting barcodes")
         for fqr in read_fastq(self.reads):
             fqr.trim_length(self.trim_length, start=self.trim_start)
             if self.revcomp_reads:

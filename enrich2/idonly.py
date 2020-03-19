@@ -16,6 +16,7 @@ class IdOnlySeqLib(SeqLib):
         SeqLib.__init__(self)
         self.identifier_min_count = None
         self.add_label('identifiers')
+        self.logger = logging.getLogger("{}.{}".format(__name__, self.__class__))
 
     def configure(self, cfg):
         """
@@ -23,6 +24,7 @@ class IdOnlySeqLib(SeqLib):
         a ``.json`` file.
         """
         SeqLib.configure(self, cfg)
+        self.logger = logging.getLogger("{}.{} - {}".format(__name__, self.__class__.__name__, self.name))
         try:
             if 'min count' in cfg['identifiers']:
                 self.identifier_min_count = \

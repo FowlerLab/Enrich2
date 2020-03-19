@@ -66,6 +66,8 @@ class StoreManager(object):
     treeview_class_name = None
 
     def __init__(self):
+        self.logger = logging.getLogger("{}.{}".format(__name__, self.__class__))
+
         # general data members
         self._name = None
         self.name = "Unnamed" + self.__class__.__name__
@@ -465,9 +467,9 @@ class StoreManager(object):
             self.name = cfg['name']
             if 'output directory' in cfg:
                 if self.output_dir_override:
-                    logging.warning("Using command line supplied output "
+                    self.logger.warning("Using command line supplied output "
                                     "directory instead of config file output "
-                                    "directory", extra={'oname': self.name})
+                                    "directory")
                 else:
                     self.output_dir = cfg['output directory']
             if 'store' in cfg:
@@ -480,8 +482,8 @@ class StoreManager(object):
                                      '"{}"'.format(cfg['store']), self.name)
                 else:
                     self.store_path = cfg['store']
-                    logging.info('Using specified HDF5 data store "{}"'.format(
-                            self.store_path), extra={'oname': self.name})
+                    self.logger.info('Using specified HDF5 data store "{}"'.format(
+                            self.store_path))
             else:
                 self.store_cfg = False
                 self.store_path = None
@@ -527,20 +529,18 @@ class StoreManager(object):
                                                     self.name),
                                                     self.store_suffix))
                 if os.path.exists(self.store_path):
-                    logging.info('Found existing HDF5 data store "{}"'.format(
-                            self.store_path), extra={'oname': self.name})
+                    self.logger.info('Found existing HDF5 data store "{}"'.format(
+                            self.store_path))
                 else:
-                    logging.info('Creating new HDF5 data store "{}"'.format(
-                        self.store_path), extra={'oname': self.name})
+                    self.logger.info('Creating new HDF5 data store "{}"'.format(
+                        self.store_path))
             self.store = pd.HDFStore(self.store_path)
             if self.force_recalculate and force_delete:
                 if "/main" in self.store:
-                    logging.info("Deleting existing calculated values",
-                                 extra={'oname': self.name})
+                    self.logger.info("Deleting existing calculated values")
                     self.store.remove("/main")
                 else:
-                    logging.warning("No existing calculated values in file",
-                                    extra={'oname': self.name})
+                    self.logger.warning("No existing calculated values in file")
 
         if children and self.children is not None:
             for child in self.children:
@@ -651,8 +651,7 @@ class StoreManager(object):
             bool: True if the key exists in the HDF5 store, else False.
         """
         if key in self.store.keys():
-            logging.info("Found existing '{}'".format(key),
-                         extra={'oname': self.name})
+            self.logger.info("Found existing '{}'".format(key))
             return True
         else:
             return False
@@ -668,8 +667,7 @@ class StoreManager(object):
         if destination in self.store.keys():
             # remove the current destination table because we are using append
             # append takes the "min_itemsize" argument, and put doesn't
-            logging.info("Overwriting existing '{}'".format(destination),
-                         extra={'oname': self.name})
+            self.logger.info("Overwriting existing '{}'".format(destination))
             self.store.remove(destination)
 
         # turn the single table name into a list to use select_as_multiple
@@ -702,7 +700,7 @@ class StoreManager(object):
         """
         shared = pd.Index()
         for t in tables:
-            shared = shared.union(pd.Index(store.select_column(t, 'index')))
+            shared = shared.union(pd.Index(self.store.select_column(t, 'index')))
         return shared
 
     def get_root(self):

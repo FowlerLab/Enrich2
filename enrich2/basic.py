@@ -20,6 +20,7 @@ class BasicSeqLib(VariantSeqLib):
         self.revcomp_reads = None
         self.trim_start = None
         self.trim_length = None
+        self.logger = logging.getLogger("{}.{}".format(__name__, self.__class__))
 
     def configure(self, cfg):
         """
@@ -27,6 +28,7 @@ class BasicSeqLib(VariantSeqLib):
         a ``.json`` file.
         """
         VariantSeqLib.configure(self, cfg)
+        self.logger = logging.getLogger("{}.{} - {}".format(__name__, self.__class__.__name__, self.name))
 
         # if counts are specified, copy them later
         # else handle the FASTQ config options and check the files
@@ -108,7 +110,7 @@ class BasicSeqLib(VariantSeqLib):
         """
         df_dict = dict()
 
-        logging.info("Counting variants", extra={'oname': self.name})
+        self.logger.info("Counting variants")
         max_mut_variants = 0
         for fq in read_fastq(self.reads):
             fq.trim_length(self.trim_length, start=self.trim_start)
@@ -131,11 +133,10 @@ class BasicSeqLib(VariantSeqLib):
         del df_dict
 
         if self.aligner is not None:
-            logging.info("Aligned {} variants".format(self.aligner.calls),
-                         extra={'oname': self.name})
+            self.logger.info("Aligned {} variants".format(self.aligner.calls))
             self.aligner_cache = None
-        logging.info("Removed {} total variants with excess mutations"
-                     "".format(max_mut_variants), extra={'oname': self.name})
+        self.logger.info("Removed {} total variants with excess mutations"
+                     "".format(max_mut_variants))
         self.save_filter_stats()
 
     def calculate(self):

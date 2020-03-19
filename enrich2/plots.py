@@ -6,6 +6,8 @@ import matplotlib.pyplot as plt
 import scipy.stats
 from statsmodels.nonparametric.kde import KDEUnivariate
 
+logger = logging.getLogger(__name__)
+
 tick_params = {'labelsize': 6,
                'pad': 2}
 
@@ -263,14 +265,12 @@ def barcodemap_plot(obj, pdf, log=False, bins=DEFAULT_BINS,
     try:
         data = collections.Counter(obj.store['/raw/barcodemap']['value'])
     except KeyError:
-        logging.warning("Failed to generate barcode-variant histogram "
-                        "(barcode map data not found)",
-                        extra={'oname': obj.name})
+        logger.warning("Failed to generate barcode-variant histogram "
+                        "(barcode map data not found)")
         return
 
     if len(data.keys()) <= 1:
-        logging.warning("Not enough elements to make barcodemap plot",
-                        extra={'oname': seqlib.name})
+        logger.warning("Not enough elements to make barcodemap plot")
         return
 
     # create the plot and set up the axes
@@ -309,9 +309,8 @@ def overlap_merge_plot(obj, pdf):
     try:
         data = obj.store['/raw/overlap_mismatches']
     except KeyError:
-        logging.warning("Failed to generate overlap mismatch plot "
-                        "(mismatch data not found)",
-                        extra={'oname': obj.name})
+        logger.warning("Failed to generate overlap mismatch plot "
+                        "(mismatch data not found)")
         return
 
     # create the plot and set up the axes
@@ -372,8 +371,8 @@ def counts_plot(seqlib, label, pdf, log=False, bins=DEFAULT_BINS,
                                      "index != SYNONYMOUS_VARIANT").values
 
     if len(data) <= 1:
-        logging.warning("Not enough elements to make '{}' counts plot"
-                        "".format(label), extra={'oname': seqlib.name})
+        logger.warning("Not enough elements to make '{}' counts plot"
+                        "".format(label))
         return
 
     # create the plot and set up the axes

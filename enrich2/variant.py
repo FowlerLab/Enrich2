@@ -212,6 +212,7 @@ class VariantSeqLib(SeqLib):
         self.max_mutations = None
         # 'synonymous' label may be added in configure() if wt is coding
         self.add_label('variants')
+        self.logger = logging.getLogger("{}.{}".format(__name__, self.__class__))
 
     def configure(self, cfg):
         """
@@ -219,6 +220,7 @@ class VariantSeqLib(SeqLib):
         a ``.json`` file.
         """
         SeqLib.configure(self, cfg)
+        self.logger = logging.getLogger("{}.{} - {}".format(__name__, self.__class__.__name__, self.name))
 
         self.wt.configure(cfg['variants']['wild type'])
         if self.is_coding():
@@ -418,16 +420,14 @@ class VariantSeqLib(SeqLib):
         ``synonymous`` entry.
         """
         if not self.is_coding():
-            logging.warning(
-                "Cannot count synonymous mutations in noncoding data",
-                extra={'oname': self.name})
+            self.logger.warning(
+                "Cannot count synonymous mutations in noncoding data")
             return
 
         if self.check_store("/main/synonymous/counts"):
             return
 
-        logging.info("Counting synonymous variants",
-                     extra={'oname': self.name})
+        self.logger.info("Counting synonymous variants")
 
         df_dict = dict()
 
@@ -452,6 +452,5 @@ class VariantSeqLib(SeqLib):
         names are converted to messages using the ``SeqLib.filter_messages``
         dictionary. Related to :py:meth:`SeqLib.report_filtered`.
         """
-        logging.debug("Filtered variant (quantity={n}) (excess mutations)"
-                      "\n{read!s}".format(n=count, read=variant),
-                      extra={'oname': self.name})
+        self.logger.debug("Filtered variant (quantity={n}) (excess mutations)"
+                      "\n{read!s}".format(n=count, read=variant))

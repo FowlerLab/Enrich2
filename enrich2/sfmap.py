@@ -9,6 +9,7 @@ from matplotlib.lines import Line2D
 from matplotlib.gridspec import GridSpec
 from .plots import plot_cmaps, plot_colors
 
+logger = logging.getLogger(__name__)
 
 #: List of amino acids in row order for sequence-function maps.
 AA_LIST = ['H', 'K', 'R',                 # (+)
@@ -216,8 +217,7 @@ def sfmap_axes(df, ax, style, wt, df_se=None, tall=False, colors=None,
     errors that are less than 2% of the maximum are not plotted.
     """
     if style not in ("counts", "logcounts", "scores"):
-        logging.warning("Invalid style specified for sfmap_axes",
-                        extra={'oname': "SFMAP.PY"})
+        logger.warning("Invalid style specified for sfmap_axes")
         return None
 
     # rotate if necessary
@@ -248,9 +248,8 @@ def sfmap_axes(df, ax, style, wt, df_se=None, tall=False, colors=None,
             else:
                 cmap = plt.get_cmap(plot_cmaps['sequential'])
         except ValueError:
-            logging.warning("Invalid sequential color map choice. "
-                            "Falling back to 'BuPu'",
-                            extra={'oname': "SFMAP.PY"})
+            logger.warning("Invalid sequential color map choice. "
+                            "Falling back to 'BuPu'")
             cmap = plt.get_cmap("BuPu")
         if vmin is None:
             vmin = 0.
@@ -263,9 +262,8 @@ def sfmap_axes(df, ax, style, wt, df_se=None, tall=False, colors=None,
             else:
                 cmap = plt.get_cmap(plot_cmaps['diverging'])
         except ValueError:
-            logging.warning("Invalid diverging color map choice. "
-                            "Falling back to 'RdYlBu_r'",
-                            extra={'oname': "SFMAP.PY"})
+            logger.warning("Invalid diverging color map choice. "
+                            "Falling back to 'RdYlBu_r'")
             cmap = plt.get_cmap("RdYlBu_r")
         if vmin is None:
             vmin = masked.min()
@@ -274,8 +272,7 @@ def sfmap_axes(df, ax, style, wt, df_se=None, tall=False, colors=None,
         if vmin < 0. and vmax > 0.:
             cmap = recentered_cmap(cmap, vmin, vmax)
         else:
-            logging.warning("Unexpected range. Not recentering color map.",
-                            extra={'oname': "SFMAP.PY"})
+            logger.warning("Unexpected range. Not recentering color map.")
     if missing_color is not None:
         cmap.set_bad(missing_color, 1.)
     else:
@@ -477,8 +474,7 @@ def sfmap_plot(df, pdf, style, wt, dimensions, df_se=None, title=None,
 
     """
     if style not in ("counts", "logcounts", "scores"):
-        logging.warning("Invalid style specified for sfmap_axes.",
-                        extra={'oname': "SFMAP.PY"})
+        logger.warning("Invalid style specified for sfmap_axes.")
         return None
 
     # dimensions set explicitly
@@ -486,8 +482,7 @@ def sfmap_plot(df, pdf, style, wt, dimensions, df_se=None, title=None,
         try:
             dimx, dimy = [float(n) for n in dimensions]
         except ValueError:
-            logging.warning("Invalid sequence-function map dimensions.",
-                            extra={'oname': "SFMAP.PY"})
+            logger.warning("Invalid sequence-function map dimensions.")
             return None
     else:
         # scaling based on mode
@@ -502,8 +497,7 @@ def sfmap_plot(df, pdf, style, wt, dimensions, df_se=None, title=None,
             # headings + pos_ax + wt_ax + title_ax
             coly = len(df.columns) + 2
         else:
-            logging.warning("Invalid sequence-function map scaling mode.",
-                            extra={'oname': "SFMAP.PY"})
+            logger.warning("Invalid sequence-function map scaling mode.")
             return None
         base_scale = 8.5 / 21
         dimx = colx * base_scale

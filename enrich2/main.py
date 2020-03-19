@@ -47,34 +47,17 @@ DRIVER_NAME = os.path.basename(sys.argv[0])
 
 
 #: Format string for log entries (console or file).
-LOG_FORMAT = "%(asctime)-15s [%(oname)s] %(message)s"
+LOG_FORMAT = "%(asctime)-15s [%(name)s] %(message)s"
 
-
-def start_logging(log_file, log_level):
-    """
-    Begin logging. This function should be called by the driver at the start of program execution. 
-    Message format is defined by :py:const:`LOG_FORMAT`.
-
-    Args:
-        log_file (str): Name of the log output file, or ``None`` to output to console.
-
-        log_level: Requested logging level. 
-            See :py:class:`~logging.Logger` for a detailed description of the options. Most program 
-            status messages are output at the ``INFO`` level.
-
-    """
-    if log_file is not None:
-        logging.basicConfig(filename=log_file, level=log_level, format=LOG_FORMAT)
-    else:
-        logging.basicConfig(level=log_level, format=LOG_FORMAT)
-
+#: Default log level
+LOG_LEVEL = logging.INFO
 
 def main_gui():
     """
     Entry point for GUI.
 
     """
-    start_logging(None, logging.DEBUG)
+    logging.basicConfig(level=LOG_LEVEL, format=LOG_FORMAT)
     app = Configurator(__version__)
     app.mainloop()
 
@@ -133,7 +116,11 @@ def main_cmd():
     args = parser.parse_args()
 
     # start the logs
-    start_logging(args.log_file, logging.DEBUG)
+    if args.log_file is not None:
+        logging.basicConfig(filename=args.log_file, level=LOG_LEVEL, format=LOG_FORMAT)
+    else:
+        logging.basicConfig(level=LOG_LEVEL, format=LOG_FORMAT)
+    logger = logging.getLogger(__name__)
 
     # read the JSON file
     try:
@@ -147,17 +134,14 @@ def main_cmd():
 
     # identify config file type and create the object
     if config_check.is_experiment(cfg):
-        logging.info("Detected an Experiment config file",
-                     extra={'oname': DRIVER_NAME})
+        logger.info("Detected an Experiment config file")
         obj = Experiment()
     elif config_check.is_selection(cfg):
-        logging.info("Detected a Selection config file",
-                     extra={'oname': DRIVER_NAME})
+        logger.info("Detected a Selection config file")
         obj = Selection()
     elif config_check.is_seqlib(cfg):
         seqlib_type = config_check.seqlib_type(cfg)
-        logging.info("Detected a %s config file", seqlib_type,
-                     extra={'oname': DRIVER_NAME})
+        logger.info("Detected a %s config file", seqlib_type)
         if seqlib_type == "BarcodeSeqLib":
             obj = BarcodeSeqLib()
         elif seqlib_type == "BcidSeqLib":
@@ -202,8 +186,7 @@ def main_cmd():
     try:
         obj.validate()
     except ValueError:
-        logging.exception("Invalid configuration",
-                          extra={'oname': DRIVER_NAME})
+        logger.exception("Invalid configuration")
     else:
         # open HDF5 files for the object and all child objects
         obj.store_open(children=True)
@@ -216,13 +199,11 @@ def main_cmd():
         try:
             obj.make_plots()
         except Exception:
-            logging.exception("Calculations completed, but plotting failed.",
-                              extra={'oname': DRIVER_NAME})
+            logger.exception("Calculations completed, but plotting failed.")
         try:
             obj.write_tsv()
         except Exception:
-            logging.exception("Calculations completed, but TSV ouput failed.",
-                              extra={'oname': DRIVER_NAME})
+            logger.exception("Calculations completed, but TSV output failed.")
 
         # clean up
         obj.store_close(children=True)

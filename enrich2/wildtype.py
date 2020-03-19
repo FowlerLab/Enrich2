@@ -19,6 +19,7 @@ class WildTypeSequence(object):
         self.protein_seq = None
         self.dna_offset = None
         self.protein_offset = None
+        self.logger = logging.getLogger("{}.{}".format(__name__, self.__class__))
 
 
     def __eq__(self, other):
@@ -64,7 +65,7 @@ class WildTypeSequence(object):
                 if self.dna_offset % 3 == 0:
                     self.protein_offset = self.dna_offset / 3
                 else:
-                    logging.warning("Ignoring reference offset for protein changes (not a multiple of three)", extra={'oname' : self.parent_name})
+                    self.logger.warning("Ignoring reference offset for protein changes (not a multiple of three)")
                     self.protein_offset = 0
             else:
                 self.protein_seq = None
