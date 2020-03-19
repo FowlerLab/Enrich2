@@ -302,7 +302,7 @@ class Experiment(StoreManager):
             for sel in cnd.children:
                 sel_data = sel.store.select("/main/{}/scores".format(label))
                 for v in values_list:
-                    data.loc[:][cnd.name, sel.name, v] = sel_data[v]
+                    data.loc[:, (cnd.name, sel.name, v)] = sel_data[v]
         self.store.put("/main/{}/scores_shared_full".format(label), data,
                        format="table")
 
@@ -345,7 +345,7 @@ class Experiment(StoreManager):
         # set up new data frame
         shared_index = self.store.select("/main/{}/scores_shared"
                                          "".format(label),
-                                         "columns='index'").index
+                                         columns='index').index
         columns = pd.MultiIndex.from_product([sorted(self.child_names()),
                                               sorted(["score", "SE",
                                                       "epsilon"])],
