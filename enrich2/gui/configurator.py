@@ -29,7 +29,6 @@ def write_json(d, handle):
     json.dump(clear_nones(d), handle, indent=2, sort_keys=True)
 
 
-
 class Configurator(tk.Tk):
     def __init__(self, version):
         tk.Tk.__init__(self)
@@ -39,7 +38,7 @@ class Configurator(tk.Tk):
         self.treeview_popup_target_id = None
 
         self.cfg_file_name = tk.StringVar()
-        
+
         self.element_dict = dict()
         self.root_element = None
 
@@ -60,23 +59,21 @@ class Configurator(tk.Tk):
         self.create_menubar()
         self.create_treeview_context_menu()
 
-
     def create_treeview_context_menu(self):
         self.treeview_popup = tk.Menu(self, tearoff=0)
-        self.treeview_popup.add_command(label="Apply FASTQ...", command=self.apply_seqlib_fastq)
-
+        self.treeview_popup.add_command(
+            label="Apply FASTQ...", command=self.apply_seqlib_fastq
+        )
 
     def apply_seqlib_fastq(self):
         SeqLibApplyDialog(self, self, self.treeview_popup_target_id)
 
-
     def treeview_context_menu(self, click):
         target = self.treeview.identify_row(click.y)
-        if target != '':
+        if target != "":
             self.treeview_popup_target_id = target
             self.treeview_popup.post(click.x_root, click.y_root)
         self.treeview_popup_target_id = None
-
 
     def create_main_frame(self):
         # Frame for the Treeview and New/Edit/Delete buttons
@@ -108,8 +105,12 @@ class Configurator(tk.Tk):
         self.treeview.bind("<Button-2>", self.treeview_context_menu)
 
         # Treeview scrollbars
-        tree_ysb = tk.Scrollbar(tree_frame, orient="vertical", command=self.treeview.yview)
-        tree_xsb = tk.Scrollbar(tree_frame, orient="horizontal", command=self.treeview.xview)
+        tree_ysb = tk.Scrollbar(
+            tree_frame, orient="vertical", command=self.treeview.yview
+        )
+        tree_xsb = tk.Scrollbar(
+            tree_frame, orient="horizontal", command=self.treeview.xview
+        )
         tree_ysb.grid(row=0, column=1, sticky="nsw")
         tree_xsb.grid(row=1, column=0, sticky="ewn")
         self.treeview.config(yscroll=tree_ysb.set, xscroll=tree_xsb.set)
@@ -117,11 +118,17 @@ class Configurator(tk.Tk):
         # Frame for New/Edit/Delete buttons
         button_frame = ttk.Frame(main, padding=(3, 3, 12, 12))
         button_frame.grid(row=1, column=0)
-        new_button = ttk.Button(button_frame, text="New...", command=self.new_button_press)
+        new_button = ttk.Button(
+            button_frame, text="New...", command=self.new_button_press
+        )
         new_button.grid(row=0, column=0)
-        edit_button = ttk.Button(button_frame, text="Edit...", command=self.edit_button_press)
+        edit_button = ttk.Button(
+            button_frame, text="Edit...", command=self.edit_button_press
+        )
         edit_button.grid(row=0, column=1)
-        delete_button = ttk.Button(button_frame, text="Delete", command=self.delete_button_press)
+        delete_button = ttk.Button(
+            button_frame, text="Delete", command=self.delete_button_press
+        )
         delete_button.grid(row=0, column=2)
 
         # Frame for Analysis Options
@@ -137,7 +144,12 @@ class Configurator(tk.Tk):
         scoring_heading.grid(column=0, row=row)
         row += 1
         for i, k in enumerate(SCORING_METHODS.keys()):
-            rb = ttk.Radiobutton(options_frame, text=SCORING_METHODS[k].title(), variable=self.scoring_method, value=k)
+            rb = ttk.Radiobutton(
+                options_frame,
+                text=SCORING_METHODS[k].title(),
+                variable=self.scoring_method,
+                value=k,
+            )
             rb.grid(column=0, row=row, sticky="w")
             row += 1
             if i == 0:
@@ -147,7 +159,12 @@ class Configurator(tk.Tk):
         logr_heading.grid(column=0, row=row)
         row += 1
         for i, k in enumerate(LOGR_METHODS.keys()):
-            rb = ttk.Radiobutton(options_frame, text=LOGR_METHODS[k].title(), variable=self.logr_method, value=k)
+            rb = ttk.Radiobutton(
+                options_frame,
+                text=LOGR_METHODS[k].title(),
+                variable=self.logr_method,
+                value=k,
+            )
             rb.grid(column=0, row=row, sticky="w")
             row += 1
             if i == 0:
@@ -158,30 +175,41 @@ class Configurator(tk.Tk):
         row += 1
 
         # force recalculate
-        force_recalculate = ttk.Checkbutton(options_frame, text="Force Recalculation", variable=self.force_recalculate)
+        force_recalculate = ttk.Checkbutton(
+            options_frame, text="Force Recalculation", variable=self.force_recalculate
+        )
         force_recalculate.grid(column=0, row=row, sticky="w")
         row += 1
 
         # component outliers
-        component_outliers = ttk.Checkbutton(options_frame, text="Component Outlier Statistics", variable=self.component_outliers)
+        component_outliers = ttk.Checkbutton(
+            options_frame,
+            text="Component Outlier Statistics",
+            variable=self.component_outliers,
+        )
         component_outliers.grid(column=0, row=row, sticky="w")
         row += 1
 
         # make plots
-        plots_requested = ttk.Checkbutton(options_frame, text="Make Plots", variable=self.plots_requested)
+        plots_requested = ttk.Checkbutton(
+            options_frame, text="Make Plots", variable=self.plots_requested
+        )
         plots_requested.grid(column=0, row=row, sticky="w")
         plots_requested.invoke()
         row += 1
 
         # write tsv
-        tsv_requested = ttk.Checkbutton(options_frame, text="Write TSV Files", variable=self.tsv_requested)
+        tsv_requested = ttk.Checkbutton(
+            options_frame, text="Write TSV Files", variable=self.tsv_requested
+        )
         tsv_requested.grid(column=0, row=row, sticky="w")
         tsv_requested.invoke()
         row += 1
 
-        go_button = ttk.Button(options_frame, text="Run Analysis", command=self.go_button_press)
+        go_button = ttk.Button(
+            options_frame, text="Run Analysis", command=self.go_button_press
+        )
         go_button.grid(column=0, row=row, sticky="sew")
-
 
     def go_button_press(self):
         if self.root_element is None:
@@ -189,7 +217,6 @@ class Configurator(tk.Tk):
         else:
             RunnerSavePrompt(self)
             RunnerWindow(self)
-
 
     def create_new_element(self):
         """
@@ -223,14 +250,15 @@ class Configurator(tk.Tk):
             else:
                 element.reads = None
         else:
-            raise ValueError("Unrecognized parent object type '{}'".format(type(parent_element)))
+            raise ValueError(
+                "Unrecognized parent object type '{}'".format(type(parent_element))
+            )
         return element
-
 
     def new_button_press(self):
         if self.treeview.focus() == "" and self.root_element is not None:
             tkMessageBox.showwarning(None, "No parent element selected.")
-        else: 
+        else:
             if self.treeview.focus() == "" and self.root_element is None:
                 element = CreateRootDialog(self).element
                 if isinstance(element, SeqLib):
@@ -253,21 +281,17 @@ class Configurator(tk.Tk):
                     self.treeview.selection_set(element.parent.treeview_id)
                 del element
 
-
-
     def edit_button_press(self):
         if self.treeview.focus() == "":
             tkMessageBox.showwarning(None, "No element selected.")
         else:
             EditDialog(self, self, self.get_focused_element())
 
-
     def delete_button_press(self):
         if self.treeview.focus() == "":
             tkMessageBox.showwarning(None, "No element selected.")
         else:
             DeleteDialog(self, self)
-
 
     def create_menubar(self):
         # make platform-specific keybinds
@@ -283,14 +307,28 @@ class Configurator(tk.Tk):
 
         # file menu
         filemenu = tk.Menu(menubar, tearoff=0)
-        filemenu.add_command(label="Open...", accelerator="{}O".format(accel_string), command=self.menu_open)
-        filemenu.add_command(label="Save", accelerator="{}S".format(accel_string), command=self.menu_save)
-        filemenu.add_command(label="Save As...", accelerator="{}Shift+S".format(accel_string), command=self.menu_saveas)
+        filemenu.add_command(
+            label="Open...",
+            accelerator="{}O".format(accel_string),
+            command=self.menu_open,
+        )
+        filemenu.add_command(
+            label="Save", accelerator="{}S".format(accel_string), command=self.menu_save
+        )
+        filemenu.add_command(
+            label="Save As...",
+            accelerator="{}Shift+S".format(accel_string),
+            command=self.menu_saveas,
+        )
         menubar.add_cascade(label="File", menu=filemenu)
 
         # edit menu
         filemenu = tk.Menu(menubar, tearoff=0)
-        filemenu.add_command(label="Select All", accelerator="{}A".format(accel_string), command=self.menu_selectall)
+        filemenu.add_command(
+            label="Select All",
+            accelerator="{}A".format(accel_string),
+            command=self.menu_selectall,
+        )
         menubar.add_cascade(label="Edit", menu=filemenu)
 
         # add the menubar
@@ -303,7 +341,6 @@ class Configurator(tk.Tk):
 
         # add edit menu keybinds
         self.bind("<{}a>".format(accel_bind), lambda event: self.menu_selectall())
-
 
     def menu_open(self):
         fname = tkFileDialog.askopenfilename()
@@ -329,13 +366,14 @@ class Configurator(tk.Tk):
                 obj.output_dir_override = False
                 try:
                     obj.configure(cfg)
-                except Exception, e:
-                    tkMessageBox.showerror(None, "Failed to process config file:\n{}".format(e))
+                except Exception as e:
+                    tkMessageBox.showerror(
+                        None, "Failed to process config file:\n{}".format(e)
+                    )
                 else:
                     self.root_element = obj
                     self.cfg_file_name.set(fname)
                     self.refresh_treeview()
-
 
     def menu_save(self):
         if len(self.cfg_file_name.get()) == 0:
@@ -349,8 +387,9 @@ class Configurator(tk.Tk):
             except IOError:
                 tkMessageBox.showerror(None, "Failed to save config file.")
             else:
-                tkMessageBox.showinfo(None, "Save successful:\n{}".format(self.cfg_file_name.get()))
-
+                tkMessageBox.showinfo(
+                    None, "Save successful:\n{}".format(self.cfg_file_name.get())
+                )
 
     def menu_saveas(self):
         if self.root_element is None:
@@ -365,8 +404,9 @@ class Configurator(tk.Tk):
                     tkMessageBox.showerror(None, "Failed to save config file.")
                 else:
                     self.cfg_file_name.set(fname)
-                    tkMessageBox.showinfo(None, "Save successful:\n{}".format(self.cfg_file_name.get()))
-
+                    tkMessageBox.showinfo(
+                        None, "Save successful:\n{}".format(self.cfg_file_name.get())
+                    )
 
     def menu_selectall(self):
         """
@@ -374,7 +414,6 @@ class Configurator(tk.Tk):
         """
         for k in self.element_dict.keys():
             self.treeview.selection_add(k)
-
 
     def delete_element(self, tree_id):
         """
@@ -386,7 +425,7 @@ class Configurator(tk.Tk):
         each deletion. This is the responsibility of the caller.
 
         """
-        #if self.treeview.exists(tree_id):
+        # if self.treeview.exists(tree_id):
         if tree_id in self.element_dict:
             # recursively delete children
             if self.element_dict[tree_id].children is not None:
@@ -407,7 +446,6 @@ class Configurator(tk.Tk):
             # delete the element from the dictionary
             del self.element_dict[tree_id]
 
-
     def refresh_treeview(self):
         """
         Clears the Treeview and repopulates it with the current contents of the tree.
@@ -423,7 +461,6 @@ class Configurator(tk.Tk):
         # repopulate
         if self.root_element is not None:
             self.populate_tree(self.root_element)
-
 
     def set_treeview_properties(self, element):
         """
@@ -444,7 +481,6 @@ class Configurator(tk.Tk):
 
         self.treeview.set(element.treeview_id, "class", element.treeview_class_name)
 
-
     def populate_tree(self, element, parent_id=""):
         """
         Recursively populate the Treeview.
@@ -452,7 +488,9 @@ class Configurator(tk.Tk):
         Also populates the *id_cfgstrings*.
         """
         # insert into the Treeview
-        element.treeview_id = self.treeview.insert(parent_id, "end", text=element.name, open=True)
+        element.treeview_id = self.treeview.insert(
+            parent_id, "end", text=element.name, open=True
+        )
         # add id-element pair to dictionary
         self.element_dict[element.treeview_id] = element
         # set information fields
@@ -463,13 +501,11 @@ class Configurator(tk.Tk):
             for child in element.children:
                 self.populate_tree(child, parent_id=element.treeview_id)
 
-
     def get_element(self, treeview_id):
         """
         Returns the element with *treeview_id*.
         """
         return self.element_dict[treeview_id]
-
 
     def get_focused_element(self):
         """
@@ -482,7 +518,6 @@ class Configurator(tk.Tk):
         else:
             return None
 
-
     def get_selected_elements(self):
         """
         Returns a list of elements that are currently selected in the Treeview.
@@ -490,5 +525,3 @@ class Configurator(tk.Tk):
         If no elements are selected, it returns an empty list.
         """
         return [self.get_element(x) for x in self.treeview.selection()]
-
-

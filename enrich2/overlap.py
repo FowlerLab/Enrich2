@@ -8,6 +8,7 @@ from .seqlib import SeqLib
 from .variant import VariantSeqLib
 from .fqread import read_fastq_multi, split_fastq_path, FQRead
 
+
 class OverlapSeqLib(VariantSeqLib):
     """
     Class for count data from sequencing libraries with overlapping paired-end 
@@ -55,10 +56,9 @@ class OverlapSeqLib(VariantSeqLib):
         self.trim = None
         self.max_overlap_mismatches = None
         self.merge_mismatches = None
-        self.default_filters.update({'merge failure' : True})
-        self.default_filters.update({'remove unresolvable' : False})
+        self.default_filters.update({"merge failure": True})
+        self.default_filters.update({"remove unresolvable": False})
         self.logger = logging.getLogger("{}.{}".format(__name__, self.__class__))
-
 
     def configure(self, cfg):
         """
@@ -66,38 +66,59 @@ class OverlapSeqLib(VariantSeqLib):
         a ``.json`` file.
         """
         VariantSeqLib.configure(self, cfg)
-        self.logger = logging.getLogger("{}.{} - {}".format(__name__, self.__class__.__name__, self.name))
+        self.logger = logging.getLogger(
+            "{}.{} - {}".format(__name__, self.__class__.__name__, self.name)
+        )
 
         # if counts are specified, copy them later
         # else handle the FASTQ config options and check the files
         if self.counts_file is None:
             self.configure_fastq(cfg)
             try:
-                self.fwd_start = int(cfg['overlap']['forward start'])
-                self.rev_start = int(cfg['overlap']['reverse start'])
-                self.overlap_length = int(cfg['overlap']['length'])
-                self.trim = cfg['overlap']['trim']
-                self.max_overlap_mismatches = int(cfg['overlap']['max mismatches'])
+                self.fwd_start = int(cfg["overlap"]["forward start"])
+                self.rev_start = int(cfg["overlap"]["reverse start"])
+                self.overlap_length = int(cfg["overlap"]["length"])
+                self.trim = cfg["overlap"]["trim"]
+                self.max_overlap_mismatches = int(cfg["overlap"]["max mismatches"])
 
                 forward_error = False
                 reverse_error = False
                 if split_fastq_path(self.forward) is None:
                     forward_error = True
                 if split_fastq_path(self.reverse) is None:
-                    reverse_error= True
+                    reverse_error = True
                 if forward_error and reverse_error:
-                    raise IOError("FASTQ file error: unrecognized extension (forward and reverse) [{}]".format(self.name))
+                    raise IOError(
+                        "FASTQ file error: unrecognized extension (forward and reverse) [{}]".format(
+                            self.name
+                        )
+                    )
                 elif forward_error:
-                    raise IOError("FASTQ file error: unrecognized extension (forward) [{}]".format(self.name))
+                    raise IOError(
+                        "FASTQ file error: unrecognized extension (forward) [{}]".format(
+                            self.name
+                        )
+                    )
                 elif reverse_error:
-                    raise IOError("FASTQ file error: unrecognized extension (reverse) [{}]".format(self.name))
+                    raise IOError(
+                        "FASTQ file error: unrecognized extension (reverse) [{}]".format(
+                            self.name
+                        )
+                    )
             except IOError as fqerr:
                 raise IOError("FASTQ file error [{}]: {}".format(self.name, fqerr))
             except KeyError as key:
-                raise KeyError("Missing required config value {key} [{name}]".format(key=key, name=self.name))
+                raise KeyError(
+                    "Missing required config value {key} [{name}]".format(
+                        key=key, name=self.name
+                    )
+                )
             except ValueError as value:
-                raise ValueError("Invalid parameter value {value} [{name}]".format(value=value, name=self.name))
-
+                raise ValueError(
+                    "Invalid parameter value {value} [{name}]".format(
+                        value=value, name=self.name
+                    )
+                )
 
     def serialize(self):
         """
@@ -105,45 +126,48 @@ class OverlapSeqLib(VariantSeqLib):
         """
         cfg = VariantSeqLib.serialize(self)
 
-        cfg['fastq'] = self.serialize_fastq()
-        cfg['overlap'] = {
-            'forward start' : self.fwd_start,
-            'reverse start' : self.rev_start,
-            'length' : self.overlap_length,
-            'trim' : self.trim,
-            'max mismatches' : self.max_overlap_mismatches
+        cfg["fastq"] = self.serialize_fastq()
+        cfg["overlap"] = {
+            "forward start": self.fwd_start,
+            "reverse start": self.rev_start,
+            "length": self.overlap_length,
+            "trim": self.trim,
+            "max mismatches": self.max_overlap_mismatches,
         }
 
         return cfg
-
 
     def configure_fastq(self, cfg):
         """
         Set up the object's FASTQ_ file handling and filtering options.
         """
         try:
-            self.forward = cfg['fastq']['forward reads']
-            self.reverse = cfg['fastq']['reverse reads']
+            self.forward = cfg["fastq"]["forward reads"]
+            self.reverse = cfg["fastq"]["reverse reads"]
 
-            if 'merge failure' in cfg['fastq']['filters']:
-                raise ValueError("'merge failure' is not user-configurable [{}]".format(self.name))
-            self.filters = cfg['fastq']['filters']
+            if "merge failure" in cfg["fastq"]["filters"]:
+                raise ValueError(
+                    "'merge failure' is not user-configurable [{}]".format(self.name)
+                )
+            self.filters = cfg["fastq"]["filters"]
         except KeyError as key:
-            raise KeyError("Missing required config value {key} [{name}]".format(key=key, name=self.name))
-
+            raise KeyError(
+                "Missing required config value {key} [{name}]".format(
+                    key=key, name=self.name
+                )
+            )
 
     def serialize_fastq(self):
         """
         Serialize this object's FASTQ_ file handling and filtering options.
         """
         fastq = {
-            'forward reads' : self.forward,
-            'reverse reads' : self.reverse,
-            'filters' : self.serialize_filters()
+            "forward reads": self.forward,
+            "reverse reads": self.reverse,
+            "filters": self.serialize_filters(),
         }
 
         return fastq
-
 
     def merge_reads(self, fwd, rev):
         """
@@ -158,19 +182,19 @@ class OverlapSeqLib(VariantSeqLib):
         """
         rev.revcomp()
 
-        #print(fwd.sequence, "-" * (self.rev_start - 1), sep="")
-        #print("-" * (self.fwd_start - 1), rev.sequence, sep="")
+        # print(fwd.sequence, "-" * (self.rev_start - 1), sep="")
+        # print("-" * (self.fwd_start - 1), rev.sequence, sep="")
         rev_extra_start = len(rev) - self.rev_start + 1
         fwd_end = self.fwd_start + self.overlap_length - 1
-        merge = FQRead(header=fwd.header + '|' + rev.header, 
-                       sequence="A",
-                       header2=fwd.header2 + '|' + rev.header2,
-                       quality="#",
-                       qbase=fwd.qbase)
-        merge.sequence = list(fwd.sequence[:fwd_end] + \
-                                     rev.sequence[rev_extra_start:])
-        merge.quality = fwd.quality[:fwd_end] + \
-                                     rev.quality[rev_extra_start:]
+        merge = FQRead(
+            header=fwd.header + "|" + rev.header,
+            sequence="A",
+            header2=fwd.header2 + "|" + rev.header2,
+            quality="#",
+            qbase=fwd.qbase,
+        )
+        merge.sequence = list(fwd.sequence[:fwd_end] + rev.sequence[rev_extra_start:])
+        merge.quality = fwd.quality[:fwd_end] + rev.quality[rev_extra_start:]
 
         mismatches = 0
         first = True
@@ -184,24 +208,32 @@ class OverlapSeqLib(VariantSeqLib):
                         merge.quality[a] = rev.quality[b]
                 else:
                     if fwd.quality[a] == rev.quality[b]:
-                        merge.sequence[a] = 'X' # unresolvable
-                        self.merge_mismatches.iloc[i]['unresolved'] += 1
+                        merge.sequence[a] = "X"  # unresolvable
+                        self.merge_mismatches.iloc[i]["unresolved"] += 1
                     elif rev.quality[b] > fwd.quality[a]:
                         merge.sequence[a] = rev.sequence[b]
                         merge.quality[a] = rev.quality[b]
-                        self.merge_mismatches.iloc[i]['resolved'] += 1
+                        self.merge_mismatches.iloc[i]["resolved"] += 1
                     else:
                         # overlap region already same as fwd
-                        self.merge_mismatches.iloc[i]['resolved'] += 1
+                        self.merge_mismatches.iloc[i]["resolved"] += 1
                     mismatches += 1
                     if first:
-                        self.merge_mismatches.iloc[i]['first'] += 1
+                        self.merge_mismatches.iloc[i]["first"] += 1
                         first = False
             except IndexError:
-                raise IndexError("Failed to calculate overlap (a={a}, len(a)={lena}, b={b}, len(b)={lenb}) [{name}]".format(a=a, b=b, lena=len(fwd.sequence), lenb=len(rev.sequence), name=self.name))
+                raise IndexError(
+                    "Failed to calculate overlap (a={a}, len(a)={lena}, b={b}, len(b)={lenb}) [{name}]".format(
+                        a=a,
+                        b=b,
+                        lena=len(fwd.sequence),
+                        lenb=len(rev.sequence),
+                        name=self.name,
+                    )
+                )
 
         if mismatches > self.max_overlap_mismatches:
-            return None # merge failed
+            return None  # merge failed
 
         merge.sequence = "".join(merge.sequence)
         if self.trim:
@@ -211,31 +243,38 @@ class OverlapSeqLib(VariantSeqLib):
     def counts_from_reads(self):
         df_dict = dict()
 
-        self.merge_mismatches = pd.DataFrame(data=0, index=[x + self.fwd_start + self.wt.dna_offset for x in xrange(0, self.overlap_length)], columns=["resolved", "unresolved", "first"])
+        self.merge_mismatches = pd.DataFrame(
+            data=0,
+            index=[
+                x + self.fwd_start + self.wt.dna_offset
+                for x in xrange(0, self.overlap_length)
+            ],
+            columns=["resolved", "unresolved", "first"],
+        )
 
         self.logger.info("Counting variants")
         max_mut_variants = 0
         for fwd, rev in read_fastq_multi([self.forward, self.reverse]):
             # filter on chastity before merge
             chaste = True
-            if self.filters['chastity']:
+            if self.filters["chastity"]:
                 if not fwd.is_chaste():
                     chaste = False
                     if self.report_filtered:
-                        self.report_filtered_read(fwd, 'chastity')
+                        self.report_filtered_read(fwd, "chastity")
                 if not rev.is_chaste():
                     chaste = False
                     if self.report_filtered:
-                        self.report_filtered_read(rev, 'chastity')
+                        self.report_filtered_read(rev, "chastity")
                 if not chaste:
-                    self.filter_stats['chastity'] += 1
-                    self.filter_stats['total'] += 1
+                    self.filter_stats["chastity"] += 1
+                    self.filter_stats["total"] += 1
                     continue
 
             merge = self.merge_reads(fwd, rev)
             if merge is None:  # merge failed
-                self.filter_stats['merge failure'] += 1
-                self.filter_stats['total'] += 1
+                self.filter_stats["merge failure"] += 1
+                self.filter_stats["total"] += 1
                 if self.report_filtered:
                     self.report_filtered_read(fwd, filter_flags)
                     self.report_filtered_read(rev, filter_flags)
@@ -252,16 +291,23 @@ class OverlapSeqLib(VariantSeqLib):
                         except KeyError:
                             df_dict[mutations] = 1
 
-        self.store.put("/raw/overlap_mismatches", self.merge_mismatches, format="table", data_columns=self.merge_mismatches.columns)
+        self.store.put(
+            "/raw/overlap_mismatches",
+            self.merge_mismatches,
+            format="table",
+            data_columns=self.merge_mismatches.columns,
+        )
         self.merge_mismatches = None
-        self.save_counts('variants', df_dict, raw=True)
+        self.save_counts("variants", df_dict, raw=True)
         del df_dict
 
         if self.aligner is not None:
             self.logger.info("Aligned {} variants".format(self.aligner.calls))
             self.aligner_cache = None
-        self.logger.info("Removed {} total variants with excess mutations"
-                     "".format(max_mut_variants))
+        self.logger.info(
+            "Removed {} total variants with excess mutations"
+            "".format(max_mut_variants)
+        )
         self.save_filter_stats()
 
     def calculate(self):
@@ -273,12 +319,11 @@ class OverlapSeqLib(VariantSeqLib):
             if not self.check_store("/raw/variants/counts"):
                 if self.counts_file is not None:
                     self.counts_from_file(self.counts_file)
-                else:   # count everything
+                else:  # count everything
                     self.counts_from_reads()
-            self.save_filtered_counts('variants', "count >= self.variant_min_count")
+            self.save_filtered_counts("variants", "count >= self.variant_min_count")
 
         self.count_synonymous()
-
 
     def make_plots(self):
         """
@@ -291,5 +336,3 @@ class OverlapSeqLib(VariantSeqLib):
             pdf = PdfPages(os.path.join(self.plot_dir, "overlap_mismatches.pdf"))
             overlap_merge_plot(self, pdf)
             pdf.close()
-
-

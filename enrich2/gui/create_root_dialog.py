@@ -10,42 +10,64 @@ class CreateRootDialog(tkSimpleDialog.Dialog):
     """
     Dialog box for creating a new root element.
     """
+
     def __init__(self, parent_window, title="Create Root Object"):
         self.element_tkstring = tk.StringVar()
         self.cfg_dict = dict()
-        self.output_directory_tk = FileEntry("Output Directory", self.cfg_dict, 'output directory', optional=False, directory=True)
-        self.name_tk = StringEntry("Name", self.cfg_dict, 'name', optional=False)
+        self.output_directory_tk = FileEntry(
+            "Output Directory",
+            self.cfg_dict,
+            "output directory",
+            optional=False,
+            directory=True,
+        )
+        self.name_tk = StringEntry("Name", self.cfg_dict, "name", optional=False)
         self.element = None
         tkSimpleDialog.Dialog.__init__(self, parent_window, title)
-
 
     def body(self, master):
         row_no = self.name_tk.body(master, 0)
         row_no += self.output_directory_tk.body(master, row_no)
 
         element_types = ttk.Frame(master, padding=(3, 3, 12, 12))
-        element_types.grid(column=0, row=row_no, sticky="nsew", columnspan=DEFAULT_COLUMNS)
+        element_types.grid(
+            column=0, row=row_no, sticky="nsew", columnspan=DEFAULT_COLUMNS
+        )
 
         message = ttk.Label(element_types, text="Root object type:")
         message.grid(column=0, row=0)
 
         label = ttk.Label(element_types, text="Experiment")
         label.grid(column=0, row=1, sticky="w")
-        rb = ttk.Radiobutton(element_types, text="Experiment", variable=self.element_tkstring, value="Experiment")
+        rb = ttk.Radiobutton(
+            element_types,
+            text="Experiment",
+            variable=self.element_tkstring,
+            value="Experiment",
+        )
         rb.grid(column=0, row=2, sticky="w")
         rb.invoke()
 
         label = ttk.Label(element_types, text="Selection")
         label.grid(column=0, row=3, sticky="w")
-        rb = ttk.Radiobutton(element_types, text="Selection", variable=self.element_tkstring, value="Selection")
+        rb = ttk.Radiobutton(
+            element_types,
+            text="Selection",
+            variable=self.element_tkstring,
+            value="Selection",
+        )
         rb.grid(column=0, row=4, sticky="w")
 
         label = ttk.Label(element_types, text="SeqLib")
         label.grid(column=0, row=5, sticky="w")
         for i, k in enumerate(seqlib_label_text.keys()):
-            rb = ttk.Radiobutton(element_types, text=seqlib_label_text[k], variable=self.element_tkstring, value=k)
+            rb = ttk.Radiobutton(
+                element_types,
+                text=seqlib_label_text[k],
+                variable=self.element_tkstring,
+                value=k,
+            )
             rb.grid(column=0, row=(i + 6), sticky="w")
-
 
     def buttonbox(self):
         """
@@ -60,11 +82,9 @@ class CreateRootDialog(tkSimpleDialog.Dialog):
 
         box.pack()
 
-
     def validate(self):
         # check the fields
         return self.output_directory_tk.validate() and self.name_tk.validate()
-
 
     def apply(self):
         # apply the fields
@@ -75,10 +95,11 @@ class CreateRootDialog(tkSimpleDialog.Dialog):
         try:
             self.element = globals()[self.element_tkstring.get()]()
         except KeyError:
-            raise KeyError("Unrecognized element type '{}'".format(self.element_tkstring.get()))
+            raise KeyError(
+                "Unrecognized element type '{}'".format(self.element_tkstring.get())
+            )
 
         # set the properties from this dialog
         self.element.output_dir_override = False
-        self.element.output_dir = self.cfg_dict['output directory']
-        self.element.name = self.cfg_dict['name']
-
+        self.element.output_dir = self.cfg_dict["output directory"]
+        self.element.name = self.cfg_dict["name"]

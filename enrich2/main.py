@@ -7,18 +7,21 @@ import json
 import sys
 import platform
 import os.path
+
 if platform.system() == "Darwin":
     # Explicitly set the backend to avoid the NSInvalidArgumentException when
     # running in GUI mode. Advanced users who want to use another matplotlib
     # backend when running in MacOS on the command line can modify this section
     # accordingly.
     import matplotlib
+
     matplotlib.use("TkAgg")
 elif os.path.exists("/.dockerenv"):
     # Explicitly set the backend for running inside Docker. This may fail for
     # older versions of docker or alternative containerization tools such as
     # Singularity.
     import matplotlib
+
     matplotlib.use("Agg")
 import enrich2.config_check as config_check
 from enrich2.experiment import Experiment
@@ -52,6 +55,7 @@ LOG_FORMAT = "%(asctime)-15s [%(name)s] %(message)s"
 #: Default log level
 LOG_LEVEL = logging.INFO
 
+
 def main_gui():
     """
     Entry point for GUI.
@@ -68,50 +72,79 @@ def main_cmd():
 
     """
     # build description string based on available methods
-    desc_string = "Command-line driver for Enrich2 v{}".format(__version__) + \
-        "\n\nscoring methods:\n" + \
-        "\n".join(["  {:22}{}".format(k, v) for k, v in
-                   SCORING_METHODS.items()]) + \
-        "\n\nlog ratio methods:\n" + \
-        "\n".join(["  {:22}{}".format(k, v) for k, v in
-                   LOGR_METHODS.items()])
+    desc_string = (
+        "Command-line driver for Enrich2 v{}".format(__version__)
+        + "\n\nscoring methods:\n"
+        + "\n".join(["  {:22}{}".format(k, v) for k, v in SCORING_METHODS.items()])
+        + "\n\nlog ratio methods:\n"
+        + "\n".join(["  {:22}{}".format(k, v) for k, v in LOGR_METHODS.items()])
+    )
 
     # create parser and add description
-    parser = ArgumentParser(prog="Enrich2", description=desc_string,
-                            formatter_class=RawDescriptionHelpFormatter)
+    parser = ArgumentParser(
+        prog="Enrich2",
+        description=desc_string,
+        formatter_class=RawDescriptionHelpFormatter,
+    )
 
     # add command line arguments
     parser.add_argument("config", help="JSON configuration file")
-    parser.add_argument("scoring_method", help="scoring method",
-                        choices=SCORING_METHODS.keys())
-    parser.add_argument("logr_method", help="log ratio method",
-                        choices=LOGR_METHODS.keys())
+    parser.add_argument(
+        "scoring_method", help="scoring method", choices=SCORING_METHODS.keys()
+    )
+    parser.add_argument(
+        "logr_method", help="log ratio method", choices=LOGR_METHODS.keys()
+    )
 
     # add support for semantic version checking
-    parser.add_argument("--version", action="version",
-                        version="%(prog)s {}".format(__version__))
+    parser.add_argument(
+        "--version", action="version", version="%(prog)s {}".format(__version__)
+    )
 
     # add analysis options
-    parser.add_argument("--log", metavar="FILE", dest="log_file",
-                        help="path to log file")
-    parser.add_argument("--no-plots", dest="plots_requested",
-                        action="store_false", default=True,
-                        help="don't make plots")
-    parser.add_argument("--no-tsv", dest="tsv_requested",
-                        action="store_false", default=True,
-                        help="don't generate tsv files")
-    parser.add_argument("--recalculate", dest="force_recalculate",
-                        action="store_true", default=False,
-                        help="force recalculation")
-    parser.add_argument("--component-outliers", dest="component_outliers",
-                        action="store_true", default=False,
-                        help="calculate component outlier stats")
-    parser.add_argument("--output-dir", metavar="DIR",
-                        dest="output_dir_override",
-                        help="override the config file's output directory")
-    parser.add_argument("--sfmap-aa-file", metavar="FILE",
-                        dest="sfmap_aa_file",
-                        help="amino acid groups for sequence-function maps")
+    parser.add_argument(
+        "--log", metavar="FILE", dest="log_file", help="path to log file"
+    )
+    parser.add_argument(
+        "--no-plots",
+        dest="plots_requested",
+        action="store_false",
+        default=True,
+        help="don't make plots",
+    )
+    parser.add_argument(
+        "--no-tsv",
+        dest="tsv_requested",
+        action="store_false",
+        default=True,
+        help="don't generate tsv files",
+    )
+    parser.add_argument(
+        "--recalculate",
+        dest="force_recalculate",
+        action="store_true",
+        default=False,
+        help="force recalculation",
+    )
+    parser.add_argument(
+        "--component-outliers",
+        dest="component_outliers",
+        action="store_true",
+        default=False,
+        help="calculate component outlier stats",
+    )
+    parser.add_argument(
+        "--output-dir",
+        metavar="DIR",
+        dest="output_dir_override",
+        help="override the config file's output directory",
+    )
+    parser.add_argument(
+        "--sfmap-aa-file",
+        metavar="FILE",
+        dest="sfmap_aa_file",
+        help="amino acid groups for sequence-function maps",
+    )
 
     args = parser.parse_args()
 
@@ -126,11 +159,9 @@ def main_cmd():
     try:
         cfg = json.load(open(args.config, "U"))
     except IOError:
-        raise IOError("Failed to open '{}' [{}]".format(
-            args.config, DRIVER_NAME))
+        raise IOError("Failed to open '{}' [{}]".format(args.config, DRIVER_NAME))
     except ValueError:
-        raise ValueError("Improperly formatted .json file [{}]".format(
-            DRIVER_NAME))
+        raise ValueError("Improperly formatted .json file [{}]".format(DRIVER_NAME))
 
     # identify config file type and create the object
     if config_check.is_experiment(cfg):
@@ -155,8 +186,9 @@ def main_cmd():
         elif seqlib_type == "IdOnlySeqLib":
             obj = IdOnlySeqLib()
         else:
-            raise ValueError("Unrecognized SeqLib type '{}' [{}]".format(
-                seqlib_type, DRIVER_NAME))
+            raise ValueError(
+                "Unrecognized SeqLib type '{}' [{}]".format(seqlib_type, DRIVER_NAME)
+            )
     else:
         raise ValueError("Unrecognized .json config [{}]".format(DRIVER_NAME))
 
@@ -176,8 +208,9 @@ def main_cmd():
 
     if args.sfmap_aa_file is not None:
         obj.plot_options = dict()
-        obj.plot_options['aa_list'], obj.plot_options['aa_label_groups'] = \
-            parse_aa_list(args.sfmap_aa_file)
+        obj.plot_options["aa_list"], obj.plot_options[
+            "aa_label_groups"
+        ] = parse_aa_list(args.sfmap_aa_file)
 
     # configure the object
     obj.configure(cfg)

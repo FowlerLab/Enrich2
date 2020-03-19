@@ -14,17 +14,20 @@ class SeqLib(StoreManager):
     """
     Abstract class for handling count data from a single sequencing library.
     """
+
     # Note: the following block is referenced by line number above
     # When adding new messages, update the documentation line numbers also!
-    filter_messages = OrderedDict([
-                ('min quality', "single-base quality"),
-                ('avg quality', "average quality"),
-                ('max N', "excess N bases"),
-                ('chastity', "not chaste"),
-                ('remove unresolvable', "unresolvable mismatch"),
-                ('merge failure', "unable to merge reads"),
-                ('total', "total")
-            ])
+    filter_messages = OrderedDict(
+        [
+            ("min quality", "single-base quality"),
+            ("avg quality", "average quality"),
+            ("max N", "excess N bases"),
+            ("chastity", "not chaste"),
+            ("remove unresolvable", "unresolvable mismatch"),
+            ("merge failure", "unable to merge reads"),
+            ("total", "total"),
+        ]
+    )
 
     store_suffix = "lib"
 
@@ -37,10 +40,10 @@ class SeqLib(StoreManager):
         self._filters = dict()
         self.filter_stats = dict()
         self.default_filters = dict()
-        self.default_filters.update({'min quality': 0})
-        self.default_filters.update({'max N': sys.maxsize})
-        self.default_filters.update({'avg quality': 0})
-        self.default_filters.update({'chastity': False})
+        self.default_filters.update({"min quality": 0})
+        self.default_filters.update({"max N": sys.maxsize})
+        self.default_filters.update({"avg quality": 0})
+        self.default_filters.update({"chastity": False})
 
     @property
     def filters(self):
@@ -63,13 +66,14 @@ class SeqLib(StoreManager):
             else:
                 unused.append(key)
         if len(unused) > 0:
-            self.logger.warning("Unused filter parameters ({})"
-                            "".format(', '.join(unused)))
+            self.logger.warning(
+                "Unused filter parameters ({})" "".format(", ".join(unused))
+            )
 
         self.filter_stats.clear()
         for key in self._filters:
             self.filter_stats[key] = 0
-        self.filter_stats['total'] = 0
+        self.filter_stats["total"] = 0
 
     def serialize_filters(self):
         """
@@ -119,23 +123,27 @@ class SeqLib(StoreManager):
         a ``.json`` file.
         """
         StoreManager.configure(self, cfg)
-        self.logger = logging.getLogger("{}.{} - {}".format(__name__, self.__class__.__name__, self.name))
+        self.logger = logging.getLogger(
+            "{}.{} - {}".format(__name__, self.__class__.__name__, self.name)
+        )
         try:
-            self.timepoint = int(cfg['timepoint'])
-            if 'report filtered reads' in cfg:
-                self.report_filtered = cfg['report filtered reads']
+            self.timepoint = int(cfg["timepoint"])
+            if "report filtered reads" in cfg:
+                self.report_filtered = cfg["report filtered reads"]
             else:
                 self.report_filtered = False
-            if 'counts file' in cfg:
-                self.counts_file = cfg['counts file']
+            if "counts file" in cfg:
+                self.counts_file = cfg["counts file"]
             else:
                 self.counts_file = None
         except KeyError as key:
-            raise KeyError("Missing required config value {key}"
-                           "".format(key=key), self.name)
+            raise KeyError(
+                "Missing required config value {key}" "".format(key=key), self.name
+            )
         except ValueError as value:
-            raise ValueError("Invalid parameter value {value}"
-                             "".format(value=value), self.name)
+            raise ValueError(
+                "Invalid parameter value {value}" "".format(value=value), self.name
+            )
 
     def serialize(self):
         """
@@ -143,10 +151,10 @@ class SeqLib(StoreManager):
         dumping to a config file.
         """
         cfg = StoreManager.serialize(self)
-        cfg['timepoint'] = self.timepoint
-        cfg['report filtered reads'] = self.report_filtered
+        cfg["timepoint"] = self.timepoint
+        cfg["report filtered reads"] = self.report_filtered
         if self.counts_file is not None:
-            cfg['counts file'] = self.counts_file
+            cfg["counts file"] = self.counts_file
 
         return cfg
 
@@ -164,11 +172,15 @@ class SeqLib(StoreManager):
         *filter_flags* are converted to messages using the
         ``SeqLib.filter_messages`` dictionary.
         """
-        self.logger.debug("Filtered read ({messages})\n{read!s}".format(
-                      messages=', '.join(SeqLib.filter_messages[x]
-                                         for x in filter_flags if
-                                         filter_flags[x]),
-                      name=self.name, read=fq))
+        self.logger.debug(
+            "Filtered read ({messages})\n{read!s}".format(
+                messages=", ".join(
+                    SeqLib.filter_messages[x] for x in filter_flags if filter_flags[x]
+                ),
+                name=self.name,
+                read=fq,
+            )
+        )
 
     def save_counts(self, label, df_dict, raw):
         """
@@ -179,13 +191,15 @@ class SeqLib(StoreManager):
         ``"/raw/label/counts"``; else ``"/main/label/counts"``.
         """
         if len(df_dict.keys()) == 0:
-            raise ValueError("Failed to count {} [{}]".format(label,
-                                                              self.name))
+            raise ValueError("Failed to count {} [{}]".format(label, self.name))
         df = pd.DataFrame.from_dict(df_dict, orient="index", dtype=np.int32)
-        df.columns = ['count']
-        df.sort_values('count', ascending=False, inplace=True)
-        self.logger.info("Counted {n} {label} ({u} unique)".format(
-                n=df['count'].sum(), u=len(df.index), label=label))
+        df.columns = ["count"]
+        df.sort_values("count", ascending=False, inplace=True)
+        self.logger.info(
+            "Counted {n} {label} ({u} unique)".format(
+                n=df["count"].sum(), u=len(df.index), label=label
+            )
+        )
         if raw:
             key = "/raw/{}/counts".format(label)
         else:
@@ -204,12 +218,14 @@ class SeqLib(StoreManager):
         self.logger.info("Converting raw {} counts to main counts".format(label))
         raw_table = "/raw/{}/counts".format(label)
         main_table = "/main/{}/counts".format(label)
-        self.map_table(source=raw_table, destination=main_table,
-                       source_query=query)
-        self.logger.info("Counted {n} {label} ({u} unique) after query".format(
-                n=self.store[main_table]['count'].sum(),
+        self.map_table(source=raw_table, destination=main_table, source_query=query)
+        self.logger.info(
+            "Counted {n} {label} ({u} unique) after query".format(
+                n=self.store[main_table]["count"].sum(),
                 u=len(self.store[main_table].index),
-                label=label))
+                label=label,
+            )
+        )
 
     def report_filter_stats(self):
         """
@@ -223,15 +239,20 @@ class SeqLib(StoreManager):
         .. note:: Reads are checked for all quality-based criteria before \
         filtering.
         """
-        with open(os.path.join(self.output_dir, fix_filename(self.name) +
-                               ".filter.txt"), "w") as handle:
-            elements = list()
-            for key in sorted(self.filter_stats,
-                              key=self.filter_stats.__getitem__, reverse=True):
-                if key != 'total' and self.filter_stats[key] > 0:
-                    print(SeqLib.filter_messages[key], self.filter_stats[key],
-                          sep="\t", file=handle)
-            print("total", self.filter_stats['total'], sep="\t", file=handle)
+        with open(
+            os.path.join(self.output_dir, fix_filename(self.name) + ".filter.txt"), "w"
+        ) as handle:
+            for key in sorted(
+                self.filter_stats, key=self.filter_stats.__getitem__, reverse=True
+            ):
+                if key != "total" and self.filter_stats[key] > 0:
+                    print(
+                        SeqLib.filter_messages[key],
+                        self.filter_stats[key],
+                        sep="\t",
+                        file=handle,
+                    )
+            print("total", self.filter_stats["total"], sep="\t", file=handle)
         self.logger.info("Wrote filtering statistics")
 
     def save_filter_stats(self):
@@ -241,15 +262,14 @@ class SeqLib(StoreManager):
 
         This DataFrame contains the same information as ``report_filter_stats``
         """
-        df = pd.DataFrame(index=SeqLib.filter_messages.values(),
-                          columns=['count'])
+        df = pd.DataFrame(index=SeqLib.filter_messages.values(), columns=["count"])
         for key in self.filter_stats.keys():
-            if self.filter_stats[key] > 0 or key == 'total':
-                df.loc[SeqLib.filter_messages[key], 'count'] = \
-                    self.filter_stats[key]
+            if self.filter_stats[key] > 0 or key == "total":
+                df.loc[SeqLib.filter_messages[key], "count"] = self.filter_stats[key]
         df.dropna(inplace=True)
-        self.store.put('/raw/filter', df.astype(int), format="table",
-                       data_columns=df.columns)
+        self.store.put(
+            "/raw/filter", df.astype(int), format="table", data_columns=df.columns
+        )
 
     def read_quality_filter(self, fq):
         """
@@ -265,35 +285,35 @@ class SeqLib(StoreManager):
         for key in self.filters:
             filter_flags[key] = False
 
-        if self.filters['chastity']:
+        if self.filters["chastity"]:
             if not fq.is_chaste():
-                self.filter_stats['chastity'] += 1
-                filter_flags['chastity'] = True
+                self.filter_stats["chastity"] += 1
+                filter_flags["chastity"] = True
 
-        if self.filters['min quality'] > 0:
-            if fq.min_quality() < self.filters['min quality']:
-                self.filter_stats['min quality'] += 1
-                filter_flags['min quality'] = True
+        if self.filters["min quality"] > 0:
+            if fq.min_quality() < self.filters["min quality"]:
+                self.filter_stats["min quality"] += 1
+                filter_flags["min quality"] = True
 
-        if self.filters['avg quality'] > 0:
-            if fq.mean_quality() < self.filters['avg quality']:
-                self.filter_stats['avg quality'] += 1
-                filter_flags['avg quality'] = True
+        if self.filters["avg quality"] > 0:
+            if fq.mean_quality() < self.filters["avg quality"]:
+                self.filter_stats["avg quality"] += 1
+                filter_flags["avg quality"] = True
 
-        if self.filters['max N'] >= 0:
-            if fq.sequence.upper().count('N') > self.filters['max N']:
-                self.filter_stats['max N'] += 1
-                filter_flags['max N'] = True
+        if self.filters["max N"] >= 0:
+            if fq.sequence.upper().count("N") > self.filters["max N"]:
+                self.filter_stats["max N"] += 1
+                filter_flags["max N"] = True
 
-        if 'remove unresolvable' in self.filters:   # OverlapSeqLib only
-            if self.filters['remove unresolvable']:
-                if 'X' in fq.sequence:
-                    self.filter_stats['remove unresolvable'] += 1
-                    filter_flags['remove unresolvable'] = True
+        if "remove unresolvable" in self.filters:  # OverlapSeqLib only
+            if self.filters["remove unresolvable"]:
+                if "X" in fq.sequence:
+                    self.filter_stats["remove unresolvable"] += 1
+                    filter_flags["remove unresolvable"] = True
 
         # update total and report if failed
         if any(filter_flags.values()):
-            self.filter_stats['total'] += 1
+            self.filter_stats["total"] += 1
             if self.report_filtered:
                 self.report_filtered_read(fq, filter_flags)
             return False
@@ -337,23 +357,23 @@ class SeqLib(StoreManager):
         Copies all tables in the ``'/raw'`` group along with their metadata.
         """
         store = pd.HDFStore(fname)
-        self.logger.info("Using existing HDF5 data store '{}' for raw data"
-                     "".format(fname))
+        self.logger.info(
+            "Using existing HDF5 data store '{}' for raw data" "".format(fname)
+        )
         # this could probably be much more efficient, but the PyTables docs
         # don't explain copying subsets of files adequately
         raw_keys = [key for key in store.keys() if key.startswith("/raw/")]
         if len(raw_keys) == 0:
-            raise ValueError("No raw counts found in '{}' [{}]"
-                             "".format(fname, self.name))
+            raise ValueError(
+                "No raw counts found in '{}' [{}]" "".format(fname, self.name)
+            )
         else:
             for k in raw_keys:
                 # copy the data table
                 raw = store[k]
-                self.store.put(k, raw, format="table",
-                               data_columns=raw.columns)
+                self.store.put(k, raw, format="table", data_columns=raw.columns)
                 # copy the metadata
-                self.set_metadata(k, self.get_metadata(k, store=store),
-                                  update=False)
+                self.set_metadata(k, self.get_metadata(k, store=store), update=False)
                 self.logger.info("Copied raw data '{}'".format(k))
         store.close()
 
@@ -362,10 +382,11 @@ class SeqLib(StoreManager):
         If a counts file in tsv format has been specified, read the counts into
         a new dataframe and save as raw counts.
         """
-        df = pd.read_table(fname, sep='\t', header=0, index_col=0)
+        df = pd.read_table(fname, sep="\t", header=0, index_col=0)
         if df.columns != ["count"]:
-            raise ValueError("Invalid column names for counts file [{}]"
-                             "".format(self.name))
+            raise ValueError(
+                "Invalid column names for counts file [{}]" "".format(self.name)
+            )
         if len(df) == 0:
             raise ValueError("Empty counts file [{}]".format(self.name))
         label = None
@@ -376,8 +397,7 @@ class SeqLib(StoreManager):
         if label is None:
             raise ValueError("No valid element labels [{}]".format(self.name))
         key = "/raw/{}/counts".format(label)
-        self.store.put(key, df, format="table", data_columns=df.columns,
-                       dtype=np.int32)
+        self.store.put(key, df, format="table", data_columns=df.columns, dtype=np.int32)
 
     def counts_from_file(self, fname):
         """Get raw counts from a counts file instead of FASTQ_ file.
@@ -393,14 +413,13 @@ class SeqLib(StoreManager):
         will be copied over, with the metadata intact.
         """
         if not os.path.exists(fname):
-            raise IOError("Counts file '{}' not found [{}]"
-                          "".format(fname, self.name))
+            raise IOError("Counts file '{}' not found [{}]" "".format(fname, self.name))
         elif os.path.splitext(fname)[-1].lower() in (".h5"):
             self.counts_from_file_h5(self.counts_file)
-        elif os.path.splitext(fname)[-1].lower() in \
-                (".txt", ".tsv", ".csv"):
+        elif os.path.splitext(fname)[-1].lower() in (".txt", ".tsv", ".csv"):
             self.counts_from_file_tsv(self.counts_file)
         else:
-            raise ValueError("Unrecognized counts file extension for '{}' "
-                             "[{}]".format(fname, self.name))
-
+            raise ValueError(
+                "Unrecognized counts file extension for '{}' "
+                "[{}]".format(fname, self.name)
+            )

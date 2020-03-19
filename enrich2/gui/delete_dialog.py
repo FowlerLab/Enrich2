@@ -20,6 +20,7 @@ class DeleteDialog(tkSimpleDialog.Dialog):
     """
     Confirmation dialog box for deleting the selected items from the Treeview.
     """
+
     def __init__(self, parent_window, tree, title="Confirm Deletion"):
         self.tree = tree
         self.id_tuples = list()
@@ -27,7 +28,6 @@ class DeleteDialog(tkSimpleDialog.Dialog):
             if x not in [y[0] for y in self.id_tuples]:
                 self.id_tuples.extend(subtree_ids(self.tree.treeview, x))
         tkSimpleDialog.Dialog.__init__(self, parent_window, title)
-
 
     def body(self, master):
         """
@@ -38,7 +38,9 @@ class DeleteDialog(tkSimpleDialog.Dialog):
         if len(self.id_tuples) == 0:
             message_string = "No elements selected."
         elif len(self.id_tuples) == 1:
-            message_string = 'Delete "{}"?'.format(self.tree.get_element(self.id_tuples[0][0]).name)
+            message_string = 'Delete "{}"?'.format(
+                self.tree.get_element(self.id_tuples[0][0]).name
+            )
         else:
             message_string = "Delete the following items?\n"
             for x, level in self.id_tuples:
@@ -46,10 +48,11 @@ class DeleteDialog(tkSimpleDialog.Dialog):
                     bullet = "    " + u"\u25C6"
                 else:
                     bullet = "    " * (level + 1) + u"\u25C7"
-                message_string += u"{bullet} {name}\n".format(bullet=bullet, name=self.tree.get_element(x).name)
+                message_string += u"{bullet} {name}\n".format(
+                    bullet=bullet, name=self.tree.get_element(x).name
+                )
         message = ttk.Label(master, text=message_string, justify="left")
         message.grid(row=0, sticky="w")
-
 
     def buttonbox(self):
         """
@@ -58,7 +61,9 @@ class DeleteDialog(tkSimpleDialog.Dialog):
         if len(self.id_tuples) == 0:
             box = tk.Frame(self)
 
-            w = tk.Button(box, text="OK", width=10, command=self.cancel, default="active")
+            w = tk.Button(
+                box, text="OK", width=10, command=self.cancel, default="active"
+            )
             w.pack(side="left", padx=5, pady=5)
 
             self.bind("<Return>", self.cancel)
@@ -66,7 +71,6 @@ class DeleteDialog(tkSimpleDialog.Dialog):
             box.pack()
         else:
             tkSimpleDialog.Dialog.buttonbox(self)
-
 
     def apply(self):
         """

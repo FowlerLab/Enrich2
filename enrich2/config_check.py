@@ -20,7 +20,7 @@ def is_experiment(cfg):
         :py:class:`~enrich2.experiment.Experiment`, else False.
 
     """
-    if 'conditions' in cfg.keys():
+    if "conditions" in cfg.keys():
         return True
     else:
         return False
@@ -39,7 +39,7 @@ def is_condition(cfg):
         :py:class:`~enrich2.condition.Condition`, else False.
 
     """
-    if 'selections' in cfg.keys():
+    if "selections" in cfg.keys():
         return True
     else:
         return False
@@ -58,7 +58,7 @@ def is_selection(cfg):
         :py:class:`~enrich2.selection.Selection`, else False.
 
     """
-    if 'libraries' in cfg.keys():
+    if "libraries" in cfg.keys():
         return True
     else:
         return False
@@ -77,7 +77,7 @@ def is_seqlib(cfg):
         derived object, else False.
 
     """
-    if 'fastq' in cfg.keys() or 'identifiers' in cfg.keys():
+    if "fastq" in cfg.keys() or "identifiers" in cfg.keys():
         return True
     else:
         return False
@@ -99,27 +99,26 @@ def seqlib_type(cfg):
         ValueError: If the class name cannot be determined.
 
     """
-    if 'barcodes' in cfg:
-        if 'map file' in cfg['barcodes']:
-            if 'variants' in cfg and 'identifiers' in cfg:
+    if "barcodes" in cfg:
+        if "map file" in cfg["barcodes"]:
+            if "variants" in cfg and "identifiers" in cfg:
                 raise ValueError("Unable to determine SeqLib type.")
-            elif 'variants' in cfg:
+            elif "variants" in cfg:
                 return "BcvSeqLib"
-            elif 'identifiers' in cfg:
+            elif "identifiers" in cfg:
                 return "BcidSeqLib"
             else:
                 raise ValueError("Unable to determine SeqLib type.")
         else:
             return "BarcodeSeqLib"
-    elif 'overlap' in cfg and 'variants' in cfg:
+    elif "overlap" in cfg and "variants" in cfg:
         return "OverlapSeqLib"
-    elif 'variants' in cfg:
+    elif "variants" in cfg:
         return "BasicSeqLib"
-    elif 'identifiers' in cfg:
+    elif "identifiers" in cfg:
         return "IdOnlySeqLib"
     else:
-        raise ValueError("Unable to determine SeqLib type for configuration "
-                         "object.")
+        raise ValueError("Unable to determine SeqLib type for configuration " "object.")
 
 
 def element_type(cfg):
