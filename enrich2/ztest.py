@@ -1,19 +1,3 @@
-#  Copyright 2016-2019 Alan F Rubin
-#
-#  This file is part of Enrich2.
-#
-#  Enrich2 is free software: you can redistribute it and/or modify
-#  it under the terms of the GNU General Public License as published by
-#  the Free Software Foundation, either version 3 of the License, or
-#  (at your option) any later version.
-#
-#  Enrich2 is distributed in the hope that it will be useful,
-#  but WITHOUT ANY WARRANTY; without even the implied warranty of
-#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#  GNU General Public License for more details.
-#
-#  You should have received a copy of the GNU General Public License
-#  along with Enrich2.  If not, see <http://www.gnu.org/licenses/>.
 """z-score helper functions.
 
 This module contains functions for calculating z-scores and corresponding
@@ -50,14 +34,17 @@ def ztest_pair(df1, df2):
     ------
     To be added.
     """
-    shared = df1.loc[:, ('score', 'SE')].merge(df2.loc[:, ('score', 'SE')],
-                                               how='inner',
-                                               left_index=True,
-                                               right_index=True,
-                                               suffixes=('1', '2'))
-    shared['z'] = np.abs(shared['score1'] - shared['score2']) / \
-        np.sqrt(shared['SE1'] ** 2 + shared['SE2'] ** 2)
-    shared['pvalue_raw'] = 2 * stats.norm.sf(shared['z'])
+    shared = df1.loc[:, ("score", "SE")].merge(
+        df2.loc[:, ("score", "SE")],
+        how="inner",
+        left_index=True,
+        right_index=True,
+        suffixes=("1", "2"),
+    )
+    shared["z"] = np.abs(shared["score1"] - shared["score2"]) / np.sqrt(
+        shared["SE1"] ** 2 + shared["SE2"] ** 2
+    )
+    shared["pvalue_raw"] = 2 * stats.norm.sf(shared["z"])
     return shared
 
 
@@ -90,8 +77,7 @@ def ztest_single(df, score, se):
     ------
     To be added.
     """
-    result = df.loc[:, ('score', 'SE')]
-    result['z'] = np.abs(result['score'] - score) / \
-        np.sqrt(result['SE'] ** 2 + se ** 2)
-    result['pvalue_raw'] = 2 * stats.norm.sf(result['z'])
+    result = df.loc[:, ("score", "SE")]
+    result["z"] = np.abs(result["score"] - score) / np.sqrt(result["SE"] ** 2 + se ** 2)
+    result["pvalue_raw"] = 2 * stats.norm.sf(result["z"])
     return result

@@ -1,23 +1,5 @@
-#  Copyright 2016-2019 Alan F Rubin
-#
-#  This file is part of Enrich2.
-#
-#  Enrich2 is free software: you can redistribute it and/or modify
-#  it under the terms of the GNU General Public License as published by
-#  the Free Software Foundation, either version 3 of the License, or
-#  (at your option) any later version.
-#
-#  Enrich2 is distributed in the hope that it will be useful,
-#  but WITHOUT ANY WARRANTY; without even the implied warranty of
-#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#  GNU General Public License for more details.
-#
-#  You should have received a copy of the GNU General Public License
-#  along with Enrich2.  If not, see <http://www.gnu.org/licenses/>.
-
 from .variant import VariantSeqLib
 from .fqread import read_fastq, split_fastq_path
-import pandas as pd
 import logging
 import sys
 
@@ -37,6 +19,7 @@ class BasicSeqLib(VariantSeqLib):
         self.revcomp_reads = None
         self.trim_start = None
         self.trim_length = None
+        self.logger = logging.getLogger("{}.{}".format(__name__, self.__class__))
 
     def configure(self, cfg):
         """
@@ -44,6 +27,9 @@ class BasicSeqLib(VariantSeqLib):
         a ``.json`` file.
         """
         VariantSeqLib.configure(self, cfg)
+        self.logger = logging.getLogger(
+            "{}.{} - {}".format(__name__, self.__class__.__name__, self.name)
+        )
 
         # if counts are specified, copy them later
         # else handle the FASTQ config options and check the files
@@ -51,11 +37,12 @@ class BasicSeqLib(VariantSeqLib):
             self.configure_fastq(cfg)
             try:
                 if split_fastq_path(self.reads) is None:
-                    raise IOError("FASTQ file error: unrecognized extension "
-                                  "[{}]".format(self.name))
+                    raise IOError(
+                        "FASTQ file error: unrecognized extension "
+                        "[{}]".format(self.name)
+                    )
             except IOError as fqerr:
-                raise IOError("FASTQ file error [{}]: {}".format(self.name,
-                                                                 fqerr))
+                raise IOError("FASTQ file error [{}]: {}".format(self.name, fqerr))
 
     def serialize(self):
         """
@@ -64,7 +51,7 @@ class BasicSeqLib(VariantSeqLib):
         """
         cfg = VariantSeqLib.serialize(self)
 
-        cfg['fastq'] = self.serialize_fastq()
+        cfg["fastq"] = self.serialize_fastq()
 
         return cfg
 
@@ -73,47 +60,47 @@ class BasicSeqLib(VariantSeqLib):
         Set up the object's FASTQ_ file handling and filtering options.
         """
         try:
-            self.reads = cfg['fastq']['reads']
+            self.reads = cfg["fastq"]["reads"]
 
-            if 'reverse' in cfg['fastq']:
-                self.revcomp_reads = cfg['fastq']['reverse']
+            if "reverse" in cfg["fastq"]:
+                self.revcomp_reads = cfg["fastq"]["reverse"]
             else:
                 self.revcomp_reads = False
 
-            if 'start' in cfg['fastq']:
-                self.trim_start = cfg['fastq']['start']
+            if "start" in cfg["fastq"]:
+                self.trim_start = cfg["fastq"]["start"]
             else:
                 self.trim_start = 1
 
-            if 'length' in cfg['fastq']:
-                self.trim_length = cfg['fastq']['length']
+            if "length" in cfg["fastq"]:
+                self.trim_length = cfg["fastq"]["length"]
             else:
                 self.trim_length = sys.maxsize
 
-            self.filters = cfg['fastq']['filters']
+            self.filters = cfg["fastq"]["filters"]
         except KeyError as key:
-            raise KeyError("Missing required config value {key} [{name}]"
-                           "".format(key=key, name=self.name))
+            raise KeyError(
+                "Missing required config value {key} [{name}]"
+                "".format(key=key, name=self.name)
+            )
 
     def serialize_fastq(self):
         """
         Serialize this object's FASTQ_ file handling and filtering options.
         """
-        fastq = {
-            'filters': self.serialize_filters()
-        }
-        fastq['reads'] = self.reads
+        fastq = {"filters": self.serialize_filters()}
+        fastq["reads"] = self.reads
 
         if self.revcomp_reads:
-            fastq['reverse'] = True
+            fastq["reverse"] = True
         else:
-            fastq['reverse'] = False
+            fastq["reverse"] = False
 
         if self.trim_start > 1:
-            fastq['start'] = self.trim_start
+            fastq["start"] = self.trim_start
 
         if self.trim_length < sys.maxsize:
-            fastq['length'] = self.trim_length
+            fastq["length"] = self.trim_length
 
         return fastq
 
@@ -125,7 +112,7 @@ class BasicSeqLib(VariantSeqLib):
         """
         df_dict = dict()
 
-        logging.info("Counting variants", extra={'oname': self.name})
+        self.logger.info("Counting variants")
         max_mut_variants = 0
         for fq in read_fastq(self.reads):
             fq.trim_length(self.trim_length, start=self.trim_start)
@@ -144,15 +131,16 @@ class BasicSeqLib(VariantSeqLib):
                     except KeyError:
                         df_dict[mutations] = 1
 
-        self.save_counts('variants', df_dict, raw=True)
+        self.save_counts("variants", df_dict, raw=True)
         del df_dict
 
         if self.aligner is not None:
-            logging.info("Aligned {} variants".format(self.aligner.calls),
-                         extra={'oname': self.name})
+            self.logger.info("Aligned {} variants".format(self.aligner.calls))
             self.aligner_cache = None
-        logging.info("Removed {} total variants with excess mutations"
-                     "".format(max_mut_variants), extra={'oname': self.name})
+        self.logger.info(
+            "Removed {} total variants with excess mutations"
+            "".format(max_mut_variants)
+        )
         self.save_filter_stats()
 
     def calculate(self):
@@ -165,8 +153,5 @@ class BasicSeqLib(VariantSeqLib):
                     self.counts_from_file(self.counts_file)
                 else:
                     self.counts_from_reads()
-            self.save_filtered_counts('variants',
-                                      "count >= self.variant_min_count")
+            self.save_filtered_counts("variants", "count >= self.variant_min_count")
         self.count_synonymous()
-
-

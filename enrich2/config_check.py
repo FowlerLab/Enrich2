@@ -1,20 +1,3 @@
-#  Copyright 2016-2019 Alan F Rubin
-#
-#  This file is part of Enrich2.
-#
-#  Enrich2 is free software: you can redistribute it and/or modify
-#  it under the terms of the GNU General Public License as published by
-#  the Free Software Foundation, either version 3 of the License, or
-#  (at your option) any later version.
-#
-#  Enrich2 is distributed in the hope that it will be useful,
-#  but WITHOUT ANY WARRANTY; without even the implied warranty of
-#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#  GNU General Public License for more details.
-#
-#  You should have received a copy of the GNU General Public License
-#  along with Enrich2.  If not, see <http://www.gnu.org/licenses/>.
-
 """
 Functions for identifying the type of
 :py:class:`~enrich2.storemanager.StoreManager` derived object associated with a
@@ -37,7 +20,7 @@ def is_experiment(cfg):
         :py:class:`~enrich2.experiment.Experiment`, else False.
 
     """
-    if 'conditions' in cfg.keys():
+    if "conditions" in cfg.keys():
         return True
     else:
         return False
@@ -56,7 +39,7 @@ def is_condition(cfg):
         :py:class:`~enrich2.condition.Condition`, else False.
 
     """
-    if 'selections' in cfg.keys():
+    if "selections" in cfg.keys():
         return True
     else:
         return False
@@ -75,7 +58,7 @@ def is_selection(cfg):
         :py:class:`~enrich2.selection.Selection`, else False.
 
     """
-    if 'libraries' in cfg.keys():
+    if "libraries" in cfg.keys():
         return True
     else:
         return False
@@ -94,7 +77,7 @@ def is_seqlib(cfg):
         derived object, else False.
 
     """
-    if 'fastq' in cfg.keys() or 'identifiers' in cfg.keys():
+    if "fastq" in cfg.keys() or "identifiers" in cfg.keys():
         return True
     else:
         return False
@@ -116,27 +99,26 @@ def seqlib_type(cfg):
         ValueError: If the class name cannot be determined.
 
     """
-    if 'barcodes' in cfg:
-        if 'map file' in cfg['barcodes']:
-            if 'variants' in cfg and 'identifiers' in cfg:
+    if "barcodes" in cfg:
+        if "map file" in cfg["barcodes"]:
+            if "variants" in cfg and "identifiers" in cfg:
                 raise ValueError("Unable to determine SeqLib type.")
-            elif 'variants' in cfg:
+            elif "variants" in cfg:
                 return "BcvSeqLib"
-            elif 'identifiers' in cfg:
+            elif "identifiers" in cfg:
                 return "BcidSeqLib"
             else:
                 raise ValueError("Unable to determine SeqLib type.")
         else:
             return "BarcodeSeqLib"
-    elif 'overlap' in cfg and 'variants' in cfg:
+    elif "overlap" in cfg and "variants" in cfg:
         return "OverlapSeqLib"
-    elif 'variants' in cfg:
+    elif "variants" in cfg:
         return "BasicSeqLib"
-    elif 'identifiers' in cfg:
+    elif "identifiers" in cfg:
         return "IdOnlySeqLib"
     else:
-        raise ValueError("Unable to determine SeqLib type for configuration "
-                         "object.")
+        raise ValueError("Unable to determine SeqLib type for configuration " "object.")
 
 
 def element_type(cfg):

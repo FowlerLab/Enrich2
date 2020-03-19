@@ -1,34 +1,9 @@
-#  Copyright 2016-2019 Alan F Rubin
-#
-#  This file is part of Enrich2.
-#
-#  Enrich2 is free software: you can redistribute it and/or modify
-#  it under the terms of the GNU General Public License as published by
-#  the Free Software Foundation, either version 3 of the License, or
-#  (at your option) any later version.
-#
-#  Enrich2 is distributed in the hope that it will be useful,
-#  but WITHOUT ANY WARRANTY; without even the implied warranty of
-#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#  GNU General Public License for more details.
-#
-#  You should have received a copy of the GNU General Public License
-#  along with Enrich2.  If not, see <http://www.gnu.org/licenses/>.
-
 from __future__ import print_function
-from .basic import BasicSeqLib
 from .barcodevariant import BcvSeqLib
 from .barcodeid import BcidSeqLib
-from .barcode import BarcodeSeqLib
-from .overlap import OverlapSeqLib
-from .idonly import IdOnlySeqLib
 from .config_check import seqlib_type
 from .storemanager import StoreManager
 import os
-import re
-import math
-import itertools
-import time
 import pandas as pd
 import numpy as np
 import logging
@@ -37,10 +12,18 @@ import matplotlib.pyplot as plt
 from matplotlib.backends.backend_pdf import PdfPages
 import scipy.stats as stats
 from .sfmap import sfmap_plot
-from .plots import fit_axes, fit_axes_text, volcano_plot, configure_axes, plot_colors, weights_plot
-from .constants import WILD_TYPE_VARIANT, SYNONYMOUS_VARIANT, AA_CODES
+from .plots import (
+    fit_axes,
+    fit_axes_text,
+    volcano_plot,
+    configure_axes,
+    plot_colors,
+    weights_plot,
+)
+from .constants import WILD_TYPE_VARIANT, SYNONYMOUS_VARIANT
 from .variant import protein_variant
 from .dataframe import singleton_dataframe
+
 
 def regression_apply(row, timepoints, weighted):
     """
@@ -54,26 +37,27 @@ def regression_apply(row, timepoints, weighted):
     residuals, and statistics.
     """
     # retrieve log ratios from the row
-    y = row[['L_{}'.format(t) for t in timepoints]]
+    y = row[["L_{}".format(t) for t in timepoints]]
 
     # re-scale the x's to fall within [0, 1]
     xvalues = [x / float(max(timepoints)) for x in timepoints]
 
     # perform the fit
-    X = sm.add_constant(xvalues) # fit intercept
+    X = sm.add_constant(xvalues)  # fit intercept
     if weighted:
-        W = row[['W_{}'.format(t) for t in timepoints]]
+        W = row[["W_{}".format(t) for t in timepoints]]
         fit = sm.WLS(y, X, weights=W).fit()
     else:
         fit = sm.OLS(y, X).fit()
 
     # re-format as a data frame row
-    values = np.concatenate([fit.params,  [fit.bse['x1'], fit.tvalues['x1'], 
-                            fit.pvalues['x1']], fit.resid])
-    index = ['intercept', 'slope', 'SE_slope', 't', 'pvalue_raw'] + \
-            ['e_{}'.format(t) for t in timepoints]
+    values = np.concatenate(
+        [fit.params, [fit.bse["x1"], fit.tvalues["x1"], fit.pvalues["x1"]], fit.resid]
+    )
+    index = ["intercept", "slope", "SE_slope", "t", "pvalue_raw"] + [
+        "e_{}".format(t) for t in timepoints
+    ]
     return pd.Series(data=values, index=index)
-
 
 
 class Selection(StoreManager):
@@ -82,7 +66,7 @@ class Selection(StoreManager):
     timepoints. This class coordinates :py:class:`~seqlib.seqlib.SeqLib` 
     objects.
     """
-    
+
     store_suffix = "sel"
     treeview_class_name = "Selection"
 
@@ -91,7 +75,7 @@ class Selection(StoreManager):
         self.libraries = dict()
         self.barcode_maps = dict()
         self._wt = None
-
+        self.logger = logging.getLogger("{}.{}".format(__name__, self.__class__))
 
     def _children(self):
         """
@@ -102,7 +86,6 @@ class Selection(StoreManager):
         for tp in self.timepoints:
             libs.extend(sorted(self.libraries[tp], key=lambda x: x.name))
         return libs
-
 
     def remove_child_id(self, tree_id):
         """
@@ -116,15 +99,13 @@ class Selection(StoreManager):
                 del self.libraries[tp][tp_ids.index(tree_id)]
                 if len(self.libraries[tp]) == 0:
                     empty = tp
-                break   # found the id, stop looking
+                break  # found the id, stop looking
         if empty is not None:
             del self.libraries[empty]
-
 
     @property
     def timepoints(self):
         return sorted(self.libraries.keys())
-
 
     @property
     def wt(self):
@@ -134,10 +115,13 @@ class Selection(StoreManager):
             return self._wt
         else:
             if self._wt is not None:
-                raise ValueError("Selection should not contain wild type sequence [{}]".format(self.name))
+                raise ValueError(
+                    "Selection should not contain wild type sequence [{}]".format(
+                        self.name
+                    )
+                )
             else:
                 return None
-        
 
     def configure(self, cfg, configure_children=True):
         """
@@ -148,18 +132,25 @@ class Selection(StoreManager):
         *cfg*.
         """
         StoreManager.configure(self, cfg)
+        self.logger = logging.getLogger(
+            "{}.{} - {}".format(__name__, self.__class__.__name__, self.name)
+        )
         if configure_children:
-            if 'libraries' not in cfg:
-                raise KeyError("Missing required config value {} [{}]".format('libraries', self.name))
+            if "libraries" not in cfg:
+                raise KeyError(
+                    "Missing required config value {} [{}]".format(
+                        "libraries", self.name
+                    )
+                )
 
-            for lib_cfg in cfg['libraries']:
+            for lib_cfg in cfg["libraries"]:
                 libtype = seqlib_type(lib_cfg)
                 if libtype is None:
                     raise ValueError("Unrecognized SeqLib config")
-                elif libtype in ('BcvSeqLib', 'BcidSeqLib'):
+                elif libtype in ("BcvSeqLib", "BcidSeqLib"):
                     lib = globals()[libtype]()
                     # don't re-parse the barcode maps if possible
-                    mapfile = lib_cfg['barcodes']['map file']
+                    mapfile = lib_cfg["barcodes"]["map file"]
                     if mapfile in self.barcode_maps.keys():
                         lib.configure(lib_cfg, barcode_map=self.barcode_maps[mapfile])
                     else:
@@ -167,12 +158,11 @@ class Selection(StoreManager):
                         self.barcode_maps[mapfile] = lib.barcode_map
                     self.add_child(lib)
                 else:
-                    # requires that the SeqLib derived classes be imported into the 
+                    # requires that the SeqLib derived classes be imported into the
                     # module namespace using "from x import y" style
                     lib = globals()[libtype]()
                     lib.configure(lib_cfg)
                     self.add_child(lib)
-
 
     def validate(self):
         """
@@ -188,36 +178,42 @@ class Selection(StoreManager):
         if len(self.timepoints) < 2:
             raise ValueError("Multiple timepoints required [{}]".format(self.name))
         elif len(self.timepoints) < 3 and self.scoring_method in ("WLS", "OLS"):
-            raise ValueError("Insufficient number of timepoints for regression scoring [{}]".format(self.name))
-        
+            raise ValueError(
+                "Insufficient number of timepoints for regression scoring [{}]".format(
+                    self.name
+                )
+            )
+
         # check the wild type sequences
         if self.has_wt_sequence():
             for child in self.children[1:]:
                 if self.children[0].wt != child.wt:
-                    logging.warning("Inconsistent wild type sequences", extra={'oname' : self.name})
+                    self.logger.warning("Inconsistent wild type sequences")
                     break
-        
+
         # check that we're not doing wild type normalization on something with no wild type
-        #if not self.has_wt_sequence() and self.logr_method == "wt":
+        # if not self.has_wt_sequence() and self.logr_method == "wt":
         #    raise ValueError("No wild type sequence for wild type normalization [{}]".format(self.name))
 
         # validate children
         for child in self.children:
             child.validate()
 
-
     def serialize(self):
         """
         Format this object (and its children) as a config object suitable for dumping to a config file.
         """
         cfg = StoreManager.serialize(self)
-        cfg['libraries'] = [child.serialize() for child in self.children]
+        cfg["libraries"] = [child.serialize() for child in self.children]
         return cfg
-
 
     def add_child(self, child):
         if child.name in self.child_names():
-            raise ValueError("Non-unique sequencing library name '{}' [{}]".format(child.name, self.name))
+            raise ValueError(
+                "Non-unique sequencing library name '{}' [{}]".format(
+                    child.name, self.name
+                )
+            )
 
         child.parent = self
 
@@ -227,7 +223,6 @@ class Selection(StoreManager):
         except KeyError:
             self.libraries[child.timepoint] = [child]
 
-
     def is_barcodevariant(self):
         """
         Return ``True`` if all :py:class:`~seqlib.seqlib.SeqLib` in the 
@@ -235,9 +230,10 @@ class Selection(StoreManager):
         :py:class:`~barcodevariant.BcvSeqLib` objects with 
         the same barcode map, else ``False``.
         """
-        return all(isinstance(lib, BcvSeqLib) for lib in self.children) and \
-            len(self.barcode_maps.keys()) == 1
-
+        return (
+            all(isinstance(lib, BcvSeqLib) for lib in self.children)
+            and len(self.barcode_maps.keys()) == 1
+        )
 
     def is_barcodeid(self):
         """
@@ -246,9 +242,10 @@ class Selection(StoreManager):
         :py:class:`~barcodeid.BcidSeqLib` objects with 
         the same barcode map, else ``False``.
         """
-        return all(isinstance(lib, BcidSeqLib) for lib in self.children) and \
-            len(self.barcode_maps.keys()) == 1
-
+        return (
+            all(isinstance(lib, BcidSeqLib) for lib in self.children)
+            and len(self.barcode_maps.keys()) == 1
+        )
 
     def is_coding(self):
         """
@@ -258,7 +255,6 @@ class Selection(StoreManager):
         """
         return all(x.is_coding() for x in self.children)
 
-
     def has_wt_sequence(self):
         """
         Return ``True`` if the all :py:class:`~seqlib.seqlib.SeqLib` in the 
@@ -266,7 +262,6 @@ class Selection(StoreManager):
         ``False``.
         """
         return all(x.has_wt_sequence() for x in self.children)
-
 
     def merge_counts_unfiltered(self, label):
         """
@@ -280,18 +275,18 @@ class Selection(StoreManager):
             return
 
         # calculate counts for each SeqLib
-        logging.info("Counting for each time point ({})".format(label), extra={'oname' : self.name})
+        self.logger.info("Counting for each time point ({})".format(label))
         for lib in self.children:
             lib.calculate()
 
         # combine all libraries for a given timepoint
-        logging.info("Aggregating SeqLib data", extra={'oname' : self.name})
+        self.logger.info("Aggregating SeqLib data")
 
         destination = "/main/{}/counts_unfiltered".format(label)
         if destination in self.store.keys():
             # need to remove the current destination table because we are using append
             # append is required because it takes the "min_itemsize" argument, and put doesn't
-            logging.info("Replacing existing '{}'".format(destination), extra={'oname' : self.name})
+            self.logger.info("Replacing existing '{}'".format(destination))
             self.store.remove(destination)
 
         # seqlib count table name for this element type
@@ -301,25 +296,38 @@ class Selection(StoreManager):
         complete_index = pd.Index([])
         for tp in self.timepoints:
             for lib in self.libraries[tp]:
-                complete_index = complete_index.union(pd.Index(lib.store.select_column(lib_table, 'index')))
-        logging.info("Created shared index for count data ({} {})".format(len(complete_index), label), extra={'oname' : self.name})
+                complete_index = complete_index.union(
+                    pd.Index(lib.store.select_column(lib_table, "index"))
+                )
+        self.logger.info(
+            "Created shared index for count data ({} {})".format(
+                len(complete_index), label
+            )
+        )
 
         # min_itemsize value
         max_index_length = complete_index.map(len).max()
 
         # perform operation in chunks
+        tp_frame = None
         for i in xrange(0, len(complete_index), self.chunksize):
             # don't duplicate the index if the chunksize is large
             if self.chunksize < len(complete_index):
-                index_chunk = complete_index[i:i + self.chunksize]
+                index_chunk = complete_index[i : i + self.chunksize]
             else:
                 index_chunk = complete_index
-            logging.info("Merging counts for chunk {} ({} rows)".format(i / self.chunksize + 1, len(index_chunk)), extra={'oname' : self.name})
+            self.logger.info(
+                "Merging counts for chunk {} ({} rows)".format(
+                    i / self.chunksize + 1, len(index_chunk)
+                )
+            )
 
             for tp in self.timepoints:
                 c = self.libraries[tp][0].store.select(lib_table, "index = index_chunk")
                 for lib in self.libraries[tp][1:]:
-                    c = c.add(lib.store.select(lib_table, "index = index_chunk"), fill_value=0)
+                    c = c.add(
+                        lib.store.select(lib_table, "index = index_chunk"), fill_value=0
+                    )
                 c.columns = ["c_{}".format(tp)]
                 if tp == 0:
                     tp_frame = c
@@ -328,11 +336,16 @@ class Selection(StoreManager):
 
             # save the unfiltered counts
             if "/main/{}/counts_unfiltered".format(label) not in self.store:
-                self.store.append("/main/{}/counts_unfiltered".format(label), tp_frame.astype(float), min_itemsize={'index' : max_index_length}, data_columns=list(tp_frame.columns))
+                self.store.append(
+                    "/main/{}/counts_unfiltered".format(label),
+                    tp_frame.astype(float),
+                    min_itemsize={"index": max_index_length},
+                    data_columns=list(tp_frame.columns),
+                )
             else:
-                self.store.append("/main/{}/counts_unfiltered".format(label), tp_frame.astype(float))
-
-
+                self.store.append(
+                    "/main/{}/counts_unfiltered".format(label), tp_frame.astype(float)
+                )
 
     def filter_counts(self, label):
         """
@@ -346,17 +359,23 @@ class Selection(StoreManager):
         synonymous variants, the counts are re-aggregated using only the 
         complete cases in the underlying element type.
         """
-        if (self.is_barcodeid() or self.is_barcodevariant()) and label != 'barcodes':
+        if (self.is_barcodeid() or self.is_barcodevariant()) and label != "barcodes":
             # calculate proper combined counts
-            #df = self.store.select("/main/barcodes/counts") # this should exist because of the order of label calculations
+            # df = self.store.select("/main/barcodes/counts") # this should exist because of the order of label calculations
             # redo the barcode->variant/id mapping with the filtered counts
             # NOT YET IMPLEMENTED
-            df = self.store.select("/main/{}/counts_unfiltered".format(label))  # just do this for now
+            df = self.store.select(
+                "/main/{}/counts_unfiltered".format(label)
+            )  # just do this for now
         else:
             df = self.store.select("/main/{}/counts_unfiltered".format(label))
         df.dropna(axis="index", how="any", inplace=True)
-        self.store.put("/main/{}/counts".format(label), df.astype(float), format="table", data_columns=df.columns)
-
+        self.store.put(
+            "/main/{}/counts".format(label),
+            df.astype(float),
+            format="table",
+            data_columns=df.columns,
+        )
 
     def combine_barcode_maps(self):
         if self.check_store("/main/barcodemap"):
@@ -365,15 +384,18 @@ class Selection(StoreManager):
         bcm = None
         for lib in self.children:
             if bcm is None:
-                bcm = lib.store['/raw/barcodemap']
+                bcm = lib.store["/raw/barcodemap"]
             else:
-                bcm = bcm.join(lib.store['/raw/barcodemap'], rsuffix=".drop", how="outer")
-                new = bcm.loc[pd.isnull(bcm)['value']]
-                bcm.loc[new.index, 'value'] = new['value.drop']
+                bcm = bcm.join(
+                    lib.store["/raw/barcodemap"], rsuffix=".drop", how="outer"
+                )
+                new = bcm.loc[pd.isnull(bcm)["value"]]
+                bcm.loc[new.index, "value"] = new["value.drop"]
                 bcm.drop("value.drop", axis="columns", inplace=True)
         bcm.sort_values("value", inplace=True)
-        self.store.put("/main/barcodemap", bcm, format="table", data_columns=bcm.columns)
-
+        self.store.put(
+            "/main/barcodemap", bcm, format="table", data_columns=bcm.columns
+        )
 
     def calculate(self):
         """
@@ -381,7 +403,9 @@ class Selection(StoreManager):
         for all data in the :py:class:`~selection.Selection`.
         """
         if len(self.labels) == 0:
-            raise ValueError("No data present across all sequencing libraries [{}]".format(self.name))
+            raise ValueError(
+                "No data present across all sequencing libraries [{}]".format(self.name)
+            )
         for label in self.labels:
             self.merge_counts_unfiltered(label)
             self.filter_counts(label)
@@ -397,22 +421,26 @@ class Selection(StoreManager):
                 self.calc_simple_ratios(label)
         elif self.scoring_method in ("WLS", "OLS"):
             if len(self.timepoints) <= 2:
-                raise ValueError("Regression-based scoring requires three or more time points.")
+                raise ValueError(
+                    "Regression-based scoring requires three or more time points."
+                )
             for label in self.labels:
                 self.calc_log_ratios(label)
                 if self.scoring_method == "WLS":
                     self.calc_weights(label)
                 self.calc_regression(label)
         else:
-            raise ValueError('Invalid scoring method "{}" [{}]'.format(self.scoring_method, self.name))
+            raise ValueError(
+                'Invalid scoring method "{}" [{}]'.format(
+                    self.scoring_method, self.name
+                )
+            )
 
-        if self.scoring_method in ("ratios" , "WLS", "OLS") and self.component_outliers:
+        if self.scoring_method in ("ratios", "WLS", "OLS") and self.component_outliers:
             if self.is_barcodevariant() or self.is_barcodeid():
                 self.calc_outliers("barcodes")
             if self.is_coding():
                 self.calc_outliers("variants")
-
-
 
     def calc_simple_ratios(self, label):
         """
@@ -421,20 +449,28 @@ class Selection(StoreManager):
         if self.check_store("/main/{}/scores".format(label)):
             return
 
-        logging.info("Calculating simple ratios ({})".format(label), extra={'oname' : self.name})
-        c_last = 'c_{}'.format(self.timepoints[-1])
-        df = self.store.select("/main/{}/counts".format(label), "columns in ['c_0', c_last]")
+        self.logger.info("Calculating simple ratios ({})".format(label))
+        c_last = "c_{}".format(self.timepoints[-1])
+        df = self.store.select(
+            "/main/{}/counts".format(label), "columns in ['c_0', c_last]"
+        )
 
         # perform operations on the numpy values of the data frame for easier broadcasting
-        ratios = (df[c_last].values.astype("float") / df[c_last].sum(axis="index")) / (df['c_0'].values.astype("float") / df['c_0'].sum(axis="index"))
+        ratios = (df[c_last].values.astype("float") / df[c_last].sum(axis="index")) / (
+            df["c_0"].values.astype("float") / df["c_0"].sum(axis="index")
+        )
         # make it a data frame again
-        ratios = pd.DataFrame(data=ratios, index=df.index, columns=['ratio'])
-        ratios['score'] = np.log2(ratios['ratio'])
-        ratios['SE'] = np.nan
-        ratios = ratios[['score', 'SE', 'ratio']]   # re-order columns
+        ratios = pd.DataFrame(data=ratios, index=df.index, columns=["ratio"])
+        ratios["score"] = np.log2(ratios["ratio"])
+        ratios["SE"] = np.nan
+        ratios = ratios[["score", "SE", "ratio"]]  # re-order columns
 
-        self.store.put("/main/{}/scores".format(label), ratios, format="table", data_columns=ratios.columns)
-
+        self.store.put(
+            "/main/{}/scores".format(label),
+            ratios,
+            format="table",
+            data_columns=ratios.columns,
+        )
 
     def calc_ratios(self, label):
         """
@@ -450,9 +486,11 @@ class Selection(StoreManager):
         if self.check_store("/main/{}/scores".format(label)):
             return
 
-        logging.info("Calculating ratios ({})".format(label), extra={'oname' : self.name})
-        c_last = 'c_{}'.format(self.timepoints[-1])
-        df = self.store.select("/main/{}/counts".format(label), "columns in ['c_0', c_last]")
+        self.logger.info("Calculating ratios ({})".format(label))
+        c_last = "c_{}".format(self.timepoints[-1])
+        df = self.store.select(
+            "/main/{}/counts".format(label), "columns in ['c_0', c_last]"
+        )
 
         if self.logr_method == "wt":
             if "variants" in self.labels:
@@ -460,32 +498,66 @@ class Selection(StoreManager):
             elif "identifiers" in self.labels:
                 wt_label = "identifiers"
             else:
-                raise ValueError('Failed to use wild type log ratio method, suitable data table not present [{}]'.format(self.name))
-            shared_counts = self.store.select("/main/{}/counts".format(wt_label), "columns in ['c_0', c_last] & index='{}'".format(WILD_TYPE_VARIANT))
-            if len(shared_counts) == 0: # wild type not found
-                raise ValueError('Failed to use wild type log ratio method, wild type sequence not present [{}]'.format(self.name))
+                raise ValueError(
+                    "Failed to use wild type log ratio method, suitable data table not present [{}]".format(
+                        self.name
+                    )
+                )
+            shared_counts = self.store.select(
+                "/main/{}/counts".format(wt_label),
+                "columns in ['c_0', c_last] & index='{}'".format(WILD_TYPE_VARIANT),
+            )
+            if len(shared_counts) == 0:  # wild type not found
+                raise ValueError(
+                    "Failed to use wild type log ratio method, wild type sequence not present [{}]".format(
+                        self.name
+                    )
+                )
             shared_counts = shared_counts.values + 0.5
         elif self.logr_method == "complete":
-            shared_counts = self.store.select("/main/{}/counts".format(label), "columns in ['c_0', c_last]").sum(axis="index").values + 0.5
+            shared_counts = (
+                self.store.select(
+                    "/main/{}/counts".format(label), "columns in ['c_0', c_last]"
+                )
+                .sum(axis="index")
+                .values
+                + 0.5
+            )
         elif self.logr_method == "full":
-            shared_counts = self.store.select("/main/{}/counts_unfiltered".format(label), "columns in ['c_0', c_last]").sum(axis="index", skipna=True).values + 0.5
+            shared_counts = (
+                self.store.select(
+                    "/main/{}/counts_unfiltered".format(label),
+                    "columns in ['c_0', c_last]",
+                )
+                .sum(axis="index", skipna=True)
+                .values
+                + 0.5
+            )
         else:
-            raise ValueError('Invalid log ratio method "{}" [{}]'.format(self.logr_method, self.name))
+            raise ValueError(
+                'Invalid log ratio method "{}" [{}]'.format(self.logr_method, self.name)
+            )
 
-        ratios = np.log(df[['c_0', c_last]].values + 0.5) - np.log(shared_counts)
-        ratios = ratios[:, 1] - ratios[:, 0]    # selected - input
+        ratios = np.log(df[["c_0", c_last]].values + 0.5) - np.log(shared_counts)
+        ratios = ratios[:, 1] - ratios[:, 0]  # selected - input
 
-        ratios = pd.DataFrame(data=ratios, index=df.index, columns=['logratio'])
+        ratios = pd.DataFrame(data=ratios, index=df.index, columns=["logratio"])
 
-        shared_variance = np.sum(1. / shared_counts)
-        ratios['variance'] = np.sum(1. / (df[['c_0', c_last]].values + 0.5), axis=1) + shared_variance
+        shared_variance = np.sum(1.0 / shared_counts)
+        ratios["variance"] = (
+            np.sum(1.0 / (df[["c_0", c_last]].values + 0.5), axis=1) + shared_variance
+        )
 
-        ratios['score'] = ratios['logratio']
-        ratios['SE'] = np.sqrt(ratios['variance'])
-        ratios = ratios[['score', 'SE', 'logratio', 'variance']]   # re-order columns
+        ratios["score"] = ratios["logratio"]
+        ratios["SE"] = np.sqrt(ratios["variance"])
+        ratios = ratios[["score", "SE", "logratio", "variance"]]  # re-order columns
 
-        self.store.put("/main/{}/scores".format(label), ratios, format="table", data_columns=ratios.columns)
-
+        self.store.put(
+            "/main/{}/scores".format(label),
+            ratios,
+            format="table",
+            data_columns=ratios.columns,
+        )
 
     def calc_log_ratios(self, label):
         """
@@ -494,10 +566,10 @@ class Selection(StoreManager):
         if self.check_store("/main/{}/log_ratios".format(label)):
             return
 
-        logging.info("Calculating log ratios ({})".format(label), extra={'oname' : self.name})
+        self.logger.info("Calculating log ratios ({})".format(label))
         ratios = self.store.select("/main/{}/counts".format(label))
         index = ratios.index
-        c_n = ['c_{}'.format(x) for x in self.timepoints]
+        c_n = ["c_{}".format(x) for x in self.timepoints]
         ratios = np.log(ratios + 0.5)
 
         # perform operations on the numpy values of the data frame for easier broadcasting
@@ -508,22 +580,55 @@ class Selection(StoreManager):
             elif "identifiers" in self.labels:
                 wt_label = "identifiers"
             else:
-                raise ValueError('Failed to use wild type log ratio method, suitable data table not present [{}]'.format(self.name))
-            wt_counts = self.store.select("/main/{}/counts".format(wt_label), "columns=c_n & index='{}'".format(WILD_TYPE_VARIANT))
-            if len(wt_counts) == 0: # wild type not found
-                raise ValueError('Failed to use wild type log ratio method, wild type sequence not present [{}]'.format(self.name))
+                raise ValueError(
+                    "Failed to use wild type log ratio method, suitable data table not present [{}]".format(
+                        self.name
+                    )
+                )
+            wt_counts = self.store.select(
+                "/main/{}/counts".format(wt_label),
+                "columns=c_n & index='{}'".format(WILD_TYPE_VARIANT),
+            )
+            if len(wt_counts) == 0:  # wild type not found
+                raise ValueError(
+                    "Failed to use wild type log ratio method, wild type sequence not present [{}]".format(
+                        self.name
+                    )
+                )
             ratios = ratios - np.log(wt_counts.values + 0.5)
         elif self.logr_method == "complete":
-            ratios = ratios - np.log(self.store.select("/main/{}/counts".format(label), "columns=c_n").sum(axis="index").values + 0.5)
+            ratios = ratios - np.log(
+                self.store.select("/main/{}/counts".format(label), "columns=c_n")
+                .sum(axis="index")
+                .values
+                + 0.5
+            )
         elif self.logr_method == "full":
-            ratios = ratios - np.log(self.store.select("/main/{}/counts_unfiltered".format(label), "columns=c_n").sum(axis="index", skipna=True).values + 0.5)
+            ratios = ratios - np.log(
+                self.store.select(
+                    "/main/{}/counts_unfiltered".format(label), "columns=c_n"
+                )
+                .sum(axis="index", skipna=True)
+                .values
+                + 0.5
+            )
         else:
-            raise ValueError('Invalid log ratio method "{}" [{}]'.format(self.logr_method, self.name))
+            raise ValueError(
+                'Invalid log ratio method "{}" [{}]'.format(self.logr_method, self.name)
+            )
 
         # make it a data frame again
-        ratios = pd.DataFrame(data=ratios, index=index, columns=['L_{}'.format(x) for x in self.timepoints])
-        self.store.put("/main/{}/log_ratios".format(label), ratios, format="table", data_columns=ratios.columns)
-
+        ratios = pd.DataFrame(
+            data=ratios,
+            index=index,
+            columns=["L_{}".format(x) for x in self.timepoints],
+        )
+        self.store.put(
+            "/main/{}/log_ratios".format(label),
+            ratios,
+            format="table",
+            data_columns=ratios.columns,
+        )
 
     def calc_weights(self, label):
         """
@@ -532,12 +637,12 @@ class Selection(StoreManager):
         if self.check_store("/main/{}/weights".format(label)):
             return
 
-        logging.info("Calculating regression weights ({})".format(label), extra={'oname' : self.name})
+        self.logger.info("Calculating regression weights ({})".format(label))
         variances = self.store.select("/main/{}/counts".format(label))
-        c_n = ['c_{}'.format(x) for x in self.timepoints]
+        c_n = ["c_{}".format(x) for x in self.timepoints]
         index = variances.index
         # perform operations on the numpy values of the data frame for easier broadcasting
-        #variances = 1.0 / (variances[c_n].values + 0.5) + 1.0 / (variances[['c_0']].values + 0.5)
+        # variances = 1.0 / (variances[c_n].values + 0.5) + 1.0 / (variances[['c_0']].values + 0.5)
         variances = 1.0 / (variances[c_n].values + 0.5)
         if self.logr_method == "wt":
             if "variants" in self.labels:
@@ -545,22 +650,55 @@ class Selection(StoreManager):
             elif "identifiers" in self.labels:
                 wt_label = "identifiers"
             else:
-                raise ValueError('Failed to use wild type log ratio method, suitable data table not present [{}]'.format(self.name))
-            wt_counts = self.store.select("/main/{}/counts".format(wt_label), "columns=c_n & index='{}'".format(WILD_TYPE_VARIANT))
-            if len(wt_counts) == 0: # wild type not found
-                raise ValueError('Failed to use wild type log ratio method, wild type sequence not present [{}]'.format(self.name))
+                raise ValueError(
+                    "Failed to use wild type log ratio method, suitable data table not present [{}]".format(
+                        self.name
+                    )
+                )
+            wt_counts = self.store.select(
+                "/main/{}/counts".format(wt_label),
+                "columns=c_n & index='{}'".format(WILD_TYPE_VARIANT),
+            )
+            if len(wt_counts) == 0:  # wild type not found
+                raise ValueError(
+                    "Failed to use wild type log ratio method, wild type sequence not present [{}]".format(
+                        self.name
+                    )
+                )
             variances = variances + 1.0 / (wt_counts.values + 0.5)
         elif self.logr_method == "complete":
-            variances = variances + 1.0 / (self.store.select("/main/{}/counts".format(label), "columns=c_n").sum(axis="index").values + 0.5)
+            variances = variances + 1.0 / (
+                self.store.select("/main/{}/counts".format(label), "columns=c_n")
+                .sum(axis="index")
+                .values
+                + 0.5
+            )
         elif self.logr_method == "full":
-            variances = variances + 1.0 / (self.store.select("/main/{}/counts_unfiltered".format(label), "columns=c_n").sum(axis="index", skipna=True).values + 0.5)
+            variances = variances + 1.0 / (
+                self.store.select(
+                    "/main/{}/counts_unfiltered".format(label), "columns=c_n"
+                )
+                .sum(axis="index", skipna=True)
+                .values
+                + 0.5
+            )
         else:
-            raise ValueError('Invalid log ratio method "{}" [{}]'.format(self.logr_method, self.name))
-        variances = 1.0 / variances # weights are reciprocal of variances
+            raise ValueError(
+                'Invalid log ratio method "{}" [{}]'.format(self.logr_method, self.name)
+            )
+        variances = 1.0 / variances  # weights are reciprocal of variances
         # make it a data frame again
-        variances = pd.DataFrame(data=variances, index=index, columns=['W_{}'.format(x) for x in self.timepoints])
-        self.store.put("/main/{}/weights".format(label), variances, format="table", data_columns=variances.columns)
-
+        variances = pd.DataFrame(
+            data=variances,
+            index=index,
+            columns=["W_{}".format(x) for x in self.timepoints],
+        )
+        self.store.put(
+            "/main/{}/weights".format(label),
+            variances,
+            format="table",
+            data_columns=variances.columns,
+        )
 
     def calc_regression(self, label):
         """
@@ -575,34 +713,90 @@ class Selection(StoreManager):
             # need to remove the current keys because we are using append
             self.store.remove("/main/{}/scores".format(label))
 
-        logging.info("Calculating {} regression coefficients ({})".format(self.scoring_method, label), extra={'oname' : self.name})
+        self.logger.info(
+            "Calculating {} regression coefficients ({})".format(
+                self.scoring_method, label
+            )
+        )
         # append is required because it takes the "min_itemsize" argument, and put doesn't
-        longest = self.store.select("/main/{}/log_ratios".format(label), "columns='index'").index.map(len).max()
+        longest = (
+            self.store.select("/main/{}/log_ratios".format(label), "columns='index'")
+            .index.map(len)
+            .max()
+        )
         chunk = 1
         if self.scoring_method == "WLS":
-            for data in self.store.select_as_multiple(["/main/{}/log_ratios".format(label), "/main/{}/weights".format(label)], chunksize=self.chunksize):
-                logging.info("Calculating weighted least squares for chunk {} ({} rows)".format(chunk, len(data.index)), extra={'oname' : self.name})
-                result = data.apply(regression_apply, args=[self.timepoints, True], axis="columns")
-                self.store.append("/main/{}/scores".format(label), result, min_itemsize={"index" : longest})
+            for data in self.store.select_as_multiple(
+                ["/main/{}/log_ratios".format(label), "/main/{}/weights".format(label)],
+                chunksize=self.chunksize,
+            ):
+                self.logger.info(
+                    "Calculating weighted least squares for chunk {} ({} rows)".format(
+                        chunk, len(data.index)
+                    )
+                )
+                result = data.apply(
+                    regression_apply, args=[self.timepoints, True], axis="columns"
+                )
+                self.store.append(
+                    "/main/{}/scores".format(label),
+                    result,
+                    min_itemsize={"index": longest},
+                )
                 chunk += 1
         elif self.scoring_method == "OLS":
-            for data in self.store.select("/main/{}/log_ratios".format(label), chunksize=self.chunksize):
-                logging.info("Calculating ordinary least squares for chunk {} ({} rows)".format(chunk, len(data.index)), extra={'oname' : self.name})
-                result = data.apply(regression_apply, args=[self.timepoints, False], axis="columns")
-                self.store.append("/main/{}/scores".format(label), result, min_itemsize={"index" : longest})
+            for data in self.store.select(
+                "/main/{}/log_ratios".format(label), chunksize=self.chunksize
+            ):
+                self.logger.info(
+                    "Calculating ordinary least squares for chunk {} ({} rows)".format(
+                        chunk, len(data.index)
+                    )
+                )
+                result = data.apply(
+                    regression_apply, args=[self.timepoints, False], axis="columns"
+                )
+                self.store.append(
+                    "/main/{}/scores".format(label),
+                    result,
+                    min_itemsize={"index": longest},
+                )
                 chunk += 1
         else:
-            raise ValueError('Invalid regression scoring method "{}" [{}]'.format(self.scoring_method, self.name))
+            raise ValueError(
+                'Invalid regression scoring method "{}" [{}]'.format(
+                    self.scoring_method, self.name
+                )
+            )
 
         # need to read from the file, calculate percentiles, and rewrite it
-        logging.info("Calculating slope standard error percentiles ({})".format(label), extra={'oname' : self.name})
-        data = self.store['/main/{}/scores'.format(label)]
-        data['score'] = data['slope']
-        data['SE'] = data['SE_slope']
-        data['SE_pctile'] = [stats.percentileofscore(data['SE'], x, "weak") for x in data['SE']]
-        data = data[['score', 'SE', 'SE_pctile', 'slope', 'intercept', 'SE_slope', 't', 'pvalue_raw']] # reorder columns
-        self.store.put("/main/{}/scores".format(label), data, format="table", data_columns=data.columns)
-
+        self.logger.info(
+            "Calculating slope standard error percentiles ({})".format(label)
+        )
+        data = self.store["/main/{}/scores".format(label)]
+        data["score"] = data["slope"]
+        data["SE"] = data["SE_slope"]
+        data["SE_pctile"] = [
+            stats.percentileofscore(data["SE"], x, "weak") for x in data["SE"]
+        ]
+        data = data[
+            [
+                "score",
+                "SE",
+                "SE_pctile",
+                "slope",
+                "intercept",
+                "SE_slope",
+                "t",
+                "pvalue_raw",
+            ]
+        ]  # reorder columns
+        self.store.put(
+            "/main/{}/scores".format(label),
+            data,
+            format="table",
+            data_columns=data.columns,
+        )
 
     def wt_plot(self, pdf):
         """
@@ -613,29 +807,42 @@ class Selection(StoreManager):
         Only created for selections that use WLS or OLS scoring and have a wild type specified. 
         Uses :py:func:`~plots.fit_axes` for the plotting.
         """
-        logging.info("Creating wild type fit plot", extra={'oname' : self.name})
+        self.logger.info("Creating wild type fit plot")
 
         # get the data and calculate log ratios
         if "variants" in self.labels:
             wt_label = "variants"
         elif "identifiers" in self.labels:
             wt_label = "identifiers"
-        data = self.store.select("/main/{}/counts".format(wt_label), where='index = "{}"'.format(WILD_TYPE_VARIANT)).ix[0]
-        sums = self.store['/main/{}/counts'.format(wt_label)].sum(axis="index")  # sum of complete cases (N')
+        else:
+            raise ValueError(
+                "Invalid selection type for wild type fit plot [{}]".format(self.name)
+            )
+        data = self.store.select(
+            "/main/{}/counts".format(wt_label),
+            where='index = "{}"'.format(WILD_TYPE_VARIANT),
+        ).ix[0]
+        sums = self.store["/main/{}/counts".format(wt_label)].sum(
+            axis="index"
+        )  # sum of complete cases (N')
         yvalues = np.log(data + 0.5) - np.log(sums + 0.5)
         xvalues = [tp / float(max(self.timepoints)) for tp in self.timepoints]
 
         # fit the line
-        X = sm.add_constant(xvalues) # fit intercept
+        X = sm.add_constant(xvalues)  # fit intercept
         if self.scoring_method == "WLS":
-            W =  1 / (1 / (data + 0.5) + 1 / (sums + 0.5))
+            W = 1 / (1 / (data + 0.5) + 1 / (sums + 0.5))
             fit = sm.WLS(yvalues, X, weights=W).fit()
         elif self.scoring_method == "OLS":
             fit = sm.OLS(yvalues, X).fit()
         else:
-            raise ValueError('Invalid regression scoring method "{}" [{}]'.format(self.scoring_method, self.name))
+            raise ValueError(
+                'Invalid regression scoring method "{}" [{}]'.format(
+                    self.scoring_method, self.name
+                )
+            )
         intercept, slope = fit.params
-        slope_se = fit.bse['x1']
+        slope_se = fit.bse["x1"]
 
         # make the plot
         fig, ax = plt.subplots()
@@ -648,7 +855,6 @@ class Selection(StoreManager):
         pdf.savefig(fig)
         plt.close(fig)
 
-
     def se_pctile_plot(self, label, pdf):
         """
         Create plots of the linear fit of 21 selected variants, evenly distributed based on their standard error percentiles (0, 5, 10, ..., 100).
@@ -659,9 +865,14 @@ class Selection(StoreManager):
 
         Uses :py:func:`~plots.fit_axes` for the plotting.
         """
-        logging.info("Creating representative fit plots ({})".format(label), extra={'oname' : self.name})
+        self.logger.info("Creating representative fit plots ({})".format(label))
 
-        se_data = self.store.select("/main/{}/scores".format(label), where="columns in ['slope', 'intercept', 'SE_pctile'] & index!='{}' & index!='{}'".format(WILD_TYPE_VARIANT, SYNONYMOUS_VARIANT))
+        se_data = self.store.select(
+            "/main/{}/scores".format(label),
+            where="columns in ['slope', 'intercept', 'SE_pctile'] & index!='{}' & index!='{}'".format(
+                WILD_TYPE_VARIANT, SYNONYMOUS_VARIANT
+            ),
+        )
         se_data.sort_values("SE_pctile", inplace=True)
         se_data.dropna(axis="index", how="any", inplace=True)
 
@@ -670,30 +881,64 @@ class Selection(StoreManager):
 
         # retrieves the whole DF because one case was hanging when trying to use select
         # totally unexplained, should fix later
-        #ratio_data = self.store.select("/main/{}/log_ratios".format(label), "index=se_data.index")
-        ratio_data = self.store.select("/main/{}/log_ratios".format(label)).loc[se_data.index]
-        
-        fig, axarr = plt.subplots(7, 3, sharex=True, sharey=True)
-        fig.subplots_adjust(hspace=0, wspace=0) # eliminate white space between the subplots
+        ratio_data = self.store.select("/main/{}/log_ratios".format(label)).loc[
+            se_data.index
+        ]
+
+        fig, axarr = plt.subplots(7, 3, sharex="all", sharey="all")
+        fig.subplots_adjust(
+            hspace=0, wspace=0
+        )  # eliminate white space between the subplots
         fig.set_size_inches((10, 17))
-        fig.suptitle("Representative {} Fits\n{} ({})".format(self.scoring_method, self.name, label.title()))
-        fig.subplots_adjust(top=0.958)           # eliminate white space after the title
+        fig.suptitle(
+            "Representative {} Fits\n{} ({})".format(
+                self.scoring_method, self.name, label.title()
+            )
+        )
+        fig.subplots_adjust(top=0.958)  # eliminate white space after the title
 
         # turn off all tick labels
         plt.setp([ax.get_xticklabels() for ax in axarr.reshape(-1)], visible=False)
         plt.setp([ax.get_yticklabels() for ax in axarr.reshape(-1)], visible=False)
 
         # tick labels back on for some plots
-        plt.setp([ax.get_xticklabels() for ax in (axarr[-1,0], axarr[-1,2])], visible=True)
-        plt.setp([ax.get_yticklabels() for ax in (axarr[0,0], axarr[2,0], axarr[4,0], axarr[6,0])], visible=True)
-        plt.setp([ax.get_yticklabels() for ax in (axarr[1,-1], axarr[3,-1], axarr[5,-1])], visible=True)
-        plt.setp([ax.yaxis for ax in (axarr[1,-1], axarr[3,-1], axarr[5,-1])], ticks_position="right")
+        plt.setp(
+            [ax.get_xticklabels() for ax in (axarr[-1, 0], axarr[-1, 2])], visible=True
+        )
+        plt.setp(
+            [
+                ax.get_yticklabels()
+                for ax in (axarr[0, 0], axarr[2, 0], axarr[4, 0], axarr[6, 0])
+            ],
+            visible=True,
+        )
+        plt.setp(
+            [ax.get_yticklabels() for ax in (axarr[1, -1], axarr[3, -1], axarr[5, -1])],
+            visible=True,
+        )
+        plt.setp(
+            [ax.yaxis for ax in (axarr[1, -1], axarr[3, -1], axarr[5, -1])],
+            ticks_position="right",
+        )
 
         # create the fit plots and add text to the individual plots
         for i, ax in enumerate(axarr.reshape(-1)):
             index = se_data.index[i]
-            fit_axes(ax, xvalues=[x / float(max(self.timepoints)) for x in self.timepoints], yvalues=ratio_data.loc[index], slope=se_data.loc[index, "slope"], intercept=se_data.loc[index, "intercept"], xlabels=self.timepoints)
-            fit_axes_text(ax, cornertext="Slope {:3.2f}\nSE Pctile {:.1f}".format(se_data.loc[index, "slope"], se_data.loc[index, "SE_pctile"]), centertext=index)
+            fit_axes(
+                ax,
+                xvalues=[x / float(max(self.timepoints)) for x in self.timepoints],
+                yvalues=ratio_data.loc[index],
+                slope=se_data.loc[index, "slope"],
+                intercept=se_data.loc[index, "intercept"],
+                xlabels=self.timepoints,
+            )
+            fit_axes_text(
+                ax,
+                cornertext="Slope {:3.2f}\nSE Pctile {:.1f}".format(
+                    se_data.loc[index, "slope"], se_data.loc[index, "SE_pctile"]
+                ),
+                centertext=index,
+            )
 
         # turn off the subplot axis labels
         [ax.set_xlabel("") for ax in axarr.reshape(-1)]
@@ -706,7 +951,6 @@ class Selection(StoreManager):
         pdf.savefig(fig, bbox_inches="tight")
         plt.close(fig)
 
-
     def timepoint_counts_plot(self, label, pdf):
         """
         Create barplot of the number of items counted for each time point.
@@ -715,9 +959,9 @@ class Selection(StoreManager):
 
         *pdf* is an open PdfPages instance.
         """
-        logging.info("Creating time point count plots ({})".format(label), extra={'oname' : self.name})
+        self.logger.info("Creating time point count plots ({})".format(label))
 
-        counts = self.store['/main/{}/counts'.format(label)].sum(axis="index")
+        counts = self.store["/main/{}/counts".format(label)].sum(axis="index")
 
         fig, ax = plt.subplots()
         fig.set_tight_layout(True)
@@ -725,16 +969,15 @@ class Selection(StoreManager):
 
         xpos = np.arange(len(self.timepoints))
         width = 0.8
-        ax.bar(xpos, counts, width, color=plot_colors['bright1'])
+        ax.bar(xpos, counts, width, color=plot_colors["bright1"])
         ax.set_title("Total {}\n{}".format(label.title(), self.name))
         ax.set_ylabel("Count")
         ax.set_xlabel("Timepoint")
-        ax.set_xticks(xpos + width / 2.)
+        ax.set_xticks(xpos + width / 2.0)
         ax.set_xticklabels(self.timepoints)
 
         pdf.savefig(fig)
         plt.close(fig)
-
 
     def volcano_plot(self, label, pdf, colors="YlGnBu_r", log_bins=True):
         """
@@ -746,12 +989,19 @@ class Selection(StoreManager):
 
         The p-values used are the regression p-values (p-value of non-zero slope). Due to the large number of points, we use a hexbin plot showing the density instead of a scatter plot.
         """
-        logging.info("Creating volcano plot ({})".format(label), extra={'oname' : self.name})
+        self.logger.info("Creating volcano plot ({})".format(label))
 
         # get the data
-        data = self.store.select("/main/{}/scores".format(label), "columns=['score', 'pvalue_raw']")
-        volcano_plot(data, pdf, title="{} ({})".format(self.name, label.title()), colors=colors, log_bins=log_bins)
-
+        data = self.store.select(
+            "/main/{}/scores".format(label), "columns=['score', 'pvalue_raw']"
+        )
+        volcano_plot(
+            data,
+            pdf,
+            title="{} ({})".format(self.name, label.title()),
+            colors=colors,
+            log_bins=log_bins,
+        )
 
     def make_plots(self):
         """
@@ -760,7 +1010,7 @@ class Selection(StoreManager):
         This function handles opening and closing the various PDF files for multi-page plots, as well as plotting similar plots for different data labels.
         """
         if self.plots_requested:
-            logging.info("Creating plots", extra={'oname' : self.name})
+            self.logger.info("Creating plots")
 
             # counts per time point
             pdf = PdfPages(os.path.join(self.plot_dir, "timepoint_counts.pdf"))
@@ -789,7 +1039,7 @@ class Selection(StoreManager):
                 pdf.close()
 
             # volcano plots
-            #if self.scoring_method in ("WLS", "OLS", "ratios"):
+            # if self.scoring_method in ("WLS", "OLS", "ratios"):
             if self.scoring_method in ("WLS", "OLS") and "variants" in self.labels:
                 pdf = PdfPages(os.path.join(self.plot_dir, "volcano.pdf"))
                 for label in self.labels:
@@ -800,31 +1050,38 @@ class Selection(StoreManager):
             if "synonymous" in self.labels:
                 pdf = PdfPages(os.path.join(self.plot_dir, "diversity_aa.pdf"))
                 for tp in self.timepoints:
-                    self.sfmap_wrapper(cname="c_{}".format(tp), pdf=pdf, coding=True, log10=True)
+                    self.sfmap_wrapper(
+                        cname="c_{}".format(tp), pdf=pdf, coding=True, log10=True
+                    )
                 pdf.close()
 
             # library diversity for each time point (nucleotide)
             if "variants" in self.labels:
                 pdf = PdfPages(os.path.join(self.plot_dir, "diversity_nt.pdf"))
                 for tp in self.timepoints:
-                    self.sfmap_wrapper(cname="c_{}".format(tp), pdf=pdf, coding=False, log10=True)
+                    self.sfmap_wrapper(
+                        cname="c_{}".format(tp), pdf=pdf, coding=False, log10=True
+                    )
                 pdf.close()
 
             # sequence-function maps
             if self.scoring_method != "counts":
                 if "synonymous" in self.labels:
-                    pdf = PdfPages(os.path.join(self.plot_dir, "sequence_function_map_aa.pdf"))
+                    pdf = PdfPages(
+                        os.path.join(self.plot_dir, "sequence_function_map_aa.pdf")
+                    )
                     self.sfmap_wrapper(cname="score", pdf=pdf, coding=True)
                     pdf.close()
                 if "variants" in self.labels:
-                    pdf = PdfPages(os.path.join(self.plot_dir, "sequence_function_map_nt.pdf"))
+                    pdf = PdfPages(
+                        os.path.join(self.plot_dir, "sequence_function_map_nt.pdf")
+                    )
                     self.sfmap_wrapper(cname="score", pdf=pdf, coding=False)
                     pdf.close()
 
         # SeqLib plots
         for lib in self.children:
             lib.make_plots()
-
 
     def write_tsv(self):
         """
@@ -834,12 +1091,11 @@ class Selection(StoreManager):
         File names are the HDF5 key with ``'_'`` substituted for ``'/'``.
         """
         if self.tsv_requested:
-            logging.info("Generating tab-separated output files", extra={'oname' : self.name})
+            self.logger.info("Generating tab-separated output files")
             for k in self.store.keys():
                 self.write_table_tsv(k)
         for lib in self.children:
             lib.write_tsv()
-
 
     def synonymous_variants(self):
         """
@@ -859,7 +1115,6 @@ class Selection(StoreManager):
                 mapping[pv] = [v]
         return mapping
 
-
     def sfmap_wrapper(self, cname, pdf, coding, log10=False):
         """
         Create a sequence function map for either scores or library diversity.
@@ -867,7 +1122,7 @@ class Selection(StoreManager):
         Uses :py:func:`~sfmap.sfmap_plot` for the plotting.
         """
         plot_options = self.get_root().plot_options
-        
+
         if cname.startswith("c_"):
             counts = True
         elif cname == "score":
@@ -881,9 +1136,9 @@ class Selection(StoreManager):
             label = "nucleotide"
 
         if counts:
-            logging.info("Creating diversity map ({})".format(label), extra={'oname' : self.name})
+            self.logger.info("Creating diversity map ({})".format(label))
         else:
-            logging.info("Creating sequence-function map ({})".format(label), extra={'oname' : self.name})
+            self.logger.info("Creating sequence-function map ({})".format(label))
 
         # build the data frame name and get the data
         df_name = "/main/"
@@ -896,17 +1151,30 @@ class Selection(StoreManager):
         else:
             df_name += "scores"
         if plot_options is not None:
-            data, wtseq = singleton_dataframe(self.store[df_name][cname], self.wt, coding=coding, aa_list=plot_options['aa_list'])
+            data, wtseq = singleton_dataframe(
+                self.store[df_name][cname],
+                self.wt,
+                coding=coding,
+                aa_list=plot_options["aa_list"],
+            )
         else:
-            data, wtseq = singleton_dataframe(self.store[df_name][cname], self.wt, coding=coding)
+            data, wtseq = singleton_dataframe(
+                self.store[df_name][cname], self.wt, coding=coding
+            )
         if counts:
             data_se = None
         else:
             if plot_options is not None:
-                data_se, _ = singleton_dataframe(self.store[df_name]["SE"], self.wt, coding=coding, aa_list=plot_options['aa_list'])
+                data_se, _ = singleton_dataframe(
+                    self.store[df_name]["SE"],
+                    self.wt,
+                    coding=coding,
+                    aa_list=plot_options["aa_list"],
+                )
             else:
-                data_se, _ = singleton_dataframe(self.store[df_name]["SE"], self.wt, coding=coding)
-
+                data_se, _ = singleton_dataframe(
+                    self.store[df_name]["SE"], self.wt, coding=coding
+                )
 
         # format the title
         if coding:
@@ -914,14 +1182,22 @@ class Selection(StoreManager):
         else:
             title = "Nucleotide"
         if counts:
-            title += " Diversity Map\n{} (Time {})".format(self.name, cname[2:]) # trim the "c_"
+            title += " Diversity Map\n{} (Time {})".format(
+                self.name, cname[2:]
+            )  # trim the "c_"
         else:
             if self.scoring_method in ("WLS", "OLS"):
-                title += " Sequence-Function Map\n{} ({} Slope)".format(self.name, self.scoring_method)
+                title += " Sequence-Function Map\n{} ({} Slope)".format(
+                    self.name, self.scoring_method
+                )
             elif self.scoring_method == "ratios":
-                title += " Sequence-Function Map\n{} ({})".format(self.name, "Enrich2 Ratio")
+                title += " Sequence-Function Map\n{} ({})".format(
+                    self.name, "Enrich2 Ratio"
+                )
             elif self.scoring_method == "simple":
-                title += " Sequence-Function Map\n{} ({})".format(self.name, "Simplified Ratio")
+                title += " Sequence-Function Map\n{} ({})".format(
+                    self.name, "Simplified Ratio"
+                )
             else:
                 raise ValueError("Invalid scoring method", self.name)
 
@@ -933,25 +1209,37 @@ class Selection(StoreManager):
             style = "scores"
 
         if plot_options is not None:
-            sfmap_plot(df=data, pdf=pdf, style=style, df_se=data_se,
-                       dimensions="tall", wt=wtseq, title=title,
-                       aa_list=plot_options['aa_list'],
-                       aa_label_groups=plot_options['aa_label_groups'])
+            sfmap_plot(
+                df=data,
+                pdf=pdf,
+                style=style,
+                df_se=data_se,
+                dimensions="tall",
+                wt=wtseq,
+                title=title,
+                aa_list=plot_options["aa_list"],
+                aa_label_groups=plot_options["aa_label_groups"],
+            )
         else:
-            sfmap_plot(df=data, pdf=pdf, style=style, df_se=data_se,
-                       dimensions="tall", wt=wtseq, title=title)
-
+            sfmap_plot(
+                df=data,
+                pdf=pdf,
+                style=style,
+                df_se=data_se,
+                dimensions="tall",
+                wt=wtseq,
+                title=title,
+            )
 
     def barcodemap_mapping(self):
         mapping = dict()
-        for bc, v in self.store['/main/barcodemap'].iterrows():
-            v = v['value']
+        for bc, v in self.store["/main/barcodemap"].iterrows():
+            v = v["value"]
             try:
                 mapping[v].update([bc])
             except KeyError:
-                mapping[v] = set([bc])
+                mapping[v] = {bc}
         return mapping
-
 
     def calc_outliers(self, label, minimum_components=4, log_chunksize=20000):
         """
@@ -978,42 +1266,61 @@ class Selection(StoreManager):
                 label2 = "identifiers"
             else:
                 # this should never happen
-                raise AttributeError("Failed to identify parent label when calculating barcode outliers [{}]".format(self.name))
+                raise AttributeError(
+                    "Failed to identify parent label when calculating barcode outliers [{}]".format(
+                        self.name
+                    )
+                )
         else:
-            raise KeyError("Invalid label '{}' for calc_outliers [{}]".format(label,  self.name))
+            raise KeyError(
+                "Invalid label '{}' for calc_outliers [{}]".format(label, self.name)
+            )
 
-        logging.info("Identifying outliers ({}-{})".format(label, label2), extra={'oname' : self.name})
-        
-        
-        logging.info("Mapping {} to {}".format(label, label2), extra={'oname' : self.name})
+        self.logger.info("Identifying outliers ({}-{})".format(label, label2))
+
+        self.logger.info("Mapping {} to {}".format(label, label2))
         if label == "variants":
             mapping = self.synonymous_variants()
         elif label == "barcodes":
             mapping = self.barcodemap_mapping()
         else:
-            raise KeyError("Invalid label '{}' for calc_outliers [{}]".format(label,  self.name))
+            raise KeyError(
+                "Invalid label '{}' for calc_outliers [{}]".format(label, self.name)
+            )
 
         # get the scores
-        df1 = self.store.select("/main/{}/scores".format(label), "columns=['score', 'SE']")
-        df2 = self.store.select("/main/{}/scores".format(label2), "columns=['score', 'SE']")
+        df1 = self.store.select(
+            "/main/{}/scores".format(label), "columns=['score', 'SE']"
+        )
+        df2 = self.store.select(
+            "/main/{}/scores".format(label2), "columns=['score', 'SE']"
+        )
 
         # pre-calculate variances
-        df1['var'] = df1['SE'] ** 2
-        df1.drop('SE', axis=1, inplace=True)
-        df2['var'] = df2['SE'] ** 2
-        df2.drop('SE', axis=1, inplace=True)
+        df1["var"] = df1["SE"] ** 2
+        df1.drop("SE", axis=1, inplace=True)
+        df2["var"] = df2["SE"] ** 2
+        df2.drop("SE", axis=1, inplace=True)
 
         # set up empty results DF
-        result_df = pd.DataFrame(np.nan, index=df1.index, columns=['z', 'pvalue_raw', 'parent'])
+        result_df = pd.DataFrame(
+            np.nan, index=df1.index, columns=["z", "pvalue_raw", "parent"]
+        )
 
         # because this step can be slow, output chunk-style logging messages
         # pre-calculate the lengths for the log messages
-        log_chunksize_list = [log_chunksize] * (len(df2) / log_chunksize) + [len(df2) % log_chunksize]
+        log_chunksize_list = [log_chunksize] * (len(df2) / log_chunksize) + [
+            len(df2) % log_chunksize
+        ]
         log_chunk = 1
 
         for i, x in enumerate(df2.index):
             if i % log_chunksize == 0:
-                logging.info("Calculating outlier p-values for chunk {} ({} rows) ({}-{})".format(log_chunk, log_chunksize_list[log_chunk - 1], label, label2), extra={'oname' : self.name})
+                self.logger.info(
+                    "Calculating outlier p-values for chunk {} ({} rows) ({}-{})".format(
+                        log_chunk, log_chunksize_list[log_chunk - 1], label, label2
+                    )
+                )
                 log_chunk += 1
             try:
                 components = df1.loc[mapping[x]].dropna(axis="index", how="all")
@@ -1022,16 +1329,21 @@ class Selection(StoreManager):
                 continue
             if len(components.index) >= minimum_components:
                 for c in components.index:
-                    zvalue = np.absolute(df2.loc[x, 'score'] - df1.loc[c, 'score']) / np.sqrt(df2.loc[x, 'var'] + df1.loc[c, 'var'])
-                    result_df.loc[c, 'z'] = zvalue
-                    result_df.loc[c, 'pvalue_raw'] = 2 * stats.norm.sf(zvalue)
-                    result_df.loc[c, 'parent'] = x
+                    zvalue = np.absolute(
+                        df2.loc[x, "score"] - df1.loc[c, "score"]
+                    ) / np.sqrt(df2.loc[x, "var"] + df1.loc[c, "var"])
+                    result_df.loc[c, "z"] = zvalue
+                    result_df.loc[c, "pvalue_raw"] = 2 * stats.norm.sf(zvalue)
+                    result_df.loc[c, "parent"] = x
         if WILD_TYPE_VARIANT in result_df.index:
-            result_df.loc[WILD_TYPE_VARIANT, 'z'] = np.nan
-            result_df.loc[WILD_TYPE_VARIANT, 'pvalue_raw'] = np.nan
-        result_df['z'] = result_df['z'].astype(float)
-        result_df['pvalue_raw'] = result_df['pvalue_raw'].astype(float)
+            result_df.loc[WILD_TYPE_VARIANT, "z"] = np.nan
+            result_df.loc[WILD_TYPE_VARIANT, "pvalue_raw"] = np.nan
+        result_df["z"] = result_df["z"].astype(float)
+        result_df["pvalue_raw"] = result_df["pvalue_raw"].astype(float)
 
-        self.store.put("/main/{}/outliers".format(label), result_df, format="table", data_columns=result_df.columns)
-
-
+        self.store.put(
+            "/main/{}/outliers".format(label),
+            result_df,
+            format="table",
+            data_columns=result_df.columns,
+        )

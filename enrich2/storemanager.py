@@ -1,20 +1,3 @@
-#  Copyright 2016-2019 Alan F Rubin
-#
-#  This file is part of Enrich2.
-#
-#  Enrich2 is free software: you can redistribute it and/or modify
-#  it under the terms of the GNU General Public License as published by
-#  the Free Software Foundation, either version 3 of the License, or
-#  (at your option) any later version.
-#
-#  Enrich2 is distributed in the hope that it will be useful,
-#  but WITHOUT ANY WARRANTY; without even the implied warranty of
-#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#  GNU General Public License for more details.
-#
-#  You should have received a copy of the GNU General Public License
-#  along with Enrich2.  If not, see <http://www.gnu.org/licenses/>.
-
 from __future__ import print_function
 import os
 import logging
@@ -28,29 +11,33 @@ import time
 #: Key is the internal name of the method, value is the GUI label
 #: For command line options, internal name is used for the option string itself
 #: and the value is the help string
-SCORING_METHODS = collections.OrderedDict([
-                                ("WLS", "weighted least squares"),
-                                ("ratios", "log ratios (Enrich2)"),
-                                ("counts", "counts only"),
-                                ("OLS", "ordinary least squares"),
-                                ("simple", "log ratios (old Enrich)"),
-                                ])
+SCORING_METHODS = collections.OrderedDict(
+    [
+        ("WLS", "weighted least squares"),
+        ("ratios", "log ratios (Enrich2)"),
+        ("counts", "counts only"),
+        ("OLS", "ordinary least squares"),
+        ("simple", "log ratios (old Enrich)"),
+    ]
+)
 
 
 #: Dictionary specifying available scoring methods for the analysis
 #: Key is the internal name of the method, value is the GUI label
 #: For command line options, internal name is used for the option string itself
 #: and the value is the help string
-LOGR_METHODS = collections.OrderedDict([
-                            ("wt", "wild type"),
-                            ("complete", "library size (complete cases)"),
-                            ("full", "library size (all reads)"),
-                            ])
+LOGR_METHODS = collections.OrderedDict(
+    [
+        ("wt", "wild type"),
+        ("complete", "library size (complete cases)"),
+        ("full", "library size (all reads)"),
+    ]
+)
 
 
 #: List specifying valid labels in their sorted order
 #: Sorted order is the order in which they should be calculated in
-ELEMENT_LABELS = ['barcodes', 'identifiers', 'variants', 'synonymous']
+ELEMENT_LABELS = ["barcodes", "identifiers", "variants", "synonymous"]
 
 
 def fix_filename(s):
@@ -62,8 +49,8 @@ def fix_filename(s):
     :return: cleaned file name
     :rtype: str
     """
-    fname = "".join(c for c in s if c.isalnum() or c in (' ._~'))
-    fname = fname.replace(' ', '_')
+    fname = "".join(c for c in s if c.isalnum() or c in (" ._~"))
+    fname = fname.replace(" ", "_")
     return fname
 
 
@@ -83,6 +70,8 @@ class StoreManager(object):
     treeview_class_name = None
 
     def __init__(self):
+        self.logger = logging.getLogger("{}.{}".format(__name__, self.__class__))
+
         # general data members
         self._name = None
         self.name = "Unnamed" + self.__class__.__name__
@@ -160,8 +149,10 @@ class StoreManager(object):
             if self.parent is not None:
                 return self.parent.force_recalculate
             else:
-                raise ValueError("Forced recalculation option not specified "
-                                 "at root [{}]".format(self.name))
+                raise ValueError(
+                    "Forced recalculation option not specified "
+                    "at root [{}]".format(self.name)
+                )
         else:
             return self._force_recalculate
 
@@ -173,8 +164,10 @@ class StoreManager(object):
         if value in (True, False):
             self._force_recalculate = value
         else:
-            raise ValueError("Invalid setting '{}' for force_recalculate "
-                             "[{}]".format(value, self.name))
+            raise ValueError(
+                "Invalid setting '{}' for force_recalculate "
+                "[{}]".format(value, self.name)
+            )
 
     @property
     def component_outliers(self):
@@ -188,8 +181,10 @@ class StoreManager(object):
             if self.parent is not None:
                 return self.parent.component_outliers
             else:
-                raise ValueError("Calculate component outliers option not "
-                                 "specified at root [{}]".format(self.name))
+                raise ValueError(
+                    "Calculate component outliers option not "
+                    "specified at root [{}]".format(self.name)
+                )
         else:
             return self._component_outliers
 
@@ -201,8 +196,10 @@ class StoreManager(object):
         if value in (True, False):
             self._component_outliers = value
         else:
-            raise ValueError("Invalid setting '{}' for component_outliers "
-                             "[{}]".format(value, self.name))
+            raise ValueError(
+                "Invalid setting '{}' for component_outliers "
+                "[{}]".format(value, self.name)
+            )
 
     @property
     def plots_requested(self):
@@ -216,8 +213,9 @@ class StoreManager(object):
             if self.parent is not None:
                 return self.parent.plots_requested
             else:
-                raise ValueError("Make plots option not specified at root "
-                                 "[{}]".format(self.name))
+                raise ValueError(
+                    "Make plots option not specified at root " "[{}]".format(self.name)
+                )
         else:
             return self._plots_requested
 
@@ -229,8 +227,10 @@ class StoreManager(object):
         if value in (True, False):
             self._plots_requested = value
         else:
-            raise ValueError("Invalid setting '{}' for plots_requested "
-                             "[{}]".format(value, self.name))
+            raise ValueError(
+                "Invalid setting '{}' for plots_requested "
+                "[{}]".format(value, self.name)
+            )
 
     @property
     def tsv_requested(self):
@@ -244,8 +244,9 @@ class StoreManager(object):
             if self.parent is not None:
                 return self.parent.tsv_requested
             else:
-                raise ValueError("Write tsv option not specified at root "
-                                 "[{}]".format(self.name))
+                raise ValueError(
+                    "Write tsv option not specified at root " "[{}]".format(self.name)
+                )
         else:
             return self._tsv_requested
 
@@ -257,8 +258,9 @@ class StoreManager(object):
         if value in (True, False):
             self._tsv_requested = value
         else:
-            raise ValueError("Invalid setting '{}' for tsv_requested "
-                             "[{}]".format(value, self.name))
+            raise ValueError(
+                "Invalid setting '{}' for tsv_requested [{}]".format(value, self.name)
+            )
 
     @property
     def scoring_method(self):
@@ -272,8 +274,9 @@ class StoreManager(object):
             if self.parent is not None:
                 return self.parent.scoring_method
             else:
-                raise ValueError("Scoring method not specified at root "
-                                 "[{}]".format(self.name))
+                raise ValueError(
+                    "Scoring method not specified at root [{}]".format(self.name)
+                )
         else:
             return self._scoring_method
 
@@ -285,8 +288,9 @@ class StoreManager(object):
         if value in SCORING_METHODS.keys():
             self._scoring_method = value
         else:
-            raise ValueError("Invalid setting for scoring_method "
-                             "[{}]".format(self.name))
+            raise ValueError(
+                "Invalid setting for scoring_method [{}]".format(self.name)
+            )
 
     @property
     def output_dir(self):
@@ -299,8 +303,10 @@ class StoreManager(object):
             if self.parent is not None:
                 return self.parent.output_dir
             else:
-                raise ValueError("No output directory specified at top level "
-                                 "[{}]".format(self.name))
+                raise ValueError(
+                    "No output directory specified at top level "
+                    "[{}]".format(self.name)
+                )
         else:
             return self._output_dir
 
@@ -311,10 +317,9 @@ class StoreManager(object):
         directory if it doesn't exist.
         """
         try:
-            dirname = os.path.expanduser(dirname)   # handle leading '~'
+            dirname = os.path.expanduser(dirname)  # handle leading '~'
         except AttributeError as e:
-            raise AttributeError("Invalid input for output directory: "
-                                 "{}".format(e))
+            raise AttributeError("Invalid input for output directory: {}".format(e))
         try:
             if not os.path.exists(dirname):
                 os.makedirs(dirname)
@@ -334,8 +339,11 @@ class StoreManager(object):
             if self.parent is not None:
                 return self.parent.output_dir_override
             else:
-                raise ValueError("Output directory override not specified at "
-                                 "root [{}]".format(self.name))
+                raise ValueError(
+                    "Output directory override not specified at root [{}]".format(
+                        self.name
+                    )
+                )
         else:
             return self._output_dir_override
 
@@ -347,8 +355,11 @@ class StoreManager(object):
         if value in (True, False):
             self._output_dir_override = value
         else:
-            raise ValueError("Invalid setting '{}' for output_dir_override "
-                             "[{}]".format(value, self.name))
+            raise ValueError(
+                "Invalid setting '{}' for output_dir_override [{}]".format(
+                    value, self.name
+                )
+            )
 
     @property
     def plot_dir(self):
@@ -358,14 +369,16 @@ class StoreManager(object):
         The plot directory is ``<output directory>/plots/<object name>/``.
         """
         if self._plot_dir is None:
-            dirname = os.path.join(self.output_dir, "plots", "{}_{}".format(
-                    fix_filename(self.name), self.store_suffix))
+            dirname = os.path.join(
+                self.output_dir,
+                "plots",
+                "{}_{}".format(fix_filename(self.name), self.store_suffix),
+            )
             try:
                 if not os.path.exists(dirname):
                     os.makedirs(dirname)
             except OSError as e:
-                raise OSError("Failed to create plotting directory: "
-                              "{}".format(e))
+                raise OSError("Failed to create plotting directory: {}".format(e))
             self._plot_dir = dirname
         return self._plot_dir
 
@@ -377,8 +390,11 @@ class StoreManager(object):
         The plot directory is ``<output directory>/tsv/<object name>/``.
         """
         if self._tsv_dir is None:
-            dirname = os.path.join(self.output_dir, "tsv",  "{}_{}".format(
-                    fix_filename(self.name), self.store_suffix))
+            dirname = os.path.join(
+                self.output_dir,
+                "tsv",
+                "{}_{}".format(fix_filename(self.name), self.store_suffix),
+            )
             try:
                 if not os.path.exists(dirname):
                     os.makedirs(dirname)
@@ -399,8 +415,10 @@ class StoreManager(object):
             if self.parent is not None:
                 return self.parent.logr_method
             else:
-                raise AttributeError("Log-ratio method not specified for root "
-                                     "element [{}]".format(self.name))
+                raise AttributeError(
+                    "Log-ratio method not specified for root "
+                    "element [{}]".format(self.name)
+                )
         else:
             return self._logr_method
 
@@ -412,8 +430,10 @@ class StoreManager(object):
         if value in LOGR_METHODS.keys():
             self._logr_method = value
         else:
-            raise ValueError("Invalid setting '{}' for log-ratio method "
-                             "[{}]".format(value, self.name))
+            raise ValueError(
+                "Invalid setting '{}' for log-ratio method "
+                "[{}]".format(value, self.name)
+            )
 
     @property
     def children(self):
@@ -452,8 +472,7 @@ class StoreManager(object):
         try:
             names = [x.name for x in self.children]
         except AttributeError:
-            raise AttributeError("No name set for child [{}]".format(
-                    self.name))
+            raise AttributeError("No name set for child [{}]".format(self.name))
         else:
             return names
 
@@ -466,8 +485,7 @@ class StoreManager(object):
             if x in ELEMENT_LABELS:
                 labels.update([x])
             else:
-                raise ValueError("Invalid element label '{}' [{}]".format(x,
-                                 self.name))
+                raise ValueError("Invalid element label '{}' [{}]".format(x, self.name))
         else:
             raise AttributeError("Failed to add labels [{}]".format(self.name))
         # sort based on specified order
@@ -479,47 +497,54 @@ class StoreManager(object):
         a ``.json`` file.
         """
         try:
-            self.name = cfg['name']
-            if 'output directory' in cfg:
+            self.name = cfg["name"]
+            if "output directory" in cfg:
                 if self.output_dir_override:
-                    logging.warning("Using command line supplied output "
-                                    "directory instead of config file output "
-                                    "directory", extra={'oname': self.name})
+                    self.logger.warning(
+                        "Using command line supplied output "
+                        "directory instead of config file output "
+                        "directory"
+                    )
                 else:
-                    self.output_dir = cfg['output directory']
-            if 'store' in cfg:
+                    self.output_dir = cfg["output directory"]
+            if "store" in cfg:
                 self.store_cfg = True
-                if not os.path.exists(cfg['store']):
-                    raise IOError('Specified store file "{}" not found'.format(
-                            cfg['store']), self.name)
-                elif os.path.splitext(cfg['store'])[-1].lower() != ".h5":
-                    raise ValueError('Unrecognized store file extension for '
-                                     '"{}"'.format(cfg['store']), self.name)
+                if not os.path.exists(cfg["store"]):
+                    raise IOError(
+                        'Specified store file "{}" not found'.format(cfg["store"]),
+                        self.name,
+                    )
+                elif os.path.splitext(cfg["store"])[-1].lower() != ".h5":
+                    raise ValueError(
+                        "Unrecognized store file extension for "
+                        '"{}"'.format(cfg["store"]),
+                        self.name,
+                    )
                 else:
-                    self.store_path = cfg['store']
-                    logging.info('Using specified HDF5 data store "{}"'.format(
-                            self.store_path), extra={'oname': self.name})
+                    self.store_path = cfg["store"]
+                    self.logger.info(
+                        'Using specified HDF5 data store "{}"'.format(self.store_path)
+                    )
             else:
                 self.store_cfg = False
                 self.store_path = None
         except KeyError as key:
-            raise KeyError("Missing required config value {}".format(key),
-                           self.name)
+            raise KeyError("Missing required config value {}".format(key), self.name)
 
     def serialize(self):
         """
         Format this object (and its children) as a config object suitable for
         dumping to a config file.
         """
-        cfg = {'name': self.name}
+        cfg = {"name": self.name}
         if self.store_cfg:
-            cfg['store'] = self.store_path
+            cfg["store"] = self.store_path
         if self.output_dir is not None:
             if self.parent is not None:
                 if self.output_dir != self.parent.output_dir:
-                    cfg['output directory'] = self.output_dir
+                    cfg["output directory"] = self.output_dir
             else:
-                cfg['output directory'] = self.output_dir
+                cfg["output directory"] = self.output_dir
         return cfg
 
     def validate(self):
@@ -539,25 +564,25 @@ class StoreManager(object):
         """
         if self.has_store:
             if not self.store_cfg:
-                self.store_path = os.path.join(self.output_dir,
-                                               "{}_{}.h5".format(fix_filename(
-                                                    self.name),
-                                                    self.store_suffix))
+                self.store_path = os.path.join(
+                    self.output_dir,
+                    "{}_{}.h5".format(fix_filename(self.name), self.store_suffix),
+                )
                 if os.path.exists(self.store_path):
-                    logging.info('Found existing HDF5 data store "{}"'.format(
-                            self.store_path), extra={'oname': self.name})
+                    self.logger.info(
+                        'Found existing HDF5 data store "{}"'.format(self.store_path)
+                    )
                 else:
-                    logging.info('Creating new HDF5 data store "{}"'.format(
-                        self.store_path), extra={'oname': self.name})
+                    self.logger.info(
+                        'Creating new HDF5 data store "{}"'.format(self.store_path)
+                    )
             self.store = pd.HDFStore(self.store_path)
             if self.force_recalculate and force_delete:
                 if "/main" in self.store:
-                    logging.info("Deleting existing calculated values",
-                                 extra={'oname': self.name})
+                    self.logger.info("Deleting existing calculated values")
                     self.store.remove("/main")
                 else:
-                    logging.warning("No existing calculated values in file",
-                                    extra={'oname': self.name})
+                    self.logger.warning("No existing calculated values in file")
 
         if children and self.children is not None:
             for child in self.children:
@@ -588,17 +613,18 @@ class StoreManager(object):
         if store is None:
             store = self.store
         try:
-            metadata = store.get_storer(key).attrs['enrich2']
+            metadata = store.get_storer(key).attrs["enrich2"]
         except AttributeError:
             if store is self.store:  # store parameter was None
-                raise AttributeError("Invalid HDF store node '{}' [{}]".format(
-                                     key, self.name))
+                raise AttributeError(
+                    "Invalid HDF store node '{}' [{}]".format(key, self.name)
+                )
             else:
-                raise AttributeError("Invalid external HDF store node '{}' in "
-                                     "'{}' [{}]".format(key,
-                                                        store.filename,
-                                                        self.name))
-        except KeyError:    # no enrich2 metadata
+                raise AttributeError(
+                    "Invalid external HDF store node '{}' in "
+                    "'{}' [{}]".format(key, store.filename, self.name)
+                )
+        except KeyError:  # no enrich2 metadata
             return None
         else:
             return metadata
@@ -622,7 +648,7 @@ class StoreManager(object):
             metadata = d
         else:
             metadata.update(d)
-        self.store.get_storer(key).attrs['enrich2'] = metadata
+        self.store.get_storer(key).attrs["enrich2"] = metadata
 
     def calculate(self):
         """
@@ -630,13 +656,13 @@ class StoreManager(object):
         """
         raise NotImplementedError("must be implemented by subclass")
 
-    def make_plots(self, subdirectory=None, keys=None):
+    def make_plots(self):
         """
         Pure virtual method for creating plots.
         """
         raise NotImplementedError("must be implemented by subclass")
 
-    def write_tsv(self, subdirectory=None, keys=None):
+    def write_tsv(self):
         """
         Pure virtual method for writing tsv files.
         """
@@ -653,8 +679,7 @@ class StoreManager(object):
         """
         fname = key.strip("/")  # remove leading slash
         fname = fname.replace("/", "_") + ".tsv"
-        self.store[key].to_csv(os.path.join(self.tsv_dir, fname), sep='\t',
-                               na_rep="NA")
+        self.store[key].to_csv(os.path.join(self.tsv_dir, fname), sep="\t", na_rep="NA")
 
     def check_store(self, key):
         """
@@ -668,15 +693,20 @@ class StoreManager(object):
             bool: True if the key exists in the HDF5 store, else False.
         """
         if key in self.store.keys():
-            logging.info("Found existing '{}'".format(key),
-                         extra={'oname': self.name})
+            self.logger.info("Found existing '{}'".format(key))
             return True
         else:
             return False
 
-    def map_table(self, source, destination, source_query=None,
-                  row_callback=None, row_callback_args=None,
-                  destination_data_columns=None):
+    def map_table(
+        self,
+        source,
+        destination,
+        source_query=None,
+        row_callback=None,
+        row_callback_args=None,
+        destination_data_columns=None,
+    ):
         """
         Converts source table into destination table.
 
@@ -685,8 +715,7 @@ class StoreManager(object):
         if destination in self.store.keys():
             # remove the current destination table because we are using append
             # append takes the "min_itemsize" argument, and put doesn't
-            logging.info("Overwriting existing '{}'".format(destination),
-                         extra={'oname': self.name})
+            self.logger.info("Overwriting existing '{}'".format(destination))
             self.store.remove(destination)
 
         # turn the single table name into a list to use select_as_multiple
@@ -695,21 +724,22 @@ class StoreManager(object):
 
         # assumes the source tables all have the same index
         # find the min_itemsize
-        max_index_length = self.store.select_column(source[0], 'index').map(
-            len).max()
-        for df in self.store.select_as_multiple(source, source_query,
-                                                chunksize=self.chunksize,
-                                                selector=source[0]):
+        max_index_length = self.store.select_column(source[0], "index").map(len).max()
+        for df in self.store.select_as_multiple(
+            source, source_query, chunksize=self.chunksize, selector=source[0]
+        ):
             if row_callback is not None:
-                df = df.apply(row_callback, args=row_callback_args,
-                              axis="columns")
+                df = df.apply(row_callback, args=row_callback_args, axis="columns")
             if destination not in self.store:
                 if destination_data_columns is None:
                     # if not specified, index all columns
                     destination_data_columns = list(df.columns)
-                self.store.append(destination, df,
-                                  min_itemsize={'index': max_index_length},
-                                  data_columns=destination_data_columns)
+                self.store.append(
+                    destination,
+                    df,
+                    min_itemsize={"index": max_index_length},
+                    data_columns=destination_data_columns,
+                )
             else:
                 self.store.append(destination, df)
 
@@ -719,7 +749,7 @@ class StoreManager(object):
         """
         shared = pd.Index()
         for t in tables:
-            shared = shared.union(pd.Index(store.select_column(t, 'index')))
+            shared = shared.union(pd.Index(self.store.select_column(t, "index")))
         return shared
 
     def get_root(self):

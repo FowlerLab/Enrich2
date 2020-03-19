@@ -3,7 +3,7 @@ dependencies:
   - python=2.7
   - numpy
   - scipy
-  - pandas=0.19
+  - pandas
   - pytables
   - statsmodels
   - matplotlib

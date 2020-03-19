@@ -1,20 +1,3 @@
-#  Copyright 2016-2019 Alan F Rubin
-#
-#  This file is part of Enrich2.
-#
-#  Enrich2 is free software: you can redistribute it and/or modify
-#  it under the terms of the GNU General Public License as published by
-#  the Free Software Foundation, either version 3 of the License, or
-#  (at your option) any later version.
-#
-#  Enrich2 is distributed in the hope that it will be useful,
-#  but WITHOUT ANY WARRANTY; without even the implied warranty of
-#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#  GNU General Public License for more details.
-#
-#  You should have received a copy of the GNU General Public License
-#  along with Enrich2.  If not, see <http://www.gnu.org/licenses/>.
-
 from __future__ import print_function
 from sys import stderr
 import os.path
@@ -28,17 +11,19 @@ from array import array
 # The following regex is referenced by line number in the class documentation.
 # Matches FASTQ headers based on the following pattern (modify as needed):
 # @<MachineName>:<Lane>:<Tile>:<X>:<Y>:<Chastity>#<IndexRead>/<ReadNumber>
-header_pattern = re.compile("@(?P<MachineName>.+)"
-                            ":(?P<Lane>\d+)"
-                            ":(?P<Tile>\d+)"
-                            ":(?P<X>\d+)"
-                            ":(?P<Y>\d+)"
-                            ":(?P<Chastity>[01])"
-                            "#(?P<IndexRead>\d)"
-                            "/(?P<ReadNumber>\d)")
+header_pattern = re.compile(
+    "@(?P<MachineName>.+)"
+    ":(?P<Lane>\d+)"
+    ":(?P<Tile>\d+)"
+    ":(?P<X>\d+)"
+    ":(?P<Y>\d+)"
+    ":(?P<Chastity>[01])"
+    "#(?P<IndexRead>\d)"
+    "/(?P<ReadNumber>\d)"
+)
 
 
-BUFFER_SIZE = 100000 # empirically optimized for reading FASTQ files
+BUFFER_SIZE = 100000  # empirically optimized for reading FASTQ files
 
 
 dna_trans = string.maketrans("actgACTG", "tgacTGAC")
@@ -52,32 +37,36 @@ class FQRead(object):
     the ASCII value that correponds to Phred score of 0. The *sequence* and 
     *quality* strings must be the same length. 
     """
-    # use slots for memory efficiency
-    __slots__ = ('header', 'sequence', 'header2', 'quality', 'qbase')
 
+    # use slots for memory efficiency
+    __slots__ = ("header", "sequence", "header2", "quality", "qbase")
 
     def __init__(self, header, sequence, header2, quality, qbase=33):
         if len(sequence) != len(quality):
-            raise ValueError('different lengths for sequence and quality')
-        elif header[0] != '@' or header2[0] != '+':
-            raise ValueError('improperly formatted FASTQ record')
+            raise ValueError("different lengths for sequence and quality")
+        elif header[0] != "@" or header2[0] != "+":
+            raise ValueError("improperly formatted FASTQ record")
         else:
             self.header = header
             self.sequence = sequence
             self.header2 = header2
             # quality is a list of integers
-            self.quality = [x - qbase for x in array('b', quality).tolist()]
+            self.quality = [x - qbase for x in array("b", quality).tolist()]
             self.qbase = qbase
-
 
     def __str__(self):
         """
         Reformat as a four-line FASTQ_ record. This method converts the 
         integer quality values back into a string.
         """
-        return '\n'.join([self.header, self.sequence, self.header2, 
-                array('b', [x + self.qbase for x in self.quality]).tostring()])
-
+        return "\n".join(
+            [
+                self.header,
+                self.sequence,
+                self.header2,
+                array("b", [x + self.qbase for x in self.quality]).tostring(),
+            ]
+        )
 
     def __len__(self):
         """
@@ -85,15 +74,13 @@ class FQRead(object):
         """
         return len(self.sequence)
 
-
     def trim(self, start=1, end=None):
         """
         Trims this :py:class:`~fqread.FQRead` to contain bases between 
         *start* and *end* (inclusive). Bases are numbered starting at 1.
         """
-        self.sequence = self.sequence[start - 1:end]
-        self.quality = self.quality[start - 1:end]
-
+        self.sequence = self.sequence[start - 1 : end]
+        self.quality = self.quality[start - 1 : end]
 
     def trim_length(self, length, start=1):
         """
@@ -102,7 +89,6 @@ class FQRead(object):
         """
         self.trim(start=start, end=start + length - 1)
 
-
     def revcomp(self):
         """
         Reverse-complement the sequence in place. Also reverses the array of 
@@ -110,7 +96,6 @@ class FQRead(object):
         """
         self.sequence = self.sequence.translate(dna_trans)[::-1]
         self.quality = self.quality[::-1]
-
 
     def header_information(self, pattern=header_pattern):
         """header_information(pattern=header_pattern)
@@ -135,20 +120,17 @@ class FQRead(object):
                     header_dict[key] = int(header_dict[key])
             return header_dict
 
-
     def min_quality(self):
         """
         Return the minimum Phred-like quality score.
         """
         return min(self.quality)
 
-
     def mean_quality(self):
         """
         Return the average Phred-like quality score.
         """
         return float(sum(self.quality)) / len(self)
-
 
     def is_chaste(self, raises=True):
         """
@@ -162,16 +144,16 @@ class FQRead(object):
         read without chastity information is treated as unchaste.
         """
         try:
-            if self.header_information()['Chastity'] == 1:
+            if self.header_information()["Chastity"] == 1:
                 return True
             else:
                 return False
-        except KeyError:    # no 'Chastity' in pattern
+        except KeyError:  # no 'Chastity' in pattern
             if raises:
                 raise KeyError("No chastity bit in FASTQ header pattern")
             else:
                 return False
-        except TypeError:   # no header match (unexpected format)
+        except TypeError:  # no header match (unexpected format)
             if raises:
                 raise ValueError("Unexpected FASTQ header format")
             else:
@@ -204,7 +186,10 @@ def split_fastq_path(fname):
         if ext.lower() in (".fq", ".fastq"):
             return (head, base, ext, compression)
         else:
-            print("Warning: unexpected file extension for '{fname}'".format(fname=fname), file=stderr)
+            print(
+                "Warning: unexpected file extension for '{fname}'".format(fname=fname),
+                file=stderr,
+            )
             return None
     else:
         raise IOError("file '{fname}' doesn't exist".format(fname=fname))
@@ -240,7 +225,7 @@ def read_fastq(fname, filter_function=None, buffer_size=BUFFER_SIZE, qbase=33):
         forward/reverse reads), use :py:func:`read_fastq_multi` instead.
     """
     _, _, _, compression = split_fastq_path(fname)
-    if compression is None: # raw FASTQ
+    if compression is None:  # raw FASTQ
         handle = open(fname, "rU")
     elif compression == "bz2":
         handle = bz2.BZ2File(fname, "rU")
@@ -250,42 +235,42 @@ def read_fastq(fname, filter_function=None, buffer_size=BUFFER_SIZE, qbase=33):
         raise IOError("unrecognized compression mode '{mode}'".format(mode=compression))
 
     eof = False
-    leftover = ''
+    leftover = ""
 
     while not eof:
         buf = handle.read(buffer_size)
         if len(buf) < buffer_size:
             eof = True
 
-        buf = leftover + buf # prepend partial record from previous buffer
-        lines = buf.split('\n')
+        buf = leftover + buf  # prepend partial record from previous buffer
+        lines = buf.split("\n")
         fastq_count = len(lines) / 4
 
-        if not eof: # handle lines from the trailing partial FASTQ record
+        if not eof:  # handle lines from the trailing partial FASTQ record
             dangling = len(lines) % 4
-            if dangling == 0: # quality line (probably) incomplete
+            if dangling == 0:  # quality line (probably) incomplete
                 dangling = 4
                 fastq_count = fastq_count - 1
             # join the leftover lines back into a string
-            leftover = '\n'.join(lines[len(lines) - dangling:])
+            leftover = "\n".join(lines[len(lines) - dangling :])
 
         # index into the list of lines to pull out the FASTQ records
         for i in xrange(fastq_count):
             # (header, sequence, header2, quality)
-            fq = FQRead(*lines[i * 4:(i + 1) * 4], qbase=qbase)
-            if filter_function is None: # no filtering
+            fq = FQRead(*lines[i * 4 : (i + 1) * 4], qbase=qbase)
+            if filter_function is None:  # no filtering
                 yield fq
-            elif filter_function(fq):   # passes filtering
+            elif filter_function(fq):  # passes filtering
                 yield fq
-            else:                       # fails filtering
+            else:  # fails filtering
                 continue
 
     handle.close()
 
 
-
-def read_fastq_multi(fnames, filter_function=None, buffer_size=BUFFER_SIZE,
-                     match_lengths=True, qbase=33):
+def read_fastq_multi(
+    fnames, filter_function=None, buffer_size=BUFFER_SIZE, match_lengths=True, qbase=33
+):
     """
     Generator function for reading from multiple FASTQ_ files in parallel. 
     The argument *fnames* is an iterable of FASTQ_ file names. Yields a 
@@ -300,22 +285,22 @@ def read_fastq_multi(fnames, filter_function=None, buffer_size=BUFFER_SIZE,
     """
     fq_generators = list()
     for f in fnames:
-        fq_generators.append(read_fastq(f, filter_function=None,
-                             buffer_size=BUFFER_SIZE, qbase=qbase))
+        fq_generators.append(
+            read_fastq(f, filter_function=None, buffer_size=BUFFER_SIZE, qbase=qbase)
+        )
 
     for records in itertools.izip_longest(*fq_generators, fillvalue=None):
-        if None in records: # mismatched file lengths
+        if None in records:  # mismatched file lengths
             if match_lengths:
                 yield None
             else:
-                break # shortest FASTQ file is empty, so we're done
-        if filter_function is None:                     # no filtering
+                break  # shortest FASTQ file is empty, so we're done
+        if filter_function is None:  # no filtering
             yield records
         elif all(filter_function(x) for x in records):  # pass filtering
             yield records
-        else:                                           # fail filtering
+        else:  # fail filtering
             continue
-
 
 
 def fastq_filter_chastity(fq):

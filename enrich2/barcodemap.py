@@ -1,20 +1,3 @@
-#  Copyright 2016-2019 Alan F Rubin
-#
-#  This file is part of Enrich2.
-#
-#  Enrich2 is free software: you can redistribute it and/or modify
-#  it under the terms of the GNU General Public License as published by
-#  the Free Software Foundation, either version 3 of the License, or
-#  (at your option) any later version.
-#
-#  Enrich2 is distributed in the hope that it will be useful,
-#  but WITHOUT ANY WARRANTY; without even the implied warranty of
-#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#  GNU General Public License for more details.
-#
-#  You should have received a copy of the GNU General Public License
-#  along with Enrich2.  If not, see <http://www.gnu.org/licenses/>.
-
 import re
 import gzip
 import bz2
@@ -45,7 +28,9 @@ class BarcodeMap(dict):
     is performed on the variant DNA sequences.
 
     """
+
     def __init__(self, mapfile, is_variant=False):
+        super(BarcodeMap, self).__init__()
         self.name = "barcodemap_{}".format(os.path.basename(mapfile))
         self.filename = mapfile
         self.is_variant = is_variant
@@ -61,42 +46,49 @@ class BarcodeMap(dict):
                 handle = open(mapfile, "rU")
         except IOError:
             raise IOError(
-                "Could not open barcode map file '{}' [{}]".format(mapfile,
-                                                                   self.name))
+                "Could not open barcode map file '{}' [{}]".format(mapfile, self.name)
+            )
 
         # handle each line
         for line in handle:
             # skip comments and whitespace-only lines
-            if len(line.strip()) == 0 or line[0] == '#':
+            if len(line.strip()) == 0 or line[0] == "#":
                 continue
 
             try:
                 barcode, value = line.strip().split()
             except ValueError:
-                raise ValueError("Unexpected barcode map line format "
-                                 "[{}]".format(self.name))
+                raise ValueError(
+                    "Unexpected barcode map line format " "[{}]".format(self.name)
+                )
 
             barcode = barcode.upper()
             if not re_barcode.match(barcode):
-                raise ValueError("Barcode DNA sequence contains unexpected "
-                                 "characters [{}]".format(self.name))
+                raise ValueError(
+                    "Barcode DNA sequence contains unexpected "
+                    "characters [{}]".format(self.name)
+                )
             if self.is_variant:
                 value = value.upper()
                 if not re_variant_dna.match(value):
-                    raise ValueError("Variant DNA sequence contains unexpected"
-                                     " characters [{}]".format(self.name))
+                    raise ValueError(
+                        "Variant DNA sequence contains unexpected"
+                        " characters [{}]".format(self.name)
+                    )
             else:
                 if not re_identifier.match(value):
-                    raise ValueError("Identifier contains unexpected "
-                                     "characters [{}]".format(self.name))
+                    raise ValueError(
+                        "Identifier contains unexpected "
+                        "characters [{}]".format(self.name)
+                    )
 
             if barcode in self:
                 if self[barcode] != value:
-                    raise ValueError("Barcode '{}' assigned to multiple "
-                                     "unique values".format(barcode,
-                                                            self.name))
+                    raise ValueError(
+                        "Barcode '{}' assigned to multiple "
+                        "unique values".format(barcode, self.name)
+                    )
             else:
                 self[barcode] = value
 
         handle.close()
-

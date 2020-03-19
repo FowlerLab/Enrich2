@@ -1,26 +1,8 @@
-#  Copyright 2016-2019 Alan F Rubin
-#
-#  This file is part of Enrich2.
-#
-#  Enrich2 is free software: you can redistribute it and/or modify
-#  it under the terms of the GNU General Public License as published by
-#  the Free Software Foundation, either version 3 of the License, or
-#  (at your option) any later version.
-#
-#  Enrich2 is distributed in the hope that it will be useful,
-#  but WITHOUT ANY WARRANTY; without even the implied warranty of
-#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#  GNU General Public License for more details.
-#
-#  You should have received a copy of the GNU General Public License
-#  along with Enrich2.  If not, see <http://www.gnu.org/licenses/>.
-
 from __future__ import print_function
 import Tkinter as tk
 import ttk
 import tkMessageBox
 import tkFileDialog
-import re
 import os.path
 
 DEFAULT_COLUMNS = 3
@@ -63,7 +45,7 @@ class Checkbox(object):
             else:
                 self.value.set(self.cfg[self.key])
         except KeyError:
-            self.value.set(False)   # default to False
+            self.value.set(False)  # default to False
 
     def body(self, master, row, columns=DEFAULT_COLUMNS, **kwargs):
         """
@@ -71,8 +53,7 @@ class Checkbox(object):
 
         Returns the number of rows taken by this element.
         """
-        self.checkbox = ttk.Checkbutton(master, text=self.text,
-                                        variable=self.value)
+        self.checkbox = ttk.Checkbutton(master, text=self.text, variable=self.value)
         self.checkbox.grid(row=row, column=0, columnspan=columns, sticky="w")
         return 1
 
@@ -100,6 +81,7 @@ class MyEntry(object):
 
     *text* is the Label/error box text.
     """
+
     def __init__(self, text, cfg, key, optional=False):
         self.entry = None
         self.enabled = True
@@ -166,8 +148,10 @@ class FileEntry(MyEntry):
     *extensions* is a list of valid file endings
 
     """
-    def __init__(self, text, cfg, key, optional=False, directory=False, 
-                 extensions=None):
+
+    def __init__(
+        self, text, cfg, key, optional=False, directory=False, extensions=None
+    ):
         MyEntry.__init__(self, text, cfg, key, optional)
         self.choose = None
         self.clear = None
@@ -189,19 +173,22 @@ class FileEntry(MyEntry):
         self.entry = ttk.Entry(master, textvariable=self.value)
         self.entry.grid(row=row, column=1, columnspan=columns - 1, sticky="ew")
         if self.directory:
-            self.choose = ttk.Button(master, text="Choose...",
-                                     command=lambda:
-                                     self.value.set(
-                                        tkFileDialog.askdirectory()))
+            self.choose = ttk.Button(
+                master,
+                text="Choose...",
+                command=lambda: self.value.set(tkFileDialog.askdirectory()),
+            )
         else:
-            self.choose = ttk.Button(master, text="Choose...",
-                                     command=lambda:
-                                     self.value.set(
-                                         tkFileDialog.askopenfilename()))
+            self.choose = ttk.Button(
+                master,
+                text="Choose...",
+                command=lambda: self.value.set(tkFileDialog.askopenfilename()),
+            )
         self.choose.grid(row=row + 1, column=1, sticky="w")
         if self.optional:
-            self.clear = ttk.Button(master, text="Clear",
-                                    command=lambda: self.value.set(""))
+            self.clear = ttk.Button(
+                master, text="Clear", command=lambda: self.value.set("")
+            )
             self.clear.grid(row=row + 1, column=2, sticky="e")
         return 2
 
@@ -210,26 +197,28 @@ class FileEntry(MyEntry):
             return True
         elif len(self.value.get()) == 0:
             if not self.optional:
-                tkMessageBox.showwarning("",
-                                         "{} not specified.".format(self.text))
+                tkMessageBox.showwarning("", "{} not specified.".format(self.text))
                 return False
             else:
                 return True
         else:
             if os.path.exists(self.value.get()):
                 if self.extensions is not None:
-                    if any(self.value.get().lower().endswith(x) for x in
-                           self.extensions):
+                    if any(
+                        self.value.get().lower().endswith(x) for x in self.extensions
+                    ):
                         return True
                     else:
-                        tkMessageBox.showwarning("", "Invalid file extension "
-                                                 "for {}.".format(self.text))
+                        tkMessageBox.showwarning(
+                            "", "Invalid file extension " "for {}.".format(self.text)
+                        )
                         return False
                 else:  # no extension restriction
                     return True
             else:
-                tkMessageBox.showwarning("", "{} file does not exist."
-                                         "".format(self.text))
+                tkMessageBox.showwarning(
+                    "", "{} file does not exist." "".format(self.text)
+                )
                 return False
 
     def enable(self):
@@ -253,6 +242,7 @@ class StringEntry(MyEntry):
 
     *text* is the Label/error box text.
     """
+
     def __init__(self, text, cfg, key, optional=False):
         MyEntry.__init__(self, text, cfg, key, optional)
 
@@ -275,12 +265,12 @@ class IntegerEntry(MyEntry):
 
     *text* is the Label/error box text.
     """
+
     def __init__(self, text, cfg, key, optional=False, minvalue=0):
         MyEntry.__init__(self, text, cfg, key, optional)
         self.minvalue = minvalue
 
-    def body(self, master, row, columns=DEFAULT_COLUMNS, width=4, left=False,
-             **kwargs):
+    def body(self, master, row, columns=DEFAULT_COLUMNS, width=4, left=False, **kwargs):
         """
         Add the labeled entry to the Frame *master* using grid at *row*.
 
@@ -306,11 +296,13 @@ class IntegerEntry(MyEntry):
             label_width = 1
 
         label = ttk.Label(master, text=self.text)
-        label.grid(row=row, column=label_column, columnspan=label_width,
-                   sticky=label_sticky)
+        label.grid(
+            row=row, column=label_column, columnspan=label_width, sticky=label_sticky
+        )
         self.entry = ttk.Entry(master, textvariable=self.value, width=width)
-        self.entry.grid(row=row, column=entry_column, columnspan=entry_width,
-                        sticky=entry_sticky)
+        self.entry.grid(
+            row=row, column=entry_column, columnspan=entry_width, sticky=entry_sticky
+        )
         return 1
 
     def validate(self):
@@ -328,20 +320,24 @@ class IntegerEntry(MyEntry):
             except ValueError:
                 if len(self.value.get()) == 0:
                     if not self.optional:
-                        tkMessageBox.showwarning("", "{} not specified."
-                                                 "".format(self.text))
+                        tkMessageBox.showwarning(
+                            "", "{} not specified." "".format(self.text)
+                        )
                         return False
                     else:
                         return True
                 else:
-                    tkMessageBox.showwarning("", "{} is not an integer."
-                                             "".format(self.text))
+                    tkMessageBox.showwarning(
+                        "", "{} is not an integer." "".format(self.text)
+                    )
                     return False
             else:
                 if intvalue < self.minvalue:
-                    tkMessageBox.showwarning("", "{} lower than minimum value "
-                                             "({}).".format(self.text,
-                                                            self.minvalue))
+                    tkMessageBox.showwarning(
+                        "",
+                        "{} lower than minimum value "
+                        "({}).".format(self.text, self.minvalue),
+                    )
                     return False
                 else:
                     return True
@@ -351,4 +347,3 @@ class IntegerEntry(MyEntry):
             self.cfg[self.key] = int(self.value.get())
         else:
             self.cfg[self.key] = None
-

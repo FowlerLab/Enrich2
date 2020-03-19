@@ -1,24 +1,6 @@
-#  Copyright 2016-2019 Alan F Rubin
-#
-#  This file is part of Enrich2.
-#
-#  Enrich2 is free software: you can redistribute it and/or modify
-#  it under the terms of the GNU General Public License as published by
-#  the Free Software Foundation, either version 3 of the License, or
-#  (at your option) any later version.
-#
-#  Enrich2 is distributed in the hope that it will be useful,
-#  but WITHOUT ANY WARRANTY; without even the implied warranty of
-#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#  GNU General Public License for more details.
-#
-#  You should have received a copy of the GNU General Public License
-#  along with Enrich2.  If not, see <http://www.gnu.org/licenses/>.
-
 from __future__ import print_function
 import logging
 import numpy as np
-from collections import OrderedDict
 import matplotlib.pyplot as plt
 from matplotlib.colors import LinearSegmentedColormap
 from matplotlib.patches import Circle
@@ -26,28 +8,47 @@ from matplotlib.lines import Line2D
 from matplotlib.gridspec import GridSpec
 from .plots import plot_cmaps, plot_colors
 
+logger = logging.getLogger(__name__)
 
 #: List of amino acids in row order for sequence-function maps.
-AA_LIST = ['H', 'K', 'R',                 # (+)
-           'D', 'E',                      # (-)
-           'C', 'M', 'N', 'Q', 'S', 'T',  # Polar-neutral
-           'A', 'I', 'L', 'V',            # Non-polar
-           'F', 'W', 'Y',                 # Aromatic
-           'G', 'P',                      # Unique
-           '*']
+AA_LIST = [
+    "H",
+    "K",
+    "R",  # (+)
+    "D",
+    "E",  # (-)
+    "C",
+    "M",
+    "N",
+    "Q",
+    "S",
+    "T",  # Polar-neutral
+    "A",
+    "I",
+    "L",
+    "V",  # Non-polar
+    "F",
+    "W",
+    "Y",  # Aromatic
+    "G",
+    "P",  # Unique
+    "*",
+]
 
 #: List of tuples for amino acid physiochemical property groups.
 #: Each tuple contains the label string and the corresponding start and end
 #: indices in :py:const:`aa_list` (inclusive).
-AA_LABEL_GROUPS = [("(+)", 0, 2),
-                   ("(-)", 3, 4),
-                   ("Polar-neutral", 5, 10),
-                   ("Non-polar", 11, 14),
-                   ("Aromatic", 15, 17),
-                   ("Unique", 18, 19)]
+AA_LABEL_GROUPS = [
+    ("(+)", 0, 2),
+    ("(-)", 3, 4),
+    ("Polar-neutral", 5, 10),
+    ("Non-polar", 11, 14),
+    ("Aromatic", 15, 17),
+    ("Unique", 18, 19),
+]
 
 #: List of nucleotides in row order for sequence-function maps.
-NT_LIST = ['A', 'C', 'G', 'T']
+NT_LIST = ["A", "C", "G", "T"]
 
 
 def parse_aa_list(fname):
@@ -56,30 +57,34 @@ def parse_aa_list(fname):
     found_aa = list()
     with open(fname) as handle:
         for line in handle:
-            if line.startswith('#'):
+            if line.startswith("#"):
                 continue
             if len(line) == 0:
                 continue
             try:
-                label, aa = line.split('\t')
+                label, aa = line.split("\t")
             except ValueError:
-                raise ValueError("Unexpected AA list file line format [{}]"
-                                 "".format("SFMAP.PY"))
-            aa = aa.split(',')
+                raise ValueError(
+                    "Unexpected AA list file line format [{}]" "".format("SFMAP.PY")
+                )
+            aa = aa.split(",")
             aa = [x.strip() for x in aa]
             if any(x not in AA_LIST for x in aa):
-                raise ValueError("Invalid amino acid in AA list file [{}]"
-                                 "".format("SFMAP.PY"))
+                raise ValueError(
+                    "Invalid amino acid in AA list file [{}]" "".format("SFMAP.PY")
+                )
             else:
                 group_labels.append(label)
                 groups.append(aa)
                 found_aa.extend(aa)
     if any(x not in found_aa for x in AA_LIST):
-        raise ValueError("Not all amino acids assigned in AA list file [{}]"
-                         "".format("SFMAP.PY"))
+        raise ValueError(
+            "Not all amino acids assigned in AA list file [{}]" "".format("SFMAP.PY")
+        )
     if len(AA_LIST) != len(found_aa):
-        raise ValueError("Duplicate assignments in AA list file [{}]"
-                         "".format("SFMAP.PY"))
+        raise ValueError(
+            "Duplicate assignments in AA list file [{}]" "".format("SFMAP.PY")
+        )
     pos = -1
     aa_label_groups = list()
     for i, label in enumerate(group_labels):
@@ -110,26 +115,23 @@ def recentered_cmap(cmap, vmin, vmax):
     reg_index = np.linspace(0.0, 1.0, 257)
 
     # shifted index to match the data
-    centerpoint = 1 - vmax/(vmax + abs(vmin))
-    shift_index = np.hstack([
-        np.linspace(0.0, centerpoint, 128, endpoint=False), 
-        np.linspace(centerpoint, 1.0, 129, endpoint=True)
-    ])
+    centerpoint = 1 - vmax / (vmax + abs(vmin))
+    shift_index = np.hstack(
+        [
+            np.linspace(0.0, centerpoint, 128, endpoint=False),
+            np.linspace(centerpoint, 1.0, 129, endpoint=True),
+        ]
+    )
 
     # re-map the colors at each index value using a dictionary
-    cdict = {
-        'red': [],
-        'green': [],
-        'blue': [],
-        'alpha': []
-    }
+    cdict = {"red": [], "green": [], "blue": [], "alpha": []}
     for ri, si in zip(reg_index, shift_index):
         r, g, b, a = cmap(ri)
 
-        cdict['red'].append((si, r, r))
-        cdict['green'].append((si, g, g))
-        cdict['blue'].append((si, b, b))
-        cdict['alpha'].append((si, a, a))
+        cdict["red"].append((si, r, r))
+        cdict["green"].append((si, g, g))
+        cdict["blue"].append((si, b, b))
+        cdict["alpha"].append((si, a, a))
 
     # save the dictionary as a color map
     newcmap = LinearSegmentedColormap("recentered", cdict)
@@ -137,11 +139,24 @@ def recentered_cmap(cmap, vmin, vmax):
     return newcmap
 
 
-def sfmap_axes(df, ax, style, wt, df_se=None, tall=False, colors=None,
-               missing_color=None, vmin=None, vmax=None, vmax_se=None,
-               show_positions=True, show_wt=True, show_variants=True,
-               aa_list=AA_LIST, aa_label_groups=AA_LABEL_GROUPS,
-               nt_list=NT_LIST):
+def sfmap_axes(
+    df,
+    ax,
+    style,
+    wt,
+    df_se=None,
+    tall=False,
+    colors=None,
+    missing_color=None,
+    vmin=None,
+    vmax=None,
+    vmax_se=None,
+    show_positions=True,
+    show_wt=True,
+    show_variants=True,
+    aa_list=AA_LIST,
+    aa_label_groups=AA_LABEL_GROUPS,
+):
     """
     Create heatmap of scores or counts for each position in *df* using the axes
     instance *ax*. Returns the |mpl_pcolormesh| (requred to create the color
@@ -233,8 +248,7 @@ def sfmap_axes(df, ax, style, wt, df_se=None, tall=False, colors=None,
     errors that are less than 2% of the maximum are not plotted.
     """
     if style not in ("counts", "logcounts", "scores"):
-        logging.warning("Invalid style specified for sfmap_axes",
-                        extra={'oname': "SFMAP.PY"})
+        logger.warning("Invalid style specified for sfmap_axes")
         return None
 
     # rotate if necessary
@@ -263,14 +277,14 @@ def sfmap_axes(df, ax, style, wt, df_se=None, tall=False, colors=None,
             if colors is not None:
                 cmap = plt.get_cmap(colors)
             else:
-                cmap = plt.get_cmap(plot_cmaps['sequential'])
+                cmap = plt.get_cmap(plot_cmaps["sequential"])
         except ValueError:
-            logging.warning("Invalid sequential color map choice. "
-                            "Falling back to 'BuPu'",
-                            extra={'oname': "SFMAP.PY"})
+            logger.warning(
+                "Invalid sequential color map choice. " "Falling back to 'BuPu'"
+            )
             cmap = plt.get_cmap("BuPu")
         if vmin is None:
-            vmin = 0.
+            vmin = 0.0
         if vmax is None:
             vmax = masked.max()
     else:  # style == "scores"
@@ -278,25 +292,24 @@ def sfmap_axes(df, ax, style, wt, df_se=None, tall=False, colors=None,
             if colors is not None:
                 cmap = plt.get_cmap(colors)
             else:
-                cmap = plt.get_cmap(plot_cmaps['diverging'])
+                cmap = plt.get_cmap(plot_cmaps["diverging"])
         except ValueError:
-            logging.warning("Invalid diverging color map choice. "
-                            "Falling back to 'RdYlBu_r'",
-                            extra={'oname': "SFMAP.PY"})
+            logger.warning(
+                "Invalid diverging color map choice. " "Falling back to 'RdYlBu_r'"
+            )
             cmap = plt.get_cmap("RdYlBu_r")
         if vmin is None:
             vmin = masked.min()
         if vmax is None:
             vmax = masked.max()
-        if vmin < 0. and vmax > 0.:
+        if vmin < 0.0 and vmax > 0.0:
             cmap = recentered_cmap(cmap, vmin, vmax)
         else:
-            logging.warning("Unexpected range. Not recentering color map.",
-                            extra={'oname': "SFMAP.PY"})
+            logger.warning("Unexpected range. Not recentering color map.")
     if missing_color is not None:
-        cmap.set_bad(missing_color, 1.)
+        cmap.set_bad(missing_color, 1.0)
     else:
-        cmap.set_bad(plot_colors['missing'], 1.)
+        cmap.set_bad(plot_colors["missing"], 1.0)
 
     # draw the heatmap and get rid of extra whitespace
     mesh = ax.pcolormesh(masked, cmap=cmap, vmin=vmin, vmax=vmax)
@@ -306,13 +319,20 @@ def sfmap_axes(df, ax, style, wt, df_se=None, tall=False, colors=None,
     # add marks on wild type positions
     wt = list(wt)
     if tall:
-        wt_xy = zip((list(df.columns).index(x) for x in wt),
-                    reversed(xrange(len(wt))))
+        wt_xy = zip((list(df.columns).index(x) for x in wt), reversed(xrange(len(wt))))
     else:
         wt_xy = zip(xrange(len(wt)), (list(df.index).index(x) for x in wt))
     for x, y in wt_xy:
-        ax.add_patch(Circle((x + 0.5, y + 0.5), .1666, fill=True,
-                            facecolor="black", edgecolor="none", alpha=0.5))
+        ax.add_patch(
+            Circle(
+                (x + 0.5, y + 0.5),
+                0.1666,
+                fill=True,
+                facecolor="black",
+                edgecolor="none",
+                alpha=0.5,
+            )
+        )
 
     # add diagonal SE marks
     if df_se is not None:
@@ -324,11 +344,14 @@ def sfmap_axes(df, ax, style, wt, df_se=None, tall=False, colors=None,
         for x in xrange(len(df.index)):
             for y in xrange(len(df.columns)):
                 value = masked_se[x, y]
-                if value and value >= 0.02:   # not masked, above threshold
-                    corner_dist = (1. - value) / 2.
-                    diag = Line2D([y + corner_dist, y + 1 - corner_dist],
-                                  [x + corner_dist, x + 1 - corner_dist],
-                                  transform=ax.transData, color="grey")
+                if value and value >= 0.02:  # not masked, above threshold
+                    corner_dist = (1.0 - value) / 2.0
+                    diag = Line2D(
+                        [y + corner_dist, y + 1 - corner_dist],
+                        [x + corner_dist, x + 1 - corner_dist],
+                        transform=ax.transData,
+                        color="grey",
+                    )
                     ax.add_line(diag)
 
     # calculate tick label positions
@@ -365,40 +388,54 @@ def sfmap_axes(df, ax, style, wt, df_se=None, tall=False, colors=None,
             plt.setp(ax.get_xticklabels(), visible=False)
             # add fake xlabels as plot text
             for i, x in enumerate(list(df.columns)):
-                ax.text(i + 0.5, len(df.index) + 0.4, x,
-                        horizontalalignment="center",
-                        verticalalignment="center",
-                        transform=ax.transData)
+                ax.text(
+                    i + 0.5,
+                    len(df.index) + 0.4,
+                    x,
+                    horizontalalignment="center",
+                    verticalalignment="center",
+                    transform=ax.transData,
+                )
             # add additional amino acid property information
             if list(df.columns) == aa_list:
-                ax.set_ylim(0, len(df.index) + 2.)
-                wt_ax.set_ylim(0, len(df.index) + 2.)
+                ax.set_ylim(0, len(df.index) + 2.0)
+                wt_ax.set_ylim(0, len(df.index) + 2.0)
                 for label, start, end in aa_label_groups:
                     if len(label) == 0:
                         continue
-                    ax.text((end - start + 1) / 2. + start,
-                            len(df.index) + 1.4, label,
-                            horizontalalignment="center",
-                            verticalalignment="center",
-                            transform=ax.transData)
-                    bar = Line2D([start + 0.125, end + 1 - 0.125],
-                                 [len(df.index) + .9, len(df.index) + .9],
-                                 transform=ax.transData, color="grey")
+                    ax.text(
+                        (end - start + 1) / 2.0 + start,
+                        len(df.index) + 1.4,
+                        label,
+                        horizontalalignment="center",
+                        verticalalignment="center",
+                        transform=ax.transData,
+                    )
+                    bar = Line2D(
+                        [start + 0.125, end + 1 - 0.125],
+                        [len(df.index) + 0.9, len(df.index) + 0.9],
+                        transform=ax.transData,
+                        color="grey",
+                    )
                     bar.set_clip_on(False)
                     ax.add_line(bar)
             # no amino acid properties, just add padding
             else:
-                ax.set_ylim(0, len(df.index) + 1.)
-                wt_ax.set_ylim(0, len(df.index) + 1.)
+                ax.set_ylim(0, len(df.index) + 1.0)
+                wt_ax.set_ylim(0, len(df.index) + 1.0)
         else:
             # turn off existing yticklabels
             plt.setp(ax.get_yticklabels(), visible=False)
             # add fake ylabels as plot text
             for i, x in enumerate(list(df.index)):
-                ax.text(-0.4, i + 0.5, x,
-                        horizontalalignment="center",
-                        verticalalignment="center",
-                        transform=ax.transData)
+                ax.text(
+                    -0.4,
+                    i + 0.5,
+                    x,
+                    horizontalalignment="center",
+                    verticalalignment="center",
+                    transform=ax.transData,
+                )
             # add additional amino acid property information
             if list(df.index)[::-1] == aa_list:
                 ax.set_xlim(-2, len(df.columns))
@@ -406,16 +443,24 @@ def sfmap_axes(df, ax, style, wt, df_se=None, tall=False, colors=None,
                 for label, start, end in aa_label_groups:
                     if len(label) == 0:
                         continue
-                    ax.text(-1,
-                            len(df.index) - ((end - start + 1) / 2. + start),
-                            label, rotation="vertical",
-                            verticalalignment="center",
-                            horizontalalignment="right",
-                            transform=ax.transData)
-                    bar = Line2D([-.9, -.9],
-                                 [len(df.index) - (start + 0.125),
-                                  len(df.index) - (end + 1 - 0.125)],
-                                 transform=ax.transData, color="grey")
+                    ax.text(
+                        -1,
+                        len(df.index) - ((end - start + 1) / 2.0 + start),
+                        label,
+                        rotation="vertical",
+                        verticalalignment="center",
+                        horizontalalignment="right",
+                        transform=ax.transData,
+                    )
+                    bar = Line2D(
+                        [-0.9, -0.9],
+                        [
+                            len(df.index) - (start + 0.125),
+                            len(df.index) - (end + 1 - 0.125),
+                        ],
+                        transform=ax.transData,
+                        color="grey",
+                    )
                     bar.set_clip_on(False)
                     ax.add_line(bar)
             # no amino acid properties, just add padding
@@ -442,8 +487,9 @@ def sfmap_axes(df, ax, style, wt, df_se=None, tall=False, colors=None,
     return mesh
 
 
-def sfmap_plot(df, pdf, style, wt, dimensions, df_se=None, title=None,
-               show_colorbar=True, **kwargs):
+def sfmap_plot(
+    df, pdf, style, wt, dimensions, df_se=None, title=None, show_colorbar=True, **kwargs
+):
     """
     Create heatmap of scores or counts for each position in *df* and save it to
     the file *pdf*.
@@ -494,8 +540,7 @@ def sfmap_plot(df, pdf, style, wt, dimensions, df_se=None, title=None,
 
     """
     if style not in ("counts", "logcounts", "scores"):
-        logging.warning("Invalid style specified for sfmap_axes.",
-                        extra={'oname': "SFMAP.PY"})
+        logger.warning("Invalid style specified for sfmap_axes.")
         return None
 
     # dimensions set explicitly
@@ -503,8 +548,7 @@ def sfmap_plot(df, pdf, style, wt, dimensions, df_se=None, title=None,
         try:
             dimx, dimy = [float(n) for n in dimensions]
         except ValueError:
-            logging.warning("Invalid sequence-function map dimensions.",
-                            extra={'oname': "SFMAP.PY"})
+            logger.warning("Invalid sequence-function map dimensions.")
             return None
     else:
         # scaling based on mode
@@ -519,8 +563,7 @@ def sfmap_plot(df, pdf, style, wt, dimensions, df_se=None, title=None,
             # headings + pos_ax + wt_ax + title_ax
             coly = len(df.columns) + 2
         else:
-            logging.warning("Invalid sequence-function map scaling mode.",
-                            extra={'oname': "SFMAP.PY"})
+            logger.warning("Invalid sequence-function map scaling mode.")
             return None
         base_scale = 8.5 / 21
         dimx = colx * base_scale
@@ -535,12 +578,16 @@ def sfmap_plot(df, pdf, style, wt, dimensions, df_se=None, title=None,
     # set up the grid for the figure
     if tall:
         if title is not None and show_colorbar:
-            grid = GridSpec(3, 1, height_ratios=[1, len(df.index) + 2, 1],
-                            hspace=1./len(df.index))
+            grid = GridSpec(
+                3,
+                1,
+                height_ratios=[1, len(df.index) + 2, 1],
+                hspace=1.0 / len(df.index),
+            )
             title_ax = plt.subplot(grid[0])
             mesh_ax = plt.subplot(grid[1])
             cbar_ax = plt.subplot(grid[2])
-        elif title is not None:    # no colorbar
+        elif title is not None:  # no colorbar
             grid = GridSpec(2, 1, height_ratios=[1, len(df.index)])
             title_ax = plt.subplot(grid[0])
             mesh_ax = plt.subplot(grid[1])
@@ -550,20 +597,24 @@ def sfmap_plot(df, pdf, style, wt, dimensions, df_se=None, title=None,
             title_ax = None
             mesh_ax = plt.subplot(grid[0])
             cbar_ax = plt.subplot(grid[1])
-        else:               # only the heatmap
+        else:  # only the heatmap
             grid = GridSpec(1, 1)
             title_ax = None
             mesh_ax = plt.subplot(grid[0])
             cbar_ax = None
     else:
         if title is not None and show_colorbar:
-            grid = GridSpec(2, 2, height_ratios=[1, len(df.columns)],
-                            width_ratios=[len(df.index), 1],
-                            wspace=1./len(df.index))
+            grid = GridSpec(
+                2,
+                2,
+                height_ratios=[1, len(df.columns)],
+                width_ratios=[len(df.index), 1],
+                wspace=1.0 / len(df.index),
+            )
             title_ax = plt.subplot(grid[0, :])
             mesh_ax = plt.subplot(grid[1, 0])
             cbar_ax = plt.subplot(grid[1, 1])
-        elif title is not None:    # no colorbar
+        elif title is not None:  # no colorbar
             grid = GridSpec(2, 1, height_ratios=[1, len(df.index)])
             title_ax = plt.subplot(grid[0])
             mesh_ax = plt.subplot(grid[1])
@@ -573,7 +624,7 @@ def sfmap_plot(df, pdf, style, wt, dimensions, df_se=None, title=None,
             title_ax = None
             mesh_ax = plt.subplot(grid[0])
             cbar_ax = plt.subplot(grid[1])
-        else:               # only the heatmap
+        else:  # only the heatmap
             grid = GridSpec(1, 1)
             title_ax = None
             mesh_ax = plt.subplot(grid[0])
@@ -599,11 +650,9 @@ def sfmap_plot(df, pdf, style, wt, dimensions, df_se=None, title=None,
 
     # add the title
     if title_ax is not None:
-        title_ax.text(s=title, x=0.5, y=1.0, ha="center", va="top",
-                      size="large")
+        title_ax.text(s=title, x=0.5, y=1.0, ha="center", va="top", size="large")
         title_ax.axis("off")
 
     # save the heatmap
     pdf.savefig(fig, bbox_inches="tight", pad_inches=0.05)
     plt.close(fig)
-

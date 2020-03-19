@@ -1,19 +1,3 @@
-#  Copyright 2016-2019 Alan F Rubin
-#
-#  This file is part of Enrich2.
-#
-#  Enrich2 is free software: you can redistribute it and/or modify
-#  it under the terms of the GNU General Public License as published by
-#  the Free Software Foundation, either version 3 of the License, or
-#  (at your option) any later version.
-#
-#  Enrich2 is distributed in the hope that it will be useful,
-#  but WITHOUT ANY WARRANTY; without even the implied warranty of
-#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#  GNU General Public License for more details.
-#
-#  You should have received a copy of the GNU General Public License
-#  along with Enrich2.  If not, see <http://www.gnu.org/licenses/>.
 """
 Module for alignment of variants to the wild type sequence.
 
@@ -27,13 +11,13 @@ import numpy as np
 #: Default similarity matrix used by the aligner.
 #: User-defined matrices must have this format.
 _simple_similarity = {
-    'A': {'A': 1, 'C': -1, 'G': -1, 'T': -1, 'N': 0, 'X': 0},
-    'C': {'A': -1, 'C': 1, 'G': -1, 'T': -1, 'N': 0, 'X': 0},
-    'G': {'A': -1, 'C': -1, 'G': 1, 'T': -1, 'N': 0, 'X': 0},
-    'T': {'A': -1, 'C': -1, 'G': -1, 'T': 1, 'N': 0, 'X': 0},
-    'N': {'A': 0, 'C': 0, 'G': 0, 'T': 0, 'N': 0, 'X': 0},
-    'X': {'A': 0, 'C': 0, 'G': 0, 'T': 0, 'N': 0, 'X': 0},
-    'gap': -1
+    "A": {"A": 1, "C": -1, "G": -1, "T": -1, "N": 0, "X": 0},
+    "C": {"A": -1, "C": 1, "G": -1, "T": -1, "N": 0, "X": 0},
+    "G": {"A": -1, "C": -1, "G": 1, "T": -1, "N": 0, "X": 0},
+    "T": {"A": -1, "C": -1, "G": -1, "T": 1, "N": 0, "X": 0},
+    "N": {"A": 0, "C": 0, "G": 0, "T": 0, "N": 0, "X": 0},
+    "X": {"A": 0, "C": 0, "G": 0, "T": 0, "N": 0, "X": 0},
+    "gap": -1,
 }
 
 
@@ -52,22 +36,24 @@ class Aligner(object):
     The ``'X'`` nucleotide is a special case for unresolvable mismatches in
     :py:class:`~overlap.OverlapSeqLib` variant data.
     """
-    _MAT = 1    # match
-    _INS = 2    # insertion (with respect to wild type)
-    _DEL = 3    # deletion (with respect to wild type)
-    _END = 4    # end of traceback
+
+    _MAT = 1  # match
+    _INS = 2  # insertion (with respect to wild type)
+    _DEL = 3  # deletion (with respect to wild type)
+    _END = 4  # end of traceback
 
     def __init__(self, similarity=_simple_similarity):
         similarity_keys = similarity.keys()
-        if 'gap' in similarity_keys:
-            similarity_keys.remove('gap')
+        if "gap" in similarity_keys:
+            similarity_keys.remove("gap")
         for key in similarity_keys:
-            if not all(x in similarity[key] for x in similarity_keys) or \
-                    len(similarity[key]) != len(similarity_keys):
+            if not all(x in similarity[key] for x in similarity_keys) or len(
+                similarity[key]
+            ) != len(similarity_keys):
                 raise ValueError("Asymmetrical alignment scoring matrix")
 
         self.similarity = similarity
-        if 'gap' not in self.similarity:
+        if "gap" not in self.similarity:
             raise ValueError("No gap penalty in alignment scoring matrix.")
 
         self.matrix = None
@@ -86,28 +72,34 @@ class Aligner(object):
         For indels, the ``length`` value is the number of bases inserted or
         deleted with respect to *seq1* starting at ``i``.
         """
-        self.matrix = np.ndarray(shape=(len(seq1) + 1, len(seq2) + 1),
-                                 dtype=np.dtype([('score', np.int),
-                                                 ('trace', np.byte)]))
+        self.matrix = np.ndarray(
+            shape=(len(seq1) + 1, len(seq2) + 1),
+            dtype=np.dtype([("score", np.int), ("trace", np.byte)]),
+        )
         seq1 = seq1.upper()
         seq2 = seq2.upper()
 
         # build matrix of scores/traceback information
         for i in xrange(len(seq1) + 1):
-            self.matrix[i, 0] = (self.similarity['gap'] * i, Aligner._DEL)
+            self.matrix[i, 0] = (self.similarity["gap"] * i, Aligner._DEL)
         for j in xrange(len(seq2) + 1):
-            self.matrix[0, j] = (self.similarity['gap'] * j, Aligner._INS)
+            self.matrix[0, j] = (self.similarity["gap"] * j, Aligner._INS)
         for i in xrange(1, len(seq1) + 1):
             for j in xrange(1, len(seq2) + 1):
-                match = (self.matrix[i - 1, j - 1]['score'] +
-                         self.similarity[seq1[i - 1]][seq2[j - 1]],
-                         Aligner._MAT)
-                delete = (self.matrix[i - 1, j]['score'] +
-                          self.similarity['gap'], Aligner._DEL)
-                insert = (self.matrix[i, j - 1]['score'] +
-                          self.similarity['gap'], Aligner._INS)
-                self.matrix[i, j] = max(delete, insert, match,
-                                        key=lambda x: x[0])
+                match = (
+                    self.matrix[i - 1, j - 1]["score"]
+                    + self.similarity[seq1[i - 1]][seq2[j - 1]],
+                    Aligner._MAT,
+                )
+                delete = (
+                    self.matrix[i - 1, j]["score"] + self.similarity["gap"],
+                    Aligner._DEL,
+                )
+                insert = (
+                    self.matrix[i, j - 1]["score"] + self.similarity["gap"],
+                    Aligner._INS,
+                )
+                self.matrix[i, j] = max(delete, insert, match, key=lambda x: x[0])
         self.matrix[0, 0] = (0, Aligner._END)
 
         # calculate alignment from the traceback
@@ -115,20 +107,20 @@ class Aligner(object):
         j = len(seq2)
         traceback = list()
         while i > 0 or j > 0:
-            if self.matrix[i, j]['trace'] == Aligner._MAT:
+            if self.matrix[i, j]["trace"] == Aligner._MAT:
                 if seq1[i - 1] == seq2[j - 1]:
                     traceback.append((i - 1, j - 1, "match", None))
                 else:
                     traceback.append((i - 1, j - 1, "mismatch", None))
                 i -= 1
                 j -= 1
-            elif self.matrix[i, j]['trace'] == Aligner._INS:
+            elif self.matrix[i, j]["trace"] == Aligner._INS:
                 traceback.append((i - 1, j - 1, "insertion", 1))
                 j -= 1
-            elif self.matrix[i, j]['trace'] == Aligner._DEL:
+            elif self.matrix[i, j]["trace"] == Aligner._DEL:
                 traceback.append((i - 1, j - 1, "deletion", 1))
                 i -= 1
-            elif self.matrix[i, j]['trace'] == Aligner._END:
+            elif self.matrix[i, j]["trace"] == Aligner._END:
                 pass
             else:
                 raise RuntimeError("Invalid value in alignment traceback.")
@@ -143,8 +135,9 @@ class Aligner(object):
                     if t[2] == indel[2]:
                         indel[3] += t[3]
                     else:
-                        raise RuntimeError("Aligner failed to combine indels. "
-                                           "Check gap penalty.")
+                        raise RuntimeError(
+                            "Aligner failed to combine indels. " "Check gap penalty."
+                        )
                 else:
                     indel = list(t)
             else:

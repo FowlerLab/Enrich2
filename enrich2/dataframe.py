@@ -1,25 +1,7 @@
-#  Copyright 2016-2019 Alan F Rubin
-#
-#  This file is part of Enrich2.
-#
-#  Enrich2 is free software: you can redistribute it and/or modify
-#  it under the terms of the GNU General Public License as published by
-#  the Free Software Foundation, either version 3 of the License, or
-#  (at your option) any later version.
-#
-#  Enrich2 is distributed in the hope that it will be useful,
-#  but WITHOUT ANY WARRANTY; without even the implied warranty of
-#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#  GNU General Public License for more details.
-#
-#  You should have received a copy of the GNU General Public License
-#  along with Enrich2.  If not, see <http://www.gnu.org/licenses/>.
-
-import re
 import pandas as pd
 import numpy as np
 import logging
-from .constants import WILD_TYPE_VARIANT, SYNONYMOUS_VARIANT, AA_CODES
+from .constants import WILD_TYPE_VARIANT
 import collections
 from .variant import mutation_count, re_protein, re_coding, re_noncoding
 from .barcodemap import re_barcode, re_identifier
@@ -27,8 +9,9 @@ from .constants import AA_CODES
 from .storemanager import ELEMENT_LABELS
 from .sfmap import AA_LIST, NT_LIST
 
+logger = logging.getLogger(__name__)
 
-SingleMut = collections.namedtuple("SingleMut", ['pre', 'post', 'pos', 'key'])
+SingleMut = collections.namedtuple("SingleMut", ["pre", "post", "pos", "key"])
 
 
 def validate_index(index, element):
@@ -48,8 +31,7 @@ def validate_index(index, element):
     elif element == "synonymous":
         pass
     else:
-        raise NotImplementedError("Unimplemented element type '{}'"
-                                  "".format(element))
+        raise NotImplementedError("Unimplemented element type '{}'" "".format(element))
 
 
 def single_mutation_index(index):
@@ -93,8 +75,9 @@ def single_mutations_to_tuples(index):
     Raises an IndexError if the *index* is empty.
     """
     if any(mutation_count(x) != 1 for x in index):
-        raise ValueError("Non-single mutations cannot be converted into "
-                         "SingleMut tuples.")
+        raise ValueError(
+            "Non-single mutations cannot be converted into " "SingleMut tuples."
+        )
 
     # identify the type of index
     try:
@@ -120,13 +103,23 @@ def single_mutations_to_tuples(index):
             raise ValueError("Unrecognized HGVS string.")
         else:
             if is_protein:  # convert to single-letter amino acid code
-                tuples.append(SingleMut(AA_CODES[m.group('pre')],
-                                        AA_CODES[m.group('post')],
-                                        int(m.group('pos')),
-                                        m.group('match')))
+                tuples.append(
+                    SingleMut(
+                        AA_CODES[m.group("pre")],
+                        AA_CODES[m.group("post")],
+                        int(m.group("pos")),
+                        m.group("match"),
+                    )
+                )
             else:
-                tuples.append(SingleMut(m.group('pre'), m.group('post'),
-                                        int(m.group('pos')), m.group('match')))
+                tuples.append(
+                    SingleMut(
+                        m.group("pre"),
+                        m.group("post"),
+                        int(m.group("pos")),
+                        m.group("match"),
+                    )
+                )
 
     return tuples
 
@@ -156,12 +149,13 @@ def fill_position_gaps(positions, gap_size):
         if delta > 1 and delta <= gap_size:
             fill.update(positions[i] + n + 1 for n in xrange(delta))
     fill.update(positions)
-    
+
     return sorted(list(fill))
 
 
-def singleton_dataframe(values, wt, gap_size=5, coding=True,
-                        plot_wt_score=True, aa_list=AA_LIST):
+def singleton_dataframe(
+    values, wt, gap_size=5, coding=True, plot_wt_score=True, aa_list=AA_LIST
+):
     """
     Prepare data for plotting as a sequence-function map. Returns a data frame
     suitable for plotting as heat map data and a wild type sequence extracted
@@ -192,16 +186,16 @@ def singleton_dataframe(values, wt, gap_size=5, coding=True,
         data values and a list of single-character wild type values
     """
     if len(values.index) == 0:
-        raise ValueError("Cannot process an empty data frame [{}]".format(
-            wt.parent_name))
+        raise ValueError(
+            "Cannot process an empty data frame [{}]".format(wt.parent_name)
+        )
 
     # save the wild type score for later
     if plot_wt_score:
         try:
             wt_score = values[WILD_TYPE_VARIANT]
         except KeyError:
-            logging.warning("Wild type score not measured, will be missing in "
-                            "plots", extra={'oname': self.name})
+            logger.warning("Wild type score not measured, will be missing in " "plots")
             wt_score = np.nan
 
     # select only rows with singleton mutations
@@ -212,8 +206,7 @@ def singleton_dataframe(values, wt, gap_size=5, coding=True,
 
     # create and populate the DataFrame
     # get sorted, unique list of positions that have a mutation
-    positions = fill_position_gaps([x.pos for x in index_tuples],
-                                   gap_size=gap_size)
+    positions = fill_position_gaps([x.pos for x in index_tuples], gap_size=gap_size)
     # initialize the DataFrame
     if coding:
         columns = aa_list
@@ -231,15 +224,15 @@ def singleton_dataframe(values, wt, gap_size=5, coding=True,
     try:
         wt_sequence = "".join(wt_dict[x] for x in positions)
     except KeyError:
-        raise ValueError("Inconsistent wild type positions [{}]".format(
-            wt.parent_name))
+        raise ValueError("Inconsistent wild type positions [{}]".format(wt.parent_name))
 
     # double-check that the wild type is consistent with the data frame
     for x in index_tuples:
         if x.pos in wt_dict:
             if x.pre != wt_dict[x.pos]:
-                raise ValueError("Inconsistent wild type sequence [{}]".format(
-                    wt.parent_name))
+                raise ValueError(
+                    "Inconsistent wild type sequence [{}]".format(wt.parent_name)
+                )
 
     # add wild type scores if desired
     if plot_wt_score:
@@ -247,4 +240,3 @@ def singleton_dataframe(values, wt, gap_size=5, coding=True,
             frame.loc[p, wt_dict[p]] = wt_score
 
     return (frame, wt_sequence)
-
