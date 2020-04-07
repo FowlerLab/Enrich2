@@ -98,7 +98,7 @@ def main_cmd():
 
     # add support for semantic version checking
     parser.add_argument(
-        "--version", action="version", version="%(prog)s {}".format(__version__)
+        "--version", action="version", version="{}".format(__version__)
     )
 
     # add analysis options
