@@ -3,9 +3,15 @@ import Tkinter as tk
 import ttk
 import tkSimpleDialog
 from collections import OrderedDict
+from ..barcode import BarcodeSeqLib
+from ..barcodevariant import BcvSeqLib
+from ..barcodeid import BcidSeqLib
+from ..basic import BasicSeqLib
+from ..idonly import IdOnlySeqLib
+from ..overlap import OverlapSeqLib
 
 
-seqlib_label_text = OrderedDict(
+SEQLIB_LABEL_TEXT = OrderedDict(
     [
         ("BcvSeqLib", "Barcoded Variant"),
         ("BcidSeqLib", "Barcoded Identifier"),
@@ -15,6 +21,16 @@ seqlib_label_text = OrderedDict(
         ("IdOnlySeqLib", "Identifiers Only"),
     ]
 )
+
+#: map class names to class definitions to avoid use of globals()
+SEQLIB_CLASSES = {
+    "BarcodeSeqLib": BarcodeSeqLib,
+    "BcvSeqLib": BcvSeqLib,
+    "BcidSeqLib": BcidSeqLib,
+    "BasicSeqLib": BasicSeqLib,
+    "IdOnlySeqLib": IdOnlySeqLib,
+    "OverlapSeqLib": OverlapSeqLib,
+}
 
 
 class CreateSeqLibDialog(tkSimpleDialog.Dialog):
@@ -31,10 +47,10 @@ class CreateSeqLibDialog(tkSimpleDialog.Dialog):
         message = ttk.Label(master, text="SeqLib type:")
         message.grid(column=0, row=0)
 
-        for i, k in enumerate(seqlib_label_text.keys()):
+        for i, k in enumerate(SEQLIB_LABEL_TEXT.keys()):
             rb = ttk.Radiobutton(
                 master,
-                text=seqlib_label_text[k],
+                text=SEQLIB_LABEL_TEXT[k],
                 variable=self.element_tkstring,
                 value=k,
             )
@@ -57,6 +73,6 @@ class CreateSeqLibDialog(tkSimpleDialog.Dialog):
 
     def apply(self):
         try:
-            self.element_type = globals()[self.element_tkstring.get()]
+            self.element_type = SEQLIB_CLASSES[self.element_tkstring.get()]
         except KeyError:
             raise KeyError("Unrecognized element type.")

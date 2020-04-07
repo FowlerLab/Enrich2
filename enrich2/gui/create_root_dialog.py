@@ -3,7 +3,28 @@ import Tkinter as tk
 import ttk
 import tkSimpleDialog
 from .dialog_elements import FileEntry, StringEntry, DEFAULT_COLUMNS
-from .create_seqlib_dialog import seqlib_label_text
+from .create_seqlib_dialog import SEQLIB_LABEL_TEXT
+from ..barcode import BarcodeSeqLib
+from ..barcodevariant import BcvSeqLib
+from ..barcodeid import BcidSeqLib
+from ..basic import BasicSeqLib
+from ..idonly import IdOnlySeqLib
+from ..overlap import OverlapSeqLib
+from ..selection import Selection
+from ..experiment import Experiment
+
+
+#: map class names to class definitions to avoid use of globals()
+ELEMENT_CLASSES = {
+    "BarcodeSeqLib": BarcodeSeqLib,
+    "BcvSeqLib": BcvSeqLib,
+    "BcidSeqLib": BcidSeqLib,
+    "BasicSeqLib": BasicSeqLib,
+    "IdOnlySeqLib": IdOnlySeqLib,
+    "OverlapSeqLib": OverlapSeqLib,
+    "Selection": Selection,
+    "Experiment": Experiment,
+}
 
 
 class CreateRootDialog(tkSimpleDialog.Dialog):
@@ -60,10 +81,10 @@ class CreateRootDialog(tkSimpleDialog.Dialog):
 
         label = ttk.Label(element_types, text="SeqLib")
         label.grid(column=0, row=5, sticky="w")
-        for i, k in enumerate(seqlib_label_text.keys()):
+        for i, k in enumerate(SEQLIB_LABEL_TEXT.keys()):
             rb = ttk.Radiobutton(
                 element_types,
-                text=seqlib_label_text[k],
+                text=SEQLIB_LABEL_TEXT[k],
                 variable=self.element_tkstring,
                 value=k,
             )
@@ -93,7 +114,7 @@ class CreateRootDialog(tkSimpleDialog.Dialog):
 
         # create the object
         try:
-            self.element = globals()[self.element_tkstring.get()]()
+            self.element = ELEMENT_CLASSES[self.element_tkstring.get()]()
         except KeyError:
             raise KeyError(
                 "Unrecognized element type '{}'".format(self.element_tkstring.get())
