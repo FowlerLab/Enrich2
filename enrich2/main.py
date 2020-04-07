@@ -40,7 +40,7 @@ from enrich2.sfmap import parse_aa_list
 __author__ = "Alan F Rubin"
 __copyright__ = "Copyright 2016-2020, Alan F Rubin"
 __license__ = "BSD-3-Clause"
-__version__ = "1.3.0"
+__version__ = "1.3.1"
 __maintainer__ = "Alan F Rubin"
 __email__ = "alan.rubin@wehi.edu.au"
 
@@ -98,7 +98,7 @@ def main_cmd():
 
     # add support for semantic version checking
     parser.add_argument(
-        "--version", action="version", version="%(prog)s {}".format(__version__)
+        "--version", action="version", version="{}".format(__version__)
     )
 
     # add analysis options

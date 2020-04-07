@@ -1,6 +1,10 @@
 from __future__ import print_function
+from .barcode import BarcodeSeqLib
 from .barcodevariant import BcvSeqLib
 from .barcodeid import BcidSeqLib
+from .basic import BasicSeqLib
+from .idonly import IdOnlySeqLib
+from .overlap import OverlapSeqLib
 from .config_check import seqlib_type
 from .storemanager import StoreManager
 import os
@@ -23,6 +27,17 @@ from .plots import (
 from .constants import WILD_TYPE_VARIANT, SYNONYMOUS_VARIANT
 from .variant import protein_variant
 from .dataframe import singleton_dataframe
+
+
+#: map class names to class definitions to avoid use of globals()
+SEQLIB_CLASSES = {
+    "BarcodeSeqLib": BarcodeSeqLib,
+    "BcvSeqLib": BcvSeqLib,
+    "BcidSeqLib": BcidSeqLib,
+    "BasicSeqLib": BasicSeqLib,
+    "IdOnlySeqLib": IdOnlySeqLib,
+    "OverlapSeqLib": OverlapSeqLib,
+}
 
 
 def regression_apply(row, timepoints, weighted):
@@ -148,7 +163,7 @@ class Selection(StoreManager):
                 if libtype is None:
                     raise ValueError("Unrecognized SeqLib config")
                 elif libtype in ("BcvSeqLib", "BcidSeqLib"):
-                    lib = globals()[libtype]()
+                    lib = SEQLIB_CLASSES[libtype]()
                     # don't re-parse the barcode maps if possible
                     mapfile = lib_cfg["barcodes"]["map file"]
                     if mapfile in self.barcode_maps.keys():
@@ -160,7 +175,7 @@ class Selection(StoreManager):
                 else:
                     # requires that the SeqLib derived classes be imported into the
                     # module namespace using "from x import y" style
-                    lib = globals()[libtype]()
+                    lib = SEQLIB_CLASSES[libtype]()
                     lib.configure(lib_cfg)
                     self.add_child(lib)
 

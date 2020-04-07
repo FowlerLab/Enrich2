@@ -15,9 +15,25 @@ from .runner_window import RunnerWindow, RunnerSavePrompt
 from ..experiment import Experiment
 from ..condition import Condition
 from ..selection import Selection
+from ..barcode import BarcodeSeqLib
+from ..barcodevariant import BcvSeqLib
+from ..barcodeid import BcidSeqLib
+from ..basic import BasicSeqLib
+from ..idonly import IdOnlySeqLib
 from ..overlap import OverlapSeqLib
 from ..seqlib import SeqLib
 from ..storemanager import SCORING_METHODS, LOGR_METHODS
+
+
+#: map class names to class definitions to avoid use of globals()
+SEQLIB_CLASSES = {
+    "BarcodeSeqLib": BarcodeSeqLib,
+    "BcvSeqLib": BcvSeqLib,
+    "BcidSeqLib": BcidSeqLib,
+    "BasicSeqLib": BasicSeqLib,
+    "IdOnlySeqLib": IdOnlySeqLib,
+    "OverlapSeqLib": OverlapSeqLib,
+}
 
 
 def write_json(d, handle):
@@ -358,8 +374,7 @@ class Configurator(tk.Tk):
                 elif is_selection(cfg):
                     obj = Selection()
                 elif is_seqlib(cfg):
-                    sltype = seqlib_type(cfg)
-                    obj = globals()[sltype]()
+                    obj = SEQLIB_CLASSES[seqlib_type(cfg)]()
                 else:
                     tkMessageBox.showerror(None, "Unrecognized config format.")
                     return
