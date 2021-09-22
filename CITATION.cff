@@ -1,0 +1,40 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+authors:
+- family-names: "Rubin"
+  given-names: "Alan F"
+  orcid: "https://orcid.org/0000-0003-1474-605X"
+title: "Enrich2"
+version: 1.3.1
+doi: 10.5281/zenodo.3742545
+date-released: 2020-04-07
+url: "https://github.com/FowlerLab/Enrich2"
+preferred-citation:
+  type: article
+  authors:
+  - family-names: "Rubin"
+    given-names: "Alan F"
+    orcid: "https://orcid.org/0000-0003-1474-605X"
+  - family-names: "Gelman"
+    given-names: "Hannah"
+  - family-names: "Lucas"
+    given-names: "Nathan"
+  - family-names: "Bajjalieh"
+    given-names: "Sandra M"
+  - family-names: "Papenfuss"
+    given-names: "Anthony T"
+    orcid: "https://orcid.org/0000-0002-1102-8506"
+  - family-names: "Speed"
+    given-names: "Terence P"
+    orcid: "https://orcid.org/0000-0002-5403-7998"
+  - family-names: "Fowler"
+    given-names: "Douglas M"
+    orcid: "https://orcid.org/0000-0001-7614-1713"
+  doi: "10.1186/s13059-017-1272-5"
+  journal: "Genome Biology"
+  month: 8
+  start: 150
+  title: "A statistical framework for analyzing deep mutational scanning data"
+  issue: 1
+  volume: 18
+  year: 2017
