@@ -5,6 +5,7 @@ import pandas as pd
 import collections
 import getpass
 import time
+from typing import Optional
 
 
 #: Dictionary specifying available scoring methods for the analysis
@@ -65,9 +66,9 @@ class StoreManager(object):
     store and directory management.
     """
 
-    store_suffix = None
+    store_suffix = Optional[str]
     has_store = True
-    treeview_class_name = None
+    treeview_class_name = Optional[str]
 
     def __init__(self):
         self.logger = logging.getLogger("{}.{}".format(__name__, self.__class__))
