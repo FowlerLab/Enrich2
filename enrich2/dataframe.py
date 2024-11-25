@@ -144,10 +144,10 @@ def fill_position_gaps(positions, gap_size):
 
     # fill in short gaps
     fill = set()
-    for i in xrange(len(positions) - 1):
+    for i in range(len(positions) - 1):
         delta = positions[i + 1] - positions[i]
         if delta > 1 and delta <= gap_size:
-            fill.update(positions[i] + n + 1 for n in xrange(delta))
+            fill.update(positions[i] + n + 1 for n in range(delta))
     fill.update(positions)
 
     return sorted(list(fill))

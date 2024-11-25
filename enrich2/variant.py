@@ -1,4 +1,4 @@
-from __future__ import print_function
+
 import re
 from .aligner import Aligner
 from .seqlib import SeqLib
@@ -296,7 +296,7 @@ class VariantSeqLib(SeqLib):
         .. warning:: Using the :py:class:`~seqlib.aligner.Aligner` \
         dramatically increases runtime.
         """
-        if variant_dna in self.aligner_cache.keys():
+        if variant_dna in list(self.aligner_cache.keys()):
             return self.aligner_cache[variant_dna]
 
         mutations = list()
@@ -355,7 +355,7 @@ class VariantSeqLib(SeqLib):
                 return None
         else:
             mutations = list()
-            for i in xrange(len(variant_dna)):
+            for i in range(len(variant_dna)):
                 if variant_dna[i] != self.wt.dna_seq[i]:
                     mutations.append(
                         (
@@ -381,7 +381,7 @@ class VariantSeqLib(SeqLib):
         mutation_strings = list()
         if self.is_coding():
             variant_protein = ""
-            for i in xrange(0, len(variant_dna), 3):
+            for i in range(0, len(variant_dna), 3):
                 try:
                     variant_protein += CODON_TABLE[variant_dna[i : i + 3]]
                 except KeyError:  # garbage codon due to indel, X, or N

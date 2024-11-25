@@ -1,4 +1,4 @@
-from __future__ import print_function
+
 import logging
 import os.path
 import pandas as pd
@@ -80,7 +80,7 @@ class SeqLib(StoreManager):
         Return a dictionary of filtering options that have non-default values.
         """
         cfg = dict()
-        for key in self.filters.keys():
+        for key in list(self.filters.keys()):
             if self.filters[key] != self.default_filters[key]:
                 cfg[key] = self.filters[key]
         return cfg
@@ -190,7 +190,7 @@ class SeqLib(StoreManager):
         If *raw* is ``True``, the counts are stored under
         ``"/raw/label/counts"``; else ``"/main/label/counts"``.
         """
-        if len(df_dict.keys()) == 0:
+        if len(list(df_dict.keys())) == 0:
             raise ValueError("Failed to count {} [{}]".format(label, self.name))
         df = pd.DataFrame.from_dict(df_dict, orient="index", dtype=np.int32)
         df.columns = ["count"]
@@ -262,8 +262,8 @@ class SeqLib(StoreManager):
 
         This DataFrame contains the same information as ``report_filter_stats``
         """
-        df = pd.DataFrame(index=SeqLib.filter_messages.values(), columns=["count"])
-        for key in self.filter_stats.keys():
+        df = pd.DataFrame(index=list(SeqLib.filter_messages.values()), columns=["count"])
+        for key in list(self.filter_stats.keys()):
             if self.filter_stats[key] > 0 or key == "total":
                 df.loc[SeqLib.filter_messages[key], "count"] = self.filter_stats[key]
         df.dropna(inplace=True)
@@ -346,7 +346,7 @@ class SeqLib(StoreManager):
         """
         if self.tsv_requested:
             self.logger.info("Generating tab-separated output files")
-            for k in self.store.keys():
+            for k in list(self.store.keys()):
                 self.write_table_tsv(k)
 
     def counts_from_file_h5(self, fname):
@@ -362,7 +362,7 @@ class SeqLib(StoreManager):
         )
         # this could probably be much more efficient, but the PyTables docs
         # don't explain copying subsets of files adequately
-        raw_keys = [key for key in store.keys() if key.startswith("/raw/")]
+        raw_keys = [key for key in list(store.keys()) if key.startswith("/raw/")]
         if len(raw_keys) == 0:
             raise ValueError(
                 "No raw counts found in '{}' [{}]" "".format(fname, self.name)

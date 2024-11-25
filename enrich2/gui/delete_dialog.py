@@ -1,6 +1,6 @@
-import Tkinter as tk
-import ttk
-import tkSimpleDialog
+import tkinter as tk
+import tkinter.ttk
+import tkinter.simpledialog
 
 
 def subtree_ids(treeview, x, level=0):
@@ -16,7 +16,7 @@ def subtree_ids(treeview, x, level=0):
     return id_list
 
 
-class DeleteDialog(tkSimpleDialog.Dialog):
+class DeleteDialog(tkinter.simpledialog.Dialog):
     """
     Confirmation dialog box for deleting the selected items from the Treeview.
     """
@@ -27,7 +27,7 @@ class DeleteDialog(tkSimpleDialog.Dialog):
         for x in self.tree.treeview.selection():
             if x not in [y[0] for y in self.id_tuples]:
                 self.id_tuples.extend(subtree_ids(self.tree.treeview, x))
-        tkSimpleDialog.Dialog.__init__(self, parent_window, title)
+        tkinter.simpledialog.Dialog.__init__(self, parent_window, title)
 
     def body(self, master):
         """
@@ -45,13 +45,13 @@ class DeleteDialog(tkSimpleDialog.Dialog):
             message_string = "Delete the following items?\n"
             for x, level in self.id_tuples:
                 if level == 0:
-                    bullet = "    " + u"\u25C6"
+                    bullet = "    " + "\u25C6"
                 else:
-                    bullet = "    " * (level + 1) + u"\u25C7"
-                message_string += u"{bullet} {name}\n".format(
+                    bullet = "    " * (level + 1) + "\u25C7"
+                message_string += "{bullet} {name}\n".format(
                     bullet=bullet, name=self.tree.get_element(x).name
                 )
-        message = ttk.Label(master, text=message_string, justify="left")
+        message = tkinter.ttk.Label(master, text=message_string, justify="left")
         message.grid(row=0, sticky="w")
 
     def buttonbox(self):
@@ -70,7 +70,7 @@ class DeleteDialog(tkSimpleDialog.Dialog):
 
             box.pack()
         else:
-            tkSimpleDialog.Dialog.buttonbox(self)
+            tkinter.simpledialog.Dialog.buttonbox(self)
 
     def apply(self):
         """

@@ -43,7 +43,7 @@ class Aligner(object):
     _END = 4  # end of traceback
 
     def __init__(self, similarity=_simple_similarity):
-        similarity_keys = similarity.keys()
+        similarity_keys = list(similarity.keys())
         if "gap" in similarity_keys:
             similarity_keys.remove("gap")
         for key in similarity_keys:
@@ -80,12 +80,12 @@ class Aligner(object):
         seq2 = seq2.upper()
 
         # build matrix of scores/traceback information
-        for i in xrange(len(seq1) + 1):
+        for i in range(len(seq1) + 1):
             self.matrix[i, 0] = (self.similarity["gap"] * i, Aligner._DEL)
-        for j in xrange(len(seq2) + 1):
+        for j in range(len(seq2) + 1):
             self.matrix[0, j] = (self.similarity["gap"] * j, Aligner._INS)
-        for i in xrange(1, len(seq1) + 1):
-            for j in xrange(1, len(seq2) + 1):
+        for i in range(1, len(seq1) + 1):
+            for j in range(1, len(seq2) + 1):
                 match = (
                     self.matrix[i - 1, j - 1]["score"]
                     + self.similarity[seq1[i - 1]][seq2[j - 1]],

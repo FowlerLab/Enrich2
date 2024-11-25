@@ -1,7 +1,7 @@
-from __future__ import print_function
-import Tkinter as tk
-import ttk
-import tkSimpleDialog
+
+import tkinter as tk
+import tkinter.ttk
+import tkinter.simpledialog
 from collections import OrderedDict
 from ..barcode import BarcodeSeqLib
 from ..barcodevariant import BcvSeqLib
@@ -33,7 +33,7 @@ SEQLIB_CLASSES = {
 }
 
 
-class CreateSeqLibDialog(tkSimpleDialog.Dialog):
+class CreateSeqLibDialog(tkinter.simpledialog.Dialog):
     """
     Dialog box for creating a new SeqLib.
     """
@@ -41,14 +41,14 @@ class CreateSeqLibDialog(tkSimpleDialog.Dialog):
     def __init__(self, parent_window, title="New SeqLib"):
         self.element_tkstring = tk.StringVar()
         self.element_type = None
-        tkSimpleDialog.Dialog.__init__(self, parent_window, title)
+        tkinter.simpledialog.Dialog.__init__(self, parent_window, title)
 
     def body(self, master):
-        message = ttk.Label(master, text="SeqLib type:")
+        message = tkinter.ttk.Label(master, text="SeqLib type:")
         message.grid(column=0, row=0)
 
         for i, k in enumerate(SEQLIB_LABEL_TEXT.keys()):
-            rb = ttk.Radiobutton(
+            rb = tkinter.ttk.Radiobutton(
                 master,
                 text=SEQLIB_LABEL_TEXT[k],
                 variable=self.element_tkstring,

@@ -20,7 +20,7 @@ def rml_estimator(y, sigma2i, iterations=50):
     sigma2ML = np.sum((y - np.mean(y, axis=0)) ** 2 / (len(beta0) - 1), axis=0)
     eps = np.zeros(beta0.shape)
     betaML = None
-    for _ in xrange(iterations):
+    for _ in range(iterations):
         w = 1 / (sigma2i + sigma2ML)
         sw = np.sum(w, axis=0)
         sw2 = np.sum(w ** 2, axis=0)
