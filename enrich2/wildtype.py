@@ -1,4 +1,3 @@
-
 import logging
 import re
 from .constants import CODON_TABLE
@@ -6,11 +5,11 @@ from .constants import CODON_TABLE
 
 class WildTypeSequence(object):
     """
-    Container class for wild type sequence information. Used by :py:class:`~seqlib.seqlib.VariantSeqLib` objects and 
-    :py:class:`~enrich2.selection.Selection` or :py:class:`~enrich2.experiment.Experiment` objects that contain 
+    Container class for wild type sequence information. Used by :py:class:`~seqlib.seqlib.VariantSeqLib` objects and
+    :py:class:`~enrich2.selection.Selection` or :py:class:`~enrich2.experiment.Experiment` objects that contain
     variant information.
 
-    Requires a *parent_name* that associates this object with a StoreManager object for the 
+    Requires a *parent_name* that associates this object with a StoreManager object for the
     purposes of error reporting and logging.
     """
 
@@ -69,7 +68,7 @@ class WildTypeSequence(object):
                 # perform translation
                 self.protein_seq = ""
                 for i in range(0, len(self.dna_seq), 3):
-                    self.protein_seq += CODON_TABLE[self.dna_seq[i : i + 3]]
+                    self.protein_seq += CODON_TABLE[self.dna_seq[i: i + 3]]
 
                 # set the reference offset if it's a multiple of three
                 if self.dna_offset % 3 == 0:
@@ -122,7 +121,7 @@ class WildTypeSequence(object):
 
     def position_tuples(self, protein=False):
         """
-        Return a list of tuples containing the position number (after offset adjustment) and 
+        Return a list of tuples containing the position number (after offset adjustment) and
         single-letter symbol (nucleotide or amino acid) for each position the wild type sequence.
         """
         if protein:

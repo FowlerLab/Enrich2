@@ -173,7 +173,7 @@ class SeqLib(StoreManager):
         ``SeqLib.filter_messages`` dictionary.
         """
         self.logger.debug(
-            "Filtered read ({messages})\n{read!s}".format(
+            "Filtered read ({messages})\n{read!s}\n{name}".format(
                 messages=", ".join(
                     SeqLib.filter_messages[x] for x in filter_flags if filter_flags[x]
                 ),
