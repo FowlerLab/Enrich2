@@ -86,7 +86,7 @@ class BarcodeMap(dict):
                 if self[barcode] != value:
                     raise ValueError(
                         "Barcode '{}' assigned to multiple "
-                        "unique values".format(barcode, self.name)
+                        "unique values: {}".format(barcode, self.name)
                     )
             else:
                 self[barcode] = value
