@@ -20,7 +20,7 @@ def is_experiment(cfg):
         :py:class:`~enrich2.experiment.Experiment`, else False.
 
     """
-    if "conditions" in cfg.keys():
+    if "conditions" in list(cfg.keys()):
         return True
     else:
         return False
@@ -39,7 +39,7 @@ def is_condition(cfg):
         :py:class:`~enrich2.condition.Condition`, else False.
 
     """
-    if "selections" in cfg.keys():
+    if "selections" in list(cfg.keys()):
         return True
     else:
         return False
@@ -58,7 +58,7 @@ def is_selection(cfg):
         :py:class:`~enrich2.selection.Selection`, else False.
 
     """
-    if "libraries" in cfg.keys():
+    if "libraries" in list(cfg.keys()):
         return True
     else:
         return False
@@ -77,7 +77,7 @@ def is_seqlib(cfg):
         derived object, else False.
 
     """
-    if "fastq" in cfg.keys() or "identifiers" in cfg.keys():
+    if "fastq" in list(cfg.keys()) or "identifiers" in list(cfg.keys()):
         return True
     else:
         return False
