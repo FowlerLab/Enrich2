@@ -112,13 +112,13 @@ class BcvSeqLib(VariantSeqLib, BarcodeSeqLib):
             # save counts, filtering based on the min count
             self.save_counts(
                 "variants",
-                {k: v for k, v in df_dict.iteritems() if v >= self.variant_min_count},
+                {k: v for k, v in df_dict.items() if v >= self.variant_min_count},
                 raw=False,
             )
             del df_dict
 
             # write the active subset of the BarcodeMap to the store
-            barcodes = barcode_variants.keys()
+            barcodes = list(barcode_variants.keys())
             barcode_variants = pd.DataFrame(
                 {"value": [barcode_variants[bc] for bc in barcodes]}, index=barcodes
             )

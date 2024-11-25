@@ -1,4 +1,4 @@
-from __future__ import print_function
+
 from .barcode import BarcodeSeqLib
 from .barcodevariant import BcvSeqLib
 from .barcodeid import BcidSeqLib
@@ -166,7 +166,7 @@ class Selection(StoreManager):
                     lib = SEQLIB_CLASSES[libtype]()
                     # don't re-parse the barcode maps if possible
                     mapfile = lib_cfg["barcodes"]["map file"]
-                    if mapfile in self.barcode_maps.keys():
+                    if mapfile in list(self.barcode_maps.keys()):
                         lib.configure(lib_cfg, barcode_map=self.barcode_maps[mapfile])
                     else:
                         lib.configure(lib_cfg)
@@ -247,7 +247,7 @@ class Selection(StoreManager):
         """
         return (
             all(isinstance(lib, BcvSeqLib) for lib in self.children)
-            and len(self.barcode_maps.keys()) == 1
+            and len(list(self.barcode_maps.keys())) == 1
         )
 
     def is_barcodeid(self):
@@ -259,7 +259,7 @@ class Selection(StoreManager):
         """
         return (
             all(isinstance(lib, BcidSeqLib) for lib in self.children)
-            and len(self.barcode_maps.keys()) == 1
+            and len(list(self.barcode_maps.keys())) == 1
         )
 
     def is_coding(self):
@@ -298,7 +298,7 @@ class Selection(StoreManager):
         self.logger.info("Aggregating SeqLib data")
 
         destination = "/main/{}/counts_unfiltered".format(label)
-        if destination in self.store.keys():
+        if destination in list(self.store.keys()):
             # need to remove the current destination table because we are using append
             # append is required because it takes the "min_itemsize" argument, and put doesn't
             self.logger.info("Replacing existing '{}'".format(destination))
@@ -325,7 +325,7 @@ class Selection(StoreManager):
 
         # perform operation in chunks
         tp_frame = None
-        for i in xrange(0, len(complete_index), self.chunksize):
+        for i in range(0, len(complete_index), self.chunksize):
             # don't duplicate the index if the chunksize is large
             if self.chunksize < len(complete_index):
                 index_chunk = complete_index[i : i + self.chunksize]
@@ -724,7 +724,7 @@ class Selection(StoreManager):
         """
         if self.check_store("/main/{}/scores".format(label)):
             return
-        elif "/main/{}/scores".format(label) in self.store.keys():
+        elif "/main/{}/scores".format(label) in list(self.store.keys()):
             # need to remove the current keys because we are using append
             self.store.remove("/main/{}/scores".format(label))
 
@@ -1107,7 +1107,7 @@ class Selection(StoreManager):
         """
         if self.tsv_requested:
             self.logger.info("Generating tab-separated output files")
-            for k in self.store.keys():
+            for k in list(self.store.keys()):
                 self.write_table_tsv(k)
         for lib in self.children:
             lib.write_tsv()

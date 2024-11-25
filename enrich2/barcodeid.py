@@ -112,7 +112,7 @@ class BcidSeqLib(BarcodeSeqLib):
                 "identifiers",
                 {
                     k: v
-                    for k, v in df_dict.iteritems()
+                    for k, v in df_dict.items()
                     if v >= self.identifier_min_count
                 },
                 raw=False,
@@ -120,7 +120,7 @@ class BcidSeqLib(BarcodeSeqLib):
             del df_dict
 
             # write the active subset of the BarcodeMap to the store
-            barcodes = barcode_identifiers.keys()
+            barcodes = list(barcode_identifiers.keys())
             barcode_identifiers = pd.DataFrame(
                 {"value": [barcode_identifiers[bc] for bc in barcodes]}, index=barcodes
             )

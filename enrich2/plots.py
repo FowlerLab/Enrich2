@@ -1,4 +1,4 @@
-from __future__ import print_function
+
 import collections
 import logging
 import numpy as np
@@ -292,7 +292,7 @@ def barcodemap_plot(
         )
         return
 
-    if len(data.keys()) <= 1:
+    if len(list(data.keys())) <= 1:
         logger.warning("Not enough elements to make barcodemap plot")
         return
 
@@ -302,7 +302,7 @@ def barcodemap_plot(
     configure_axes(ax)
 
     # plot the histogram
-    ax.hist(data.values(), bins=bins, log=log, color=color)
+    ax.hist(list(data.values()), bins=bins, log=log, color=color)
 
     # set the title and axes labels
     ax.set_title("Barcodes per Variant\n{}".format(obj.name))
@@ -653,7 +653,7 @@ def density_ax(ax, ys, xmin, xmax, xlabel, line_params, legend_loc="best"):
 
     xs = np.linspace(xmin, xmax, 1000)
 
-    for i in xrange(len(ys)):
+    for i in range(len(ys)):
         ax.plot(xs, d_ys[i].evaluate(xs), label=ys[i].name, **line_params[i])
 
     ax.legend(loc=legend_loc, **legend_params)

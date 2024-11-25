@@ -1,9 +1,9 @@
-import Tkinter as tk
-import ttk
-import tkSimpleDialog
+import tkinter as tk
+import tkinter.ttk
+import tkinter.simpledialog
 
 
-class SeqLibApplyDialog(tkSimpleDialog.Dialog):
+class SeqLibApplyDialog(tkinter.simpledialog.Dialog):
     """
     Confirmation dialog box for applying FASTQ filtering options to selected SeqLibs from the Treeview.
     """
@@ -20,7 +20,7 @@ class SeqLibApplyDialog(tkSimpleDialog.Dialog):
             and type(self.tree.get_element(self.source_id))
             == type(self.tree.get_element(x))
         ]
-        tkSimpleDialog.Dialog.__init__(self, parent_window, title)
+        tkinter.simpledialog.Dialog.__init__(self, parent_window, title)
 
     def body(self, master):
         """
@@ -36,15 +36,15 @@ class SeqLibApplyDialog(tkSimpleDialog.Dialog):
                 self.tree.get_element(self.target_ids[0]).name,
             )
         else:
-            bullet = "    " + u"\u25C6"
+            bullet = "    " + "\u25C6"
             message_string = 'Apply FASTQ filtering options from "{}"" to the following?\n'.format(
                 self.tree.get_element(self.source_id).name
             )
             for x in self.target_ids:
-                message_string += u"{bullet} {name}\n".format(
+                message_string += "{bullet} {name}\n".format(
                     bullet=bullet, name=self.tree.get_element(x).name
                 )
-        message = ttk.Label(master, text=message_string, justify="left")
+        message = tkinter.ttk.Label(master, text=message_string, justify="left")
         message.grid(row=0, sticky="w")
 
     def buttonbox(self):
@@ -63,7 +63,7 @@ class SeqLibApplyDialog(tkSimpleDialog.Dialog):
 
             box.pack()
         else:
-            tkSimpleDialog.Dialog.buttonbox(self)
+            tkinter.simpledialog.Dialog.buttonbox(self)
 
     def apply(self):
         """

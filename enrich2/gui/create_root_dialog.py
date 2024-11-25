@@ -1,7 +1,7 @@
-from __future__ import print_function
-import Tkinter as tk
-import ttk
-import tkSimpleDialog
+
+import tkinter as tk
+import tkinter.ttk
+import tkinter.simpledialog
 from .dialog_elements import FileEntry, StringEntry, DEFAULT_COLUMNS
 from .create_seqlib_dialog import SEQLIB_LABEL_TEXT
 from ..barcode import BarcodeSeqLib
@@ -27,7 +27,7 @@ ELEMENT_CLASSES = {
 }
 
 
-class CreateRootDialog(tkSimpleDialog.Dialog):
+class CreateRootDialog(tkinter.simpledialog.Dialog):
     """
     Dialog box for creating a new root element.
     """
@@ -44,23 +44,23 @@ class CreateRootDialog(tkSimpleDialog.Dialog):
         )
         self.name_tk = StringEntry("Name", self.cfg_dict, "name", optional=False)
         self.element = None
-        tkSimpleDialog.Dialog.__init__(self, parent_window, title)
+        tkinter.simpledialog.Dialog.__init__(self, parent_window, title)
 
     def body(self, master):
         row_no = self.name_tk.body(master, 0)
         row_no += self.output_directory_tk.body(master, row_no)
 
-        element_types = ttk.Frame(master, padding=(3, 3, 12, 12))
+        element_types = tkinter.ttk.Frame(master, padding=(3, 3, 12, 12))
         element_types.grid(
             column=0, row=row_no, sticky="nsew", columnspan=DEFAULT_COLUMNS
         )
 
-        message = ttk.Label(element_types, text="Root object type:")
+        message = tkinter.ttk.Label(element_types, text="Root object type:")
         message.grid(column=0, row=0)
 
-        label = ttk.Label(element_types, text="Experiment")
+        label = tkinter.ttk.Label(element_types, text="Experiment")
         label.grid(column=0, row=1, sticky="w")
-        rb = ttk.Radiobutton(
+        rb = tkinter.ttk.Radiobutton(
             element_types,
             text="Experiment",
             variable=self.element_tkstring,
@@ -69,9 +69,9 @@ class CreateRootDialog(tkSimpleDialog.Dialog):
         rb.grid(column=0, row=2, sticky="w")
         rb.invoke()
 
-        label = ttk.Label(element_types, text="Selection")
+        label = tkinter.ttk.Label(element_types, text="Selection")
         label.grid(column=0, row=3, sticky="w")
-        rb = ttk.Radiobutton(
+        rb = tkinter.ttk.Radiobutton(
             element_types,
             text="Selection",
             variable=self.element_tkstring,
@@ -79,10 +79,10 @@ class CreateRootDialog(tkSimpleDialog.Dialog):
         )
         rb.grid(column=0, row=4, sticky="w")
 
-        label = ttk.Label(element_types, text="SeqLib")
+        label = tkinter.ttk.Label(element_types, text="SeqLib")
         label.grid(column=0, row=5, sticky="w")
         for i, k in enumerate(SEQLIB_LABEL_TEXT.keys()):
-            rb = ttk.Radiobutton(
+            rb = tkinter.ttk.Radiobutton(
                 element_types,
                 text=SEQLIB_LABEL_TEXT[k],
                 variable=self.element_tkstring,

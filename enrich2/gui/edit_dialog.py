@@ -1,8 +1,8 @@
-from __future__ import print_function
-import Tkinter as tk
-import ttk
-import tkSimpleDialog
-import tkMessageBox
+
+import tkinter as tk
+import tkinter.ttk
+import tkinter.simpledialog
+import tkinter.messagebox
 from sys import maxsize
 from collections import OrderedDict
 from .dialog_elements import (
@@ -30,7 +30,7 @@ def clear_nones_filter(v):
     Returns False if v is None, else True.
     """
     if isinstance(v, dict):
-        if len(v.keys()) == 0:
+        if len(list(v.keys())) == 0:
             # removing empty dictionaries breaks SeqLib recognition
             # return False
             return True
@@ -50,7 +50,7 @@ def clear_nones(d):
         return d
     else:
         return dict(
-            (k, clear_nones(v)) for k, v in d.iteritems() if clear_nones_filter(v)
+            (k, clear_nones(v)) for k, v in d.items() if clear_nones_filter(v)
         )
 
 
@@ -102,7 +102,7 @@ class CountsToggle(object):
         self.rb_coutns = None
 
     def body(self, master, row, columns=DEFAULT_COLUMNS, **kwargs):
-        self.rb_fastq = ttk.Radiobutton(
+        self.rb_fastq = tkinter.ttk.Radiobutton(
             master,
             text="FASTQ File Mode",
             variable=self.mode,
@@ -110,7 +110,7 @@ class CountsToggle(object):
             command=self.fastq_mode,
         )
         self.rb_fastq.grid(row=row, column=0, columnspan=columns, sticky="ew")
-        self.rb_counts = ttk.Radiobutton(
+        self.rb_counts = tkinter.ttk.Radiobutton(
             master,
             text="Count File Mode",
             variable=self.mode,
@@ -165,7 +165,7 @@ class CountsToggle(object):
         pass
 
 
-class EditDialog(tkSimpleDialog.Dialog):
+class EditDialog(tkinter.simpledialog.Dialog):
     """
     Dialog box for editing elements. Also used to set properties on newly-created elements.
 
@@ -433,19 +433,19 @@ class EditDialog(tkSimpleDialog.Dialog):
                     Checkbox("Use Aligner", self.element_cfg["variants"], "use aligner")
                 )
 
-        tkSimpleDialog.Dialog.__init__(self, parent_window, title)
+        tkinter.simpledialog.Dialog.__init__(self, parent_window, title)
 
     def body(self, master):
         """
         Add the UI elements to the edit window. Ordering and placement of UI 
         elements in columns is defined by the ``element_layouts`` dictionary.
         """
-        main = ttk.Frame(master, padding=(3, 3, 12, 12))
+        main = tkinter.ttk.Frame(master, padding=(3, 3, 12, 12))
         main.grid(row=0, column=0, sticky="nsew")
 
         layout = element_layouts[type(self.element).__name__]
         for i, column_tuple in enumerate(layout):
-            new_frame = ttk.Frame(master, padding=(3, 3, 12, 12))
+            new_frame = tkinter.ttk.Frame(master, padding=(3, 3, 12, 12))
             new_frame.grid(row=0, column=i, sticky="nsew")
             row_no = 0
             for row_frame_key in layout[i]:
@@ -463,14 +463,14 @@ class EditDialog(tkSimpleDialog.Dialog):
 
         Also checks that child name is unique.
         """
-        for tk_list in self.frame_dict.values():
+        for tk_list in list(self.frame_dict.values()):
             if not all(x.validate() for x in tk_list):
                 return False
 
         if self.element.parent is not None:
             if self.element not in self.element.parent.children:
                 if self.name_entry.value.get() in self.element.parent.child_names():
-                    tkMessageBox.showwarning("", "Sibling names must be unique.")
+                    tkinter.messagebox.showwarning("", "Sibling names must be unique.")
                     return False
 
         return True
@@ -480,7 +480,7 @@ class EditDialog(tkSimpleDialog.Dialog):
         Called when the user chooses "OK" and the box closes.
         """
         # apply all changes to the config object
-        for tk_list in self.frame_dict.values():
+        for tk_list in list(self.frame_dict.values()):
             for tk_element in tk_list:
                 tk_element.apply()
 
