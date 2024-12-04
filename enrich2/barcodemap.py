@@ -43,7 +43,7 @@ class BarcodeMap(dict):
             elif ext in (".gz"):
                 handle = gzip.GzipFile(mapfile, "rU")
             else:
-                handle = open(mapfile, "rU")
+                handle = open(mapfile, "r")
         except IOError:
             raise IOError(
                 "Could not open barcode map file '{}' [{}]".format(mapfile, self.name)
