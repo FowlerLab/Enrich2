@@ -278,7 +278,7 @@ class SeqLib(StoreManager):
         Checks ``'chastity'``, ``'min quality'``, ``'avg quality'``,
         ``'max N'``, and ``'remove unresolvable'``.
         Counts failed reads for later output and reports the filtered read if
-        desired. 
+        desired.
         Returns ``True`` if the read passes all filters, else ``False``.
         """
         filter_flags = dict()
@@ -397,7 +397,9 @@ class SeqLib(StoreManager):
         if label is None:
             raise ValueError("No valid element labels [{}]".format(self.name))
         key = "/raw/{}/counts".format(label)
-        self.store.put(key, df, format="table", data_columns=df.columns, dtype=np.int32)
+        self.store.put(
+            key, df.astype(np.int32), format="table", data_columns=df.columns
+        )
 
     def counts_from_file(self, fname):
         """Get raw counts from a counts file instead of FASTQ_ file.

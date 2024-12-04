@@ -251,7 +251,7 @@ class Experiment(StoreManager):
                     "/main/{}/counts_unfiltered" "".format(label)
                 )
                 for tp in sel.timepoints:
-                    data.loc[:][cnd.name, sel.name, "c_{}".format(tp)] = sel_data[
+                    data.loc[:][(cnd.name, sel.name, "c_{}".format(tp))] = sel_data[
                         "c_{}".format(tp)
                     ]
         self.store.put("/main/{}/counts".format(label), data, format="table")
@@ -308,7 +308,7 @@ class Experiment(StoreManager):
         self.logger.info(
             "Populating Experiment data frame with scores ({})".format(label)
         )
-        data = pd.DataFrame(index=combined, columns=columns)
+        data = pd.DataFrame(index=combined, columns=columns).astype(float)
         for cnd in self.children:
             for sel in cnd.children:
                 sel_data = sel.store.select("/main/{}/scores".format(label))
