@@ -39,9 +39,9 @@ class BarcodeMap(dict):
         try:
             ext = os.path.splitext(mapfile)[-1].lower()
             if ext in (".bz2"):
-                handle = bz2.BZ2File(mapfile, "rU")
+                handle = bz2.BZ2File(mapfile, "r")
             elif ext in (".gz"):
-                handle = gzip.GzipFile(mapfile, "rU")
+                handle = gzip.GzipFile(mapfile, "r")
             else:
                 handle = open(mapfile, "r")
         except IOError:
@@ -51,6 +51,7 @@ class BarcodeMap(dict):
 
         # handle each line
         for line in handle:
+            line = line.decode("utf-8")
             # skip comments and whitespace-only lines
             if len(line.strip()) == 0 or line[0] == "#":
                 continue

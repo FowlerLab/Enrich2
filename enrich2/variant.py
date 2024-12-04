@@ -13,24 +13,23 @@ DEFAULT_MAX_MUTATIONS = 10
 
 #: Matches a single amino acid substitution in HGVS_ format.
 re_protein = re.compile(
-    "(?P<match>p\.(?P<pre>[A-Z][a-z][a-z])(?P<pos>-?\d+)" "(?P<post>[A-Z][a-z][a-z]))"
+    r"(?P<match>p\.(?P<pre>[A-Z][a-z][a-z])(?P<pos>-?\d+)" "(?P<post>[A-Z][a-z][a-z]))"
 )
 
 #: Matches a single nucleotide substitution (coding or noncoding)
 #: in HGVS_ format.
 re_nucleotide = re.compile(
-    "(?P<match>[nc]\.(?P<pos>-?\d+)(?P<pre>[ACGT])>(?P<post>[ACGT]))"
+    r"(?P<match>[nc]\.(?P<pos>-?\d+)(?P<pre>[ACGT])>(?P<post>[ACGT]))"
 )
 
 #: Matches a single coding nucleotide substitution in HGVS_ format.
 re_coding = re.compile(
-    "(?P<match>c\.(?P<pos>-?\d+)(?P<pre>[ACGT])>(?P<post>[ACGT]) "
-    "\(p\.(?:=|[A-Z][a-z][a-z]-?\d+[A-Z][a-z][a-z])\))"
+    r"(?P<match>c\.(?P<pos>-?\d+)(?P<pre>[ACGT])>(?P<post>[ACGT]) \(p\.(?:=|[A-Z][a-z][a-z]-?\d+[A-Z][a-z][a-z])\))"
 )
 
 #: Matches a single noncoding nucleotide substitution in HGVS_ format.
 re_noncoding = re.compile(
-    "(?P<match>n\.(?P<pos>-?\d+)(?P<pre>[ACGT])>(?P<post>[ACGT]))"
+    r"(?P<match>n\.(?P<pos>-?\d+)(?P<pre>[ACGT])>(?P<post>[ACGT]))"
 )
 
 
@@ -69,13 +68,13 @@ def hgvs2single(s):
 def single2hgvs(s):
     """
     Convert single-letter amino acid changes in the form
-    <pre><pos><post> into HGVS strings that match Enrich2 
+    <pre><pos><post> into HGVS strings that match Enrich2
     output.
 
     Searches the string s for all instances of the above
     pattern and returns a list of Enrich2 variants.
     """
-    t = re.findall("[A-Z*]\d+[A-Z*]", s)
+    t = re.findall(r"[A-Z*]\d+[A-Z*]", s)
     return ["p.{}{}{}".format(AA_CODES[x[0]], x[1:-1], AA_CODES[x[-1]]) for x in t]
 
 
@@ -174,7 +173,7 @@ def protein_variant(variant):
     elif variant == SYNONYMOUS_VARIANT:
         return SYNONYMOUS_VARIANT
     else:
-        matches = re.findall("\((p\.\S*)\)", variant)
+        matches = re.findall(r"\((p\.\S*)\)", variant)
         if len(matches) == 0:
             raise ValueError("Invalid coding variant string.")
         # uniqify and remove synonymous
@@ -389,19 +388,19 @@ class VariantSeqLib(SeqLib):
 
             for pos, change in mutations:
                 ref_dna_pos = pos + self.wt.dna_offset + 1
-                ref_pro_pos = pos / 3 + self.wt.protein_offset + 1
+                ref_pro_pos = int(pos / 3) + self.wt.protein_offset + 1
                 mut = "c.{pos}{change}".format(pos=ref_dna_pos, change=change)
                 if has_indel(change):
                     mut += " (p.{pre}{pos}fs)".format(
-                        pre=AA_CODES[self.wt.protein_seq[pos / 3]], pos=ref_pro_pos
+                        pre=AA_CODES[self.wt.protein_seq[int(pos / 3)]], pos=ref_pro_pos
                     )
-                elif variant_protein[pos / 3] == self.wt.protein_seq[pos / 3]:
+                elif variant_protein[int(pos / 3)] == self.wt.protein_seq[int(pos / 3)]:
                     mut += " (p.=)"
                 else:
                     mut += " (p.{pre}{pos}{post})".format(
-                        pre=AA_CODES[self.wt.protein_seq[pos / 3]],
+                        pre=AA_CODES[self.wt.protein_seq[int(pos / 3)]],
                         pos=ref_pro_pos,
-                        post=AA_CODES[variant_protein[pos / 3]],
+                        post=AA_CODES[variant_protein[int(pos / 3)]],
                     )
                 mutation_strings.append(mut)
         else:
@@ -419,7 +418,7 @@ class VariantSeqLib(SeqLib):
     def count_synonymous(self):
         """
         Combine counts for synonymous variants (defined as variants that differ
-        at the nucleotide level but not at the amino acid level) and store them 
+        at the nucleotide level but not at the amino acid level) and store them
         under the ``synonymous`` label.
 
         This method should be called only after ``variants`` have been counted.
