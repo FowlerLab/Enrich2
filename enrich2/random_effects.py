@@ -10,7 +10,7 @@ def rml_estimator(y, sigma2i, iterations=50):
               title={Mixed models: theory and applications with R},
               author={Demidenko, Eugene},
               year={2013},
-              publisher={John Wiley \& Sons}
+              publisher={John Wiley & Sons}
             }
 
     """
