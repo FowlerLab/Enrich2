@@ -56,7 +56,7 @@ class FQRead(object):
     def __init__(self, header, sequence, header2, quality, qbase=33):
         if len(sequence) != len(quality):
             raise ValueError("different lengths for sequence and quality")
-        elif header[0] != "@" or header2[0] != "+":
+        elif chr(header[0]) != "@" or chr(header2[0]) != "+":
             raise ValueError("improperly formatted FASTQ record")
         else:
             self.header = header
@@ -247,7 +247,7 @@ def read_fastq(fname, filter_function=None, buffer_size=BUFFER_SIZE, qbase=33):
         raise IOError("unrecognized compression mode '{mode}'".format(mode=compression))
 
     eof = False
-    leftover = ""
+    leftover = b""
 
     while not eof:
         buf = handle.read(buffer_size)
@@ -255,8 +255,8 @@ def read_fastq(fname, filter_function=None, buffer_size=BUFFER_SIZE, qbase=33):
             eof = True
 
         buf = leftover + buf  # prepend partial record from previous buffer
-        lines = buf.split("\n")
-        fastq_count = len(lines) / 4
+        lines = buf.split(b"\n")
+        fastq_count = int(len(lines) / 4)
 
         if not eof:  # handle lines from the trailing partial FASTQ record
             dangling = len(lines) % 4
@@ -264,7 +264,7 @@ def read_fastq(fname, filter_function=None, buffer_size=BUFFER_SIZE, qbase=33):
                 dangling = 4
                 fastq_count = fastq_count - 1
             # join the leftover lines back into a string
-            leftover = "\n".join(lines[len(lines) - dangling :])
+            leftover = b"\n".join(lines[len(lines) - dangling :])
 
         # index into the list of lines to pull out the FASTQ records
         for i in range(fastq_count):
