@@ -238,11 +238,11 @@ def read_fastq(fname, filter_function=None, buffer_size=BUFFER_SIZE, qbase=33):
     """
     _, _, _, compression = split_fastq_path(fname)
     if compression is None:  # raw FASTQ
-        handle = open(fname, "rU")
+        handle = open(fname, "r")
     elif compression == "bz2":
-        handle = bz2.BZ2File(fname, "rU")
+        handle = bz2.BZ2File(fname, "r")
     elif compression == "gz":
-        handle = gzip.GzipFile(fname, "rU")
+        handle = gzip.GzipFile(fname, "r")
     else:
         raise IOError("unrecognized compression mode '{mode}'".format(mode=compression))
 
