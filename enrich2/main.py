@@ -157,7 +157,7 @@ def main_cmd():
 
     # read the JSON file
     try:
-        cfg = json.load(open(args.config, "U"))
+        cfg = json.load(open(args.config, "r"))
     except IOError:
         raise IOError("Failed to open '{}' [{}]".format(args.config, DRIVER_NAME))
     except ValueError:

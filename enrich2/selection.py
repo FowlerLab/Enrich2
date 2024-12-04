@@ -42,7 +42,7 @@ SEQLIB_CLASSES = {
 
 def regression_apply(row, timepoints, weighted):
     """
-    :py:meth:`pandas.DataFrame.apply` apply function for calculating 
+    :py:meth:`pandas.DataFrame.apply` apply function for calculating
     enrichment using linear regression. If *weighted* is ``True`` perform
     weighted least squares; else perform ordinary least squares.
 
@@ -77,8 +77,8 @@ def regression_apply(row, timepoints, weighted):
 
 class Selection(StoreManager):
     """
-    Class for a single selection replicate, consisting of multiple 
-    timepoints. This class coordinates :py:class:`~seqlib.seqlib.SeqLib` 
+    Class for a single selection replicate, consisting of multiple
+    timepoints. This class coordinates :py:class:`~seqlib.seqlib.SeqLib`
     objects.
     """
 
@@ -94,7 +94,7 @@ class Selection(StoreManager):
 
     def _children(self):
         """
-        Return the :py:class:`~seqlib.seqlib.SeqLib` objects as a list, 
+        Return the :py:class:`~seqlib.seqlib.SeqLib` objects as a list,
         sorted by timepoint and then by name.
         """
         libs = list()
@@ -104,7 +104,7 @@ class Selection(StoreManager):
 
     def remove_child_id(self, tree_id):
         """
-        Remove the reference to a :py:class:`~seqlib.seqlib.SeqLib` with 
+        Remove the reference to a :py:class:`~seqlib.seqlib.SeqLib` with
         Treeview id *tree_id*. Deletes empty time points.
         """
         empty = None
@@ -140,10 +140,10 @@ class Selection(StoreManager):
 
     def configure(self, cfg, configure_children=True):
         """
-        Set up the :py:class:`~selection.Selection` using the *cfg* object, 
+        Set up the :py:class:`~selection.Selection` using the *cfg* object,
         usually from a ``.json`` configuration file.
 
-        If *configure_children* is false, do not configure the children in 
+        If *configure_children* is false, do not configure the children in
         *cfg*.
         """
         StoreManager.configure(self, cfg)
@@ -240,9 +240,9 @@ class Selection(StoreManager):
 
     def is_barcodevariant(self):
         """
-        Return ``True`` if all :py:class:`~seqlib.seqlib.SeqLib` in the 
-        :py:class:`~selection.Selection` are 
-        :py:class:`~barcodevariant.BcvSeqLib` objects with 
+        Return ``True`` if all :py:class:`~seqlib.seqlib.SeqLib` in the
+        :py:class:`~selection.Selection` are
+        :py:class:`~barcodevariant.BcvSeqLib` objects with
         the same barcode map, else ``False``.
         """
         return (
@@ -252,9 +252,9 @@ class Selection(StoreManager):
 
     def is_barcodeid(self):
         """
-        Return ``True`` if all :py:class:`~seqlib.SeqLib` in the 
-        :py:class:`~selection.Selection` are 
-        :py:class:`~barcodeid.BcidSeqLib` objects with 
+        Return ``True`` if all :py:class:`~seqlib.SeqLib` in the
+        :py:class:`~selection.Selection` are
+        :py:class:`~barcodeid.BcidSeqLib` objects with
         the same barcode map, else ``False``.
         """
         return (
@@ -264,24 +264,24 @@ class Selection(StoreManager):
 
     def is_coding(self):
         """
-        Return ``True`` if the all :py:class:`~seqlib.seqlib.SeqLib` in the 
-        :py:class:`~selection.Selection` count protein-coding variants, else 
+        Return ``True`` if the all :py:class:`~seqlib.seqlib.SeqLib` in the
+        :py:class:`~selection.Selection` count protein-coding variants, else
         ``False``.
         """
         return all(x.is_coding() for x in self.children)
 
     def has_wt_sequence(self):
         """
-        Return ``True`` if the all :py:class:`~seqlib.seqlib.SeqLib` in the 
-        :py:class:`~selection.Selection` have a wild type sequence, else 
+        Return ``True`` if the all :py:class:`~seqlib.seqlib.SeqLib` in the
+        :py:class:`~selection.Selection` have a wild type sequence, else
         ``False``.
         """
         return all(x.has_wt_sequence() for x in self.children)
 
     def merge_counts_unfiltered(self, label):
         """
-        Counts :py:class:`~seqlib.seqlib.SeqLib` objects and tabulates counts 
-        for each timepoint. :py:class:`~seqlib.seqlib.SeqLib` objects from 
+        Counts :py:class:`~seqlib.seqlib.SeqLib` objects and tabulates counts
+        for each timepoint. :py:class:`~seqlib.seqlib.SeqLib` objects from
         the same timepoint are combined by summing the counts.
 
         Stores the unfiltered counts under ``/main/label/counts_unfiltered``.
@@ -364,14 +364,14 @@ class Selection(StoreManager):
 
     def filter_counts(self, label):
         """
-        Converts unfiltered counts stored in ``/main/label/counts_unfiltered`` 
-        into filtered counts calculated from complete cases (elements with a 
+        Converts unfiltered counts stored in ``/main/label/counts_unfiltered``
+        into filtered counts calculated from complete cases (elements with a
         non-zero count in each time point).
 
-        For the most basic element type (variant or barcode, depending on the 
-        experimental design), the result of this operation simply drops any 
-        rows that have missing counts. For other element types, such as 
-        synonymous variants, the counts are re-aggregated using only the 
+        For the most basic element type (variant or barcode, depending on the
+        experimental design), the result of this operation simply drops any
+        rows that have missing counts. For other element types, such as
+        synonymous variants, the counts are re-aggregated using only the
         complete cases in the underlying element type.
         """
         if (self.is_barcodeid() or self.is_barcodevariant()) and label != "barcodes":
@@ -387,7 +387,7 @@ class Selection(StoreManager):
         df.dropna(axis="index", how="any", inplace=True)
         self.store.put(
             "/main/{}/counts".format(label),
-            df.astype(float),
+            df.astype(int),
             format="table",
             data_columns=df.columns,
         )
@@ -414,7 +414,7 @@ class Selection(StoreManager):
 
     def calculate(self):
         """
-        Wrapper method to calculate counts and enrichment scores 
+        Wrapper method to calculate counts and enrichment scores
         for all data in the :py:class:`~selection.Selection`.
         """
         if len(self.labels) == 0:
@@ -819,7 +819,7 @@ class Selection(StoreManager):
 
         *pdf* is an open PdfPages instance.
 
-        Only created for selections that use WLS or OLS scoring and have a wild type specified. 
+        Only created for selections that use WLS or OLS scoring and have a wild type specified.
         Uses :py:func:`~plots.fit_axes` for the plotting.
         """
         self.logger.info("Creating wild type fit plot")
@@ -1102,7 +1102,7 @@ class Selection(StoreManager):
         """
         Write each table from the store to its own tab-separated file.
 
-        Files are written to a ``tsv`` directory in the default output location. 
+        Files are written to a ``tsv`` directory in the default output location.
         File names are the HDF5 key with ``'_'`` substituted for ``'/'``.
         """
         if self.tsv_requested:
@@ -1114,7 +1114,7 @@ class Selection(StoreManager):
 
     def synonymous_variants(self):
         """
-        Populate and return a dictionary mapping synonymous variants to the 
+        Populate and return a dictionary mapping synonymous variants to the
         list of associated variants in ``/main/variants/counts``.
         """
         mapping = dict()
@@ -1258,7 +1258,7 @@ class Selection(StoreManager):
 
     def calc_outliers(self, label, minimum_components=4, log_chunksize=20000):
         """
-        Test whether an element's individual components have significantly different 
+        Test whether an element's individual components have significantly different
         scores from the element. Results are stored in ``'/main/<label>/outliers'``.
 
         Args:
