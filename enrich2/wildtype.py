@@ -72,7 +72,7 @@ class WildTypeSequence(object):
 
                 # set the reference offset if it's a multiple of three
                 if self.dna_offset % 3 == 0:
-                    self.protein_offset = self.dna_offset / 3
+                    self.protein_offset = int(self.dna_offset / 3)
                 else:
                     self.logger.warning(
                         "Ignoring reference offset for protein changes (not a multiple of three)"

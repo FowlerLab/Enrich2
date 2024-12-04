@@ -251,9 +251,10 @@ class Experiment(StoreManager):
                     "/main/{}/counts_unfiltered" "".format(label)
                 )
                 for tp in sel.timepoints:
-                    data.loc[:][(cnd.name, sel.name, "c_{}".format(tp))] = sel_data[
+                    data[(cnd.name, sel.name, "c_{}".format(tp))] = sel_data[
                         "c_{}".format(tp)
                     ]
+
         self.store.put("/main/{}/counts".format(label), data, format="table")
 
     def calc_shared_full(self, label):
