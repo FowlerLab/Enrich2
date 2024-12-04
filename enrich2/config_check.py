@@ -9,14 +9,14 @@ given configuration object (decoded from a JSON file as described `here
 
 def is_experiment(cfg):
     """
-    Check if the given configuration object specifies an 
+    Check if the given configuration object specifies an
     :py:class:`~enrich2.experiment.Experiment`.
 
     Args:
         cfg (dict): decoded JSON object
 
     Returns:
-        bool: True if `cfg` if specifies an 
+        bool: True if `cfg` if specifies an
         :py:class:`~enrich2.experiment.Experiment`, else False.
 
     """
@@ -28,14 +28,14 @@ def is_experiment(cfg):
 
 def is_condition(cfg):
     """
-    Check if the given configuration object specifies a 
+    Check if the given configuration object specifies a
     :py:class:`~enrich2.condition.Condition`.
 
     Args:
         cfg (dict): decoded JSON object
 
     Returns:
-        bool: True if `cfg` if specifies a 
+        bool: True if `cfg` if specifies a
         :py:class:`~enrich2.condition.Condition`, else False.
 
     """
@@ -47,14 +47,14 @@ def is_condition(cfg):
 
 def is_selection(cfg):
     """
-    Check if the given configuration object specifies a 
+    Check if the given configuration object specifies a
     :py:class:`~enrich2.selection.Selection`.
 
     Args:
         cfg (dict): decoded JSON object
 
     Returns:
-        bool: True if `cfg` if specifies a 
+        bool: True if `cfg` if specifies a
         :py:class:`~enrich2.selection.Selection`, else False.
 
     """
@@ -66,14 +66,14 @@ def is_selection(cfg):
 
 def is_seqlib(cfg):
     """
-    Check if the given configuration object specifies a 
+    Check if the given configuration object specifies a
     :py:class:`~enrich2.seqlib.SeqLib` derived object.
 
     Args:
         cfg (dict): decoded JSON object
 
     Returns:
-        bool: True if `cfg` if specifies a :py:class:`~enrich2.seqlib.SeqLib` 
+        bool: True if `cfg` if specifies a :py:class:`~enrich2.seqlib.SeqLib`
         derived object, else False.
 
     """
@@ -85,14 +85,14 @@ def is_seqlib(cfg):
 
 def seqlib_type(cfg):
     """
-    Get the type of :py:class:`~enrich2.seqlib.SeqLib` derived object 
+    Get the type of :py:class:`~enrich2.seqlib.SeqLib` derived object
     specified by the configuration object.
 
     Args:
         cfg (dict): decoded JSON object
 
     Returns:
-        str: The class name of the :py:class:`~seqlib.seqlib.SeqLib` derived 
+        str: The class name of the :py:class:`~seqlib.seqlib.SeqLib` derived
         object specified by `cfg`.
 
     Raises:
@@ -123,15 +123,15 @@ def seqlib_type(cfg):
 
 def element_type(cfg):
     """
-    Get the type of :py:class:`~enrich2.storemanager.StoreManager` derived 
+    Get the type of :py:class:`~enrich2.storemanager.StoreManager` derived
     object specified by the configuration object.
 
     Args:
         cfg (dict): decoded JSON object
 
     Returns:
-        str: The class name of the 
-        :py:class:`~enrich2.storemanager.StoreManager` derived object specified 
+        str: The class name of the
+        :py:class:`~enrich2.storemanager.StoreManager` derived object specified
         by `cfg`.
 
     Raises:

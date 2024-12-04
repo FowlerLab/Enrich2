@@ -238,7 +238,7 @@ class Configurator(tk.Tk):
         """
         Create and return a new element based on the current selection.
 
-        This element is not added to the treeview. 
+        This element is not added to the treeview.
         """
         element = None
         parent_element = self.get_focused_element()
@@ -362,7 +362,7 @@ class Configurator(tk.Tk):
         fname = tkinter.filedialog.askopenfilename()
         if len(fname) > 0:  # file was selected
             try:
-                with open(fname, "rU") as handle:
+                with open(fname, "r") as handle:
                     cfg = json.load(handle)
             except ValueError:
                 tkinter.messagebox.showerror(None, "Failed to parse config file.")
@@ -432,11 +432,11 @@ class Configurator(tk.Tk):
 
     def delete_element(self, tree_id):
         """
-        Delete element with Treeview id *tree_id* from the tree, from the element 
-        dictionary, and from the associated data structure. Recursively 
+        Delete element with Treeview id *tree_id* from the tree, from the element
+        dictionary, and from the associated data structure. Recursively
         deletes all children of *tree_id*.
 
-        The tree should be refreshed using :py:meth:`refresh_tree` after 
+        The tree should be refreshed using :py:meth:`refresh_tree` after
         each deletion. This is the responsibility of the caller.
 
         """
