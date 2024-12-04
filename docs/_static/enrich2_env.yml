@@ -1,6 +1,6 @@
 name: enrich2
 dependencies:
-  - python=2.7
+  - python=3
   - numpy
   - scipy
   - pandas
