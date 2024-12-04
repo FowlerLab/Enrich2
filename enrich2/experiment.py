@@ -130,16 +130,16 @@ class Experiment(StoreManager):
 
     def is_coding(self):
         """
-        Return ``True`` if the all :py:class:`~selection.Selection` in the 
-        :py:class:`~experiment.Experiment` count protein-coding variants, else 
+        Return ``True`` if the all :py:class:`~selection.Selection` in the
+        :py:class:`~experiment.Experiment` count protein-coding variants, else
         ``False``.
         """
         return all(x.is_coding() for x in self.selection_list())
 
     def has_wt_sequence(self):
         """
-        Return ``True`` if the all :py:class:`~selection.Selection` in the 
-        :py:class:`~experiment.Experiment` have a wild type sequence, else 
+        Return ``True`` if the all :py:class:`~selection.Selection` in the
+        :py:class:`~experiment.Experiment` have a wild type sequence, else
         ``False``.
         """
         return all(x.has_wt_sequence() for x in self.selection_list())
@@ -172,7 +172,7 @@ class Experiment(StoreManager):
         If multiple variants or IDs map to the same barcode, only the first one
         will be present in the barcode map table.
 
-        The ``'/main/barcodemap'`` table is not created if no 
+        The ``'/main/barcodemap'`` table is not created if no
         :py:class:`~selection.Selection` has barcode map information.
         """
         if self.check_store("/main/barcodemap"):
@@ -427,7 +427,7 @@ class Experiment(StoreManager):
             [sorted(self.child_names()), sorted(["z", "pvalue_raw"])],
             names=["condition", "value"],
         )
-        result_df = pd.DataFrame(index=data.index, columns=columns)
+        result_df = pd.DataFrame(index=data.index, columns=columns, dtype=float)
 
         condition_labels = data.columns.levels[0]
         for cnd in condition_labels:
