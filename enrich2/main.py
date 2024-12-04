@@ -150,7 +150,11 @@ def main_cmd():
 
     # start the logs
     if args.log_file is not None:
-        logging.basicConfig(filename=args.log_file, level=LOG_LEVEL, format=LOG_FORMAT)
+        # Create directory if it doesn't exist
+        log_dir = os.path.dirname(args.log_file)
+        if not os.path.exists(log_dir):
+            os.makedirs(log_dir)
+        logging.basicConfig(filename=args.log_file, encoding='utf-8', level=LOG_LEVEL, format=LOG_FORMAT)
     else:
         logging.basicConfig(level=LOG_LEVEL, format=LOG_FORMAT)
     logger = logging.getLogger(__name__)
