@@ -276,7 +276,7 @@ class SeqLib(StoreManager):
 
     def read_quality_filter(self, fq):
         """
-        Check the quality of the FQRead object *fq*.
+        Check the quality of the FastqRead object *fq*.
 
         Checks ``'chastity'``, ``'min quality'``, ``'avg quality'``,
         ``'max N'``, and ``'remove unresolvable'``.
@@ -299,18 +299,18 @@ class SeqLib(StoreManager):
                 filter_flags["min quality"] = True
 
         if self.filters["avg quality"] > 0:
-            if fq.mean_quality() < self.filters["avg quality"]:
+            if fq.average_quality() < self.filters["avg quality"]:
                 self.filter_stats["avg quality"] += 1
                 filter_flags["avg quality"] = True
 
         if self.filters["max N"] >= 0:
-            if fq.sequence.upper().count(b"N") > self.filters["max N"]:
+            if fq.sequence.upper().count("N") > self.filters["max N"]:
                 self.filter_stats["max N"] += 1
                 filter_flags["max N"] = True
 
         if "remove unresolvable" in self.filters:  # OverlapSeqLib only
             if self.filters["remove unresolvable"]:
-                if b"X" in fq.sequence:
+                if "X" in fq.sequence:
                     self.filter_stats["remove unresolvable"] += 1
                     filter_flags["remove unresolvable"] = True
 

@@ -56,7 +56,7 @@ class FQRead(object):
     def __init__(self, header, sequence, header2, quality, qbase=33):
         if len(sequence) != len(quality):
             raise ValueError("different lengths for sequence and quality")
-        elif chr(header[0]) != "@" or chr(header2[0]) != "+":
+        elif header[0] != "@" or header2[0] != "+":
             raise ValueError("improperly formatted FASTQ record")
         else:
             self.header = header
@@ -215,11 +215,11 @@ def create_compressed_outfile(fname, compression):
     name are overwritten.
     """
     if compression == "bz2":
-        handle = bz2.BZ2File(fname + ".bz2", "w")
+        handle = bz2.BZ2File(fname + ".bz2", "wt")
     elif compression == "gz":
-        handle = gzip.GzipFile(fname + ".gz", "w")
+        handle = gzip.GzipFile(fname + ".gz", "wt")
     elif compression is None:
-        handle = open(fname, "w")
+        handle = open(fname, "wt")
     else:
         raise IOError("unrecognized compression mode '{mode}'".format(mode=compression))
     return handle
@@ -238,16 +238,16 @@ def read_fastq(fname, filter_function=None, buffer_size=BUFFER_SIZE, qbase=33):
     """
     _, _, _, compression = split_fastq_path(fname)
     if compression is None:  # raw FASTQ
-        handle = open(fname, "r")
+        handle = open(fname, "rt")
     elif compression == "bz2":
-        handle = bz2.BZ2File(fname, "r")
+        handle = bz2.open(fname, "rt")
     elif compression == "gz":
-        handle = gzip.GzipFile(fname, "r")
+        handle = gzip.open(fname, "rt")
     else:
         raise IOError("unrecognized compression mode '{mode}'".format(mode=compression))
 
     eof = False
-    leftover = b""
+    leftover = ""
 
     while not eof:
         buf = handle.read(buffer_size)
@@ -255,7 +255,7 @@ def read_fastq(fname, filter_function=None, buffer_size=BUFFER_SIZE, qbase=33):
             eof = True
 
         buf = leftover + buf  # prepend partial record from previous buffer
-        lines = buf.split(b"\n")
+        lines = buf.split("\n")
         fastq_count = int(len(lines) / 4)
 
         if not eof:  # handle lines from the trailing partial FASTQ record
@@ -264,7 +264,7 @@ def read_fastq(fname, filter_function=None, buffer_size=BUFFER_SIZE, qbase=33):
                 dangling = 4
                 fastq_count = fastq_count - 1
             # join the leftover lines back into a string
-            leftover = b"\n".join(lines[len(lines) - dangling :])
+            leftover = "\n".join(lines[len(lines) - dangling :])
 
         # index into the list of lines to pull out the FASTQ records
         for i in range(fastq_count):

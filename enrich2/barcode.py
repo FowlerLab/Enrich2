@@ -2,7 +2,7 @@
 import logging
 import sys
 from .seqlib import SeqLib
-from .fqread import read_fastq, split_fastq_path
+from fqfa import open_compressed, parse_fastq_reads, has_fastq_ext
 
 
 class BarcodeSeqLib(SeqLib):
@@ -51,9 +51,9 @@ class BarcodeSeqLib(SeqLib):
         if self.counts_file is None:
             self.configure_fastq(cfg)
             try:
-                if split_fastq_path(self.reads) is None:
+                if not has_fastq_ext(self.reads):
                     raise ValueError(
-                        "FASTQ file error: unrecognized file " "extension", self.name
+                        "FASTQ file error: unrecognized file extension", self.name
                     )
             except IOError as fqerr:
                 raise IOError("FASTQ file error: {}".format(fqerr), self.name)
@@ -129,16 +129,17 @@ class BarcodeSeqLib(SeqLib):
 
         # count all the barcodes
         self.logger.info("Counting barcodes")
-        for fqr in read_fastq(self.reads):
-            fqr.trim_length(self.trim_length, start=self.trim_start)
-            if self.revcomp_reads:
-                fqr.revcomp()
+        with open_compressed(self.reads) as handle:
+            for fqr in parse_fastq_reads(handle):
+                fqr.trim_length(self.trim_length, start=self.trim_start)
+                if self.revcomp_reads:
+                    fqr.reverse_complement()
 
-            if self.read_quality_filter(fqr):  # passed filtering
-                try:
-                    df_dict[fqr.sequence.upper()] += 1
-                except KeyError:
-                    df_dict[fqr.sequence.upper()] = 1
+                if self.read_quality_filter(fqr):  # passed filtering
+                    try:
+                        df_dict[fqr.sequence.upper()] += 1
+                    except KeyError:
+                        df_dict[fqr.sequence.upper()] = 1
 
         self.save_counts("barcodes", df_dict, raw=True)
         del df_dict
