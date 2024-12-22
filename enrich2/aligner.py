@@ -74,7 +74,7 @@ class Aligner(object):
         """
         self.matrix = np.ndarray(
             shape=(len(seq1) + 1, len(seq2) + 1),
-            dtype=np.dtype([("score", np.int), ("trace", np.byte)]),
+            dtype=np.dtype([("score", int), ("trace", np.byte)]),
         )
         seq1 = seq1.upper()
         seq2 = seq2.upper()
