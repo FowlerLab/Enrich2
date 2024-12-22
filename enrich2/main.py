@@ -35,14 +35,7 @@ from enrich2.idonly import IdOnlySeqLib
 from enrich2.storemanager import SCORING_METHODS, LOGR_METHODS
 from enrich2.gui.configurator import Configurator
 from enrich2.sfmap import parse_aa_list
-
-
-__author__ = "Alan F Rubin"
-__copyright__ = "Copyright 2016-2020, Alan F Rubin"
-__license__ = "BSD-3-Clause"
-__version__ = "1.3.1"
-__maintainer__ = "Alan F Rubin"
-__email__ = "alan.rubin@wehi.edu.au"
+from enrich2 import __version__
 
 
 #: Name of the driver script. Used for logging output.
