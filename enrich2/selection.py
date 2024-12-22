@@ -836,7 +836,7 @@ class Selection(StoreManager):
         data = self.store.select(
             "/main/{}/counts".format(wt_label),
             where='index = "{}"'.format(WILD_TYPE_VARIANT),
-        ).ix[0]
+        ).iloc[0]
         sums = self.store["/main/{}/counts".format(wt_label)].sum(
             axis="index"
         )  # sum of complete cases (N')
@@ -892,7 +892,7 @@ class Selection(StoreManager):
         se_data.dropna(axis="index", how="any", inplace=True)
 
         indices = np.linspace(0, len(se_data.index) - 1, 21).astype("int")
-        se_data = se_data.ix[indices]
+        se_data = se_data.iloc[indices]
 
         # retrieves the whole DF because one case was hanging when trying to use select
         # totally unexplained, should fix later
