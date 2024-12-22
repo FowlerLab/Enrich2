@@ -8,6 +8,7 @@ from matplotlib.backends.backend_pdf import PdfPages
 import sys
 from .plots import counts_plot
 from .storemanager import StoreManager, fix_filename, ELEMENT_LABELS
+from .fastqheader import fastq_read_is_chaste
 
 
 class SeqLib(StoreManager):
@@ -166,7 +167,7 @@ class SeqLib(StoreManager):
 
     def report_filtered_read(self, fq, filter_flags):
         """
-        Write the :py:class:`~fqread.FQRead` object *fq* to the ``DEBUG``
+        Write the FASTQ read object *fq* to the ``DEBUG``
         log. The dictionary *filter_flags* contains ``True``
         values for each filtering option that applies to *fq*. Keys in
         *filter_flags* are converted to messages using the
@@ -289,7 +290,7 @@ class SeqLib(StoreManager):
             filter_flags[key] = False
 
         if self.filters["chastity"]:
-            if not fq.is_chaste():
+            if not fastq_read_is_chaste(fq):
                 self.filter_stats["chastity"] += 1
                 filter_flags["chastity"] = True
 

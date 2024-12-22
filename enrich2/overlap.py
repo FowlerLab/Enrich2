@@ -1,12 +1,15 @@
 
 import pandas as pd
 import logging
+
 from matplotlib.backends.backend_pdf import PdfPages
 import os.path
 from .plots import overlap_merge_plot
 from .seqlib import SeqLib
 from .variant import VariantSeqLib
-from .fqread import read_fastq_multi, split_fastq_path, FQRead
+from fqfa import open_compressed, parse_fastq_pe_reads, has_fastq_ext
+from fqfa.fastq.fastqread import FastqRead
+from .fastqheader import fastq_read_is_chaste
 
 
 class OverlapSeqLib(VariantSeqLib):
@@ -83,9 +86,9 @@ class OverlapSeqLib(VariantSeqLib):
 
                 forward_error = False
                 reverse_error = False
-                if split_fastq_path(self.forward) is None:
+                if not has_fastq_ext(self.forward):
                     forward_error = True
-                if split_fastq_path(self.reverse) is None:
+                if not has_fastq_ext(self.reverse):
                     reverse_error = True
                 if forward_error and reverse_error:
                     raise IOError(
@@ -180,20 +183,20 @@ class OverlapSeqLib(VariantSeqLib):
         given base at that position. Returns ``None`` if the maximum number of 
         mismatches in the overlap region is exceded.
         """
-        rev.revcomp()
+        rev.reverse_complement()
 
         # print(fwd.sequence, "-" * (self.rev_start - 1), sep="")
         # print("-" * (self.fwd_start - 1), rev.sequence, sep="")
         rev_extra_start = len(rev) - self.rev_start + 1
         fwd_end = self.fwd_start + self.overlap_length - 1
-        merge = FQRead(
+        merge = FastqRead(
             header=fwd.header + "|" + rev.header,
             sequence="A",
             header2=fwd.header2 + "|" + rev.header2,
-            quality="#",
-            qbase=fwd.qbase,
+            quality_string="#",
+            quality_encoding_value=fwd.quality_encoding_value,
         )
-        merge.sequence = list(fwd.sequence[:fwd_end] + rev.sequence[rev_extra_start:])
+        merge.sequence = fwd.sequence[:fwd_end] + rev.sequence[rev_extra_start:]
         merge.quality = fwd.quality[:fwd_end] + rev.quality[rev_extra_start:]
 
         mismatches = 0
@@ -235,7 +238,6 @@ class OverlapSeqLib(VariantSeqLib):
         if mismatches > self.max_overlap_mismatches:
             return None  # merge failed
 
-        merge.sequence = "".join(merge.sequence)
         if self.trim:
             merge.trim_length(self.overlap_length, self.fwd_start)
         return merge
@@ -254,42 +256,43 @@ class OverlapSeqLib(VariantSeqLib):
 
         self.logger.info("Counting variants")
         max_mut_variants = 0
-        for fwd, rev in read_fastq_multi([self.forward, self.reverse]):
-            # filter on chastity before merge
-            chaste = True
-            if self.filters["chastity"]:
-                if not fwd.is_chaste():
-                    chaste = False
-                    if self.report_filtered:
-                        self.report_filtered_read(fwd, "chastity")
-                if not rev.is_chaste():
-                    chaste = False
-                    if self.report_filtered:
-                        self.report_filtered_read(rev, "chastity")
-                if not chaste:
-                    self.filter_stats["chastity"] += 1
-                    self.filter_stats["total"] += 1
-                    continue
-
-            merge = self.merge_reads(fwd, rev)
-            if merge is None:  # merge failed
-                self.filter_stats["merge failure"] += 1
-                self.filter_stats["total"] += 1
-                if self.report_filtered:
-                    self.report_filtered_read(fwd, filter_flags)
-                    self.report_filtered_read(rev, filter_flags)
-            else:
-                if self.read_quality_filter(merge):
-                    mutations = self.count_variant(merge.sequence)
-                    if mutations is None:  # merge read has too many mutations
-                        max_mut_variants += 1
+        with open_compressed(self.forward) as handle_fwd, open_compressed(self.reverse) as handle_rev:
+            for fwd, rev in parse_fastq_pe_reads(handle_fwd, handle_rev):
+                # filter on chastity before merge
+                chaste = True
+                if self.filters["chastity"]:
+                    if not fastq_read_is_chaste(fwd):
+                        chaste = False
                         if self.report_filtered:
-                            self.report_filtered_variant(merge.sequence, 1)
-                    else:
-                        try:
-                            df_dict[mutations] += 1
-                        except KeyError:
-                            df_dict[mutations] = 1
+                            self.report_filtered_read(fwd, "chastity")
+                    if not fastq_read_is_chaste(rev):
+                        chaste = False
+                        if self.report_filtered:
+                            self.report_filtered_read(rev, "chastity")
+                    if not chaste:
+                        self.filter_stats["chastity"] += 1
+                        self.filter_stats["total"] += 1
+                        continue
+
+                merge = self.merge_reads(fwd, rev)
+                if merge is None:  # merge failed
+                    self.filter_stats["merge failure"] += 1
+                    self.filter_stats["total"] += 1
+                    if self.report_filtered:
+                        self.report_filtered_read(fwd, {"merge failure": True})
+                        self.report_filtered_read(rev, {"merge failure": True})
+                else:
+                    if self.read_quality_filter(merge):
+                        mutations = self.count_variant(merge.sequence)
+                        if mutations is None:  # merge read has too many mutations
+                            max_mut_variants += 1
+                            if self.report_filtered:
+                                self.report_filtered_variant(merge.sequence, 1)
+                        else:
+                            try:
+                                df_dict[mutations] += 1
+                            except KeyError:
+                                df_dict[mutations] = 1
 
         self.store.put(
             "/raw/overlap_mismatches",
