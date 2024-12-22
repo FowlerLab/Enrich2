@@ -38,9 +38,9 @@ class BarcodeMap(dict):
         # open the file
         try:
             ext = os.path.splitext(mapfile)[-1].lower()
-            if ext in (".bz2"):
+            if ext in (".bz2",):
                 handle = bz2.BZ2File(mapfile, "r")
-            elif ext in (".gz"):
+            elif ext in (".gz",):
                 handle = gzip.GzipFile(mapfile, "r")
             else:
                 handle = open(mapfile, "r")
