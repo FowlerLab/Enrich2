@@ -16,7 +16,7 @@ class BasicSeqLib(VariantSeqLib):
     def __init__(self):
         VariantSeqLib.__init__(self)
         self.reads = None
-        self.revcomp_reads = None
+        self.reverse_complement_reads = None
         self.trim_start = None
         self.trim_length = None
         self.logger = logging.getLogger("{}.{}".format(__name__, self.__class__))
@@ -63,9 +63,9 @@ class BasicSeqLib(VariantSeqLib):
             self.reads = cfg["fastq"]["reads"]
 
             if "reverse" in cfg["fastq"]:
-                self.revcomp_reads = cfg["fastq"]["reverse"]
+                self.reverse_complement_reads = cfg["fastq"]["reverse"]
             else:
-                self.revcomp_reads = False
+                self.reverse_complement_reads = False
 
             if "start" in cfg["fastq"]:
                 self.trim_start = cfg["fastq"]["start"]
@@ -91,7 +91,7 @@ class BasicSeqLib(VariantSeqLib):
         fastq = {"filters": self.serialize_filters()}
         fastq["reads"] = self.reads
 
-        if self.revcomp_reads:
+        if self.reverse_complement_reads:
             fastq["reverse"] = True
         else:
             fastq["reverse"] = False
@@ -117,7 +117,7 @@ class BasicSeqLib(VariantSeqLib):
         with open_compressed(self.reads) as handle:
             for fq in parse_fastq_reads(handle):
                 fq.trim_length(self.trim_length, start=self.trim_start)
-                if self.revcomp_reads:
+                if self.reverse_complement_reads:
                     fq.reverse_complement()
 
                 if self.read_quality_filter(fq):
