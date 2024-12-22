@@ -10,6 +10,7 @@ For an example dataset, visit https://github.com/FowlerLab/Enrich2-Example/.
 To cite Enrich2, please reference `A statistical framework for analyzing deep mutational scanning data <https://doi.org/10.1186/s13059-017-1272-5>`_.
 
 Enrich2 was written by `Alan F Rubin <mailto:alan.rubin@wehi.edu.au>`_ |ORCID_icon| http://orcid.org/0000-0003-1474-605X
+with contributions from Chris Macdonald |ORCID_icon| https://orcid.org/0000-0002-0201-8832 for the Python 3-compatible version.
 
 .. error:: Important notice for users of Enrich2 v1.0 or v1.1
 

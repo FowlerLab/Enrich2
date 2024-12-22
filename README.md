@@ -10,32 +10,33 @@ For more information or to cite Enrich2, please refer to [A statistical framewor
 
 An example dataset is available at the [Enrich2-Example GitHub repository](https://github.com/FowlerLab/Enrich2-Example/).
 
+Thanks to the efforts of [Chris Macdonald](https://github.com/odcambc), Enrich2 is now able to run under modern versions of Python as of v2.0.0!
+
 Installation and dependencies
 -----------------------------
 
-Enrich2 runs on Python 2.7 and requires the following packages:
+Enrich2 runs on Python 3 (v2.0.0) and requires the following packages:
 
-* [NumPy](http://www.numpy.org/) version 1.10.4 or higher
-* [SciPy](http://www.scipy.org/) version 0.16.0 or higher
-* [pandas](http://pandas.pydata.org/) version 0.18 or higher
-* [PyTables](http://www.pytables.org/) version 3.2.0 or higher
-* [Statsmodels](http://statsmodels.sourceforge.net/) version 0.6.1 or higher
-* [matplotlib](http://matplotlib.org/) version 1.4.3 or higher
+* [NumPy](http://www.numpy.org/)
+* [SciPy](http://www.scipy.org/)
+* [pandas](http://pandas.pydata.org/)
+* [PyTables](http://www.pytables.org/)
+* [Statsmodels](http://statsmodels.sourceforge.net/)
+* [matplotlib](http://matplotlib.org/)
+* [fqfa](https://fqfa.readthedocs.io/)
 
 The configuration GUI requires [Tkinter](https://docs.python.org/2/library/tkinter.html).
 Building a local copy of the documentation requires [Sphinx](http://sphinx-doc.org/).
 
-We recommend using a scientific Python distribution such as [Anaconda](https://store.continuum.io/cshop/anaconda/) to install and manage dependencies.
-A [Conda environment file](https://conda.io/docs/using/envs.html#use-environment-from-file) is included with the documentation.
+Enrich2 can be installed in a new virtual environment using pip:
 
-To install Enrich2 using Anaconda (or Miniconda), git clone or download and unzip the Enrich2 code.
-From the Enrich2 directory, create the environment, activate the environment, and install Enrich2:
-
-    conda env create -f docs/_static/enrich2_env.yml
-    conda activate enrich2
-    python setup.py install
+    python3 -m venv e2env
+    source e2env/bin/activate
+    pip install enrich2
 
 You should now be able to launch the Enrich2 graphical user interface by typing `enrich_gui` or the command line interface by typing `enrich_cmd`.
+
+For additional information consult the [online documentation](https://enrich2.readthedocs.io/).
 
 Questions?
 ----------
