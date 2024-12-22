@@ -6,34 +6,30 @@ Getting started
 Required packages
 -------------------------------------------------------
 
-Enrich2 runs on Python 2.7 and has the following dependencies:
+Enrich2 runs on Python 3 and has the following dependencies:
 
-* `NumPy <http://www.numpy.org/>`_ version 1.10.4 or higher
-* `SciPy <http://www.scipy.org/>`_ version 0.16.0 or higher
-* `pandas <http://pandas.pydata.org/>`_ version 0.18 or 0.19
-* `PyTables <http://www.pytables.org/>`_ version 3.2.0 or higher
-* `Statsmodels <http://statsmodels.sourceforge.net/>`_ version 0.6.1 or higher
-* `matplotlib <http://matplotlib.org/>`_ version 1.4.3 or higher
+* `NumPy <http://www.numpy.org/>`_
+* `SciPy <http://www.scipy.org/>`_
+* `pandas <http://pandas.pydata.org/>`_
+* `PyTables <http://www.pytables.org/>`_
+* `Statsmodels <http://statsmodels.sourceforge.net/>`_
+* `matplotlib <http://matplotlib.org/>`_
+* `fqfa <https://fqfa.readthedocs.io/>`_
 
 The configuration GUI requires `Tkinter <https://docs.python.org/2/library/tkinter.html>`_. Building a local copy of the documentation requires `Sphinx <http://sphinx-doc.org/>`_.
 
-.. note:: We recommend using a scientific Python distribution such as `Anaconda <https://store.continuum.io/cshop/anaconda/>`_ to install and manage dependencies.
+.. note:: PyTables may not be installed by your distribution. If you encounter errors, check that the ``tables`` module is present.
 
-.. note:: PyTables may not be installed when using the default settings for your distribution. If you encounter errors, check that the ``tables`` module is present. 
+.. note:: Tkinter may not be installed by your distribution. If you encounter errors, try installing ``python3-tk`` or similar using your system package manager.
 
 Installation and example dataset
 -------------------------------------------------------
 
-1. Make sure the `required packages`_ are installed.
+You can install Enrich2 in a new `virtual environment <https://docs.python.org/3/library/venv.html>`_ using `pip <https://docs.python.org/3/installing/index.html>`_::
 
-    a. To set up a new `Anaconda <https://store.continuum.io/cshop/anaconda/>`_ environment for Enrich2, use the following environment file (:download:`click to download <_static/enrich2_env.yml>`).
-Detailed instructions for setting up conda environments can be found in the `conda documentation <https://conda.io/docs/using/envs.html>`_.
-    
-        .. literalinclude:: _static/enrich2_env.yml
-
-#. `Download Enrich2 <https://github.com/FowlerLab/Enrich2/archive/master.zip>`_ from the `GitHub repository <https://github.com/FowlerLab/Enrich2/>`_ and unzip it.
-
-#. Using the terminal, navigate to the Enrich2 directory and run the setup script by typing ``python setup.py install``
+    python3 -m venv e2env
+    source e2env/bin/activate
+    pip install enrich2
 
 To download the example dataset, visit the `Enrich2-Example GitHub repository <https://github.com/FowlerLab/Enrich2-Example/>`_.
 Running this preconfigured analysis will create several :ref:`plots`. The :ref:`example-notebooks` demonstrate how to explore the :ref:`hdf5-files`.
