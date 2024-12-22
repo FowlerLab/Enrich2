@@ -20,7 +20,7 @@ class BarcodeSeqLib(SeqLib):
         if type(self).__name__ != "BcvSeqLib":
             SeqLib.__init__(self)
         self.reads = None
-        self.revcomp_reads = None
+        self.reverse_complement_reads = None
         self.trim_start = None
         self.trim_length = None
         self.barcode_min_count = None
@@ -79,7 +79,7 @@ class BarcodeSeqLib(SeqLib):
         """
         try:
             self.reads = cfg["fastq"]["reads"]
-            self.revcomp_reads = cfg["fastq"]["reverse"]
+            self.reverse_complement_reads = cfg["fastq"]["reverse"]
 
             if "start" in cfg["fastq"]:
                 self.trim_start = cfg["fastq"]["start"]
@@ -101,7 +101,7 @@ class BarcodeSeqLib(SeqLib):
         """
         fastq = {
             "reads": self.reads,
-            "reverse": self.revcomp_reads,
+            "reverse": self.reverse_complement_reads,
             "filters": self.serialize_filters(),
         }
         if self.trim_start > 1:
@@ -132,7 +132,7 @@ class BarcodeSeqLib(SeqLib):
         with open_compressed(self.reads) as handle:
             for fqr in parse_fastq_reads(handle):
                 fqr.trim_length(self.trim_length, start=self.trim_start)
-                if self.revcomp_reads:
+                if self.reverse_complement_reads:
                     fqr.reverse_complement()
 
                 if self.read_quality_filter(fqr):  # passed filtering
