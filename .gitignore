@@ -61,3 +61,6 @@ docs/notebooks/.ipynb_checkpoints/
 
 # Visual Studio Code
 .vscode/
+
+# PyCharm
+.idea/
