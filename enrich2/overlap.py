@@ -174,12 +174,12 @@ class OverlapSeqLib(VariantSeqLib):
 
     def merge_reads(self, fwd, rev):
         """
-        Combines the *fwd* and *rev* :py:class:`~fqread.FQRead` objects into a 
-        single :py:class:`~fqread.FQRead` with the same header information as 
+        Combines the *fwd* and *rev* FASTQ read objects into a
+        single FASTQ read with the same header information as
         *fwd*. Mismatches are resolved by taking the highest quality base. If 
         discrepant bases have the same quality value, this position is 
         unresolvable and an ``'X'`` is inserted. Quality values in the 
-        resulting :py:class:`~fqread.FQRead` are the maximum quality for the 
+        resulting FASTQ read are the maximum quality for the
         given base at that position. Returns ``None`` if the maximum number of 
         mismatches in the overlap region is exceded.
         """
