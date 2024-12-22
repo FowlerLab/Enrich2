@@ -1,5 +1,5 @@
 from .variant import VariantSeqLib
-from .fqread import read_fastq, split_fastq_path
+from fqfa import open_compressed, parse_fastq_reads, has_fastq_ext
 import logging
 import sys
 
@@ -36,7 +36,7 @@ class BasicSeqLib(VariantSeqLib):
         if self.counts_file is None:
             self.configure_fastq(cfg)
             try:
-                if split_fastq_path(self.reads) is None:
+                if not has_fastq_ext(self.reads):
                     raise IOError(
                         "FASTQ file error: unrecognized extension "
                         "[{}]".format(self.name)
@@ -114,22 +114,23 @@ class BasicSeqLib(VariantSeqLib):
 
         self.logger.info("Counting variants")
         max_mut_variants = 0
-        for fq in read_fastq(self.reads):
-            fq.trim_length(self.trim_length, start=self.trim_start)
-            if self.revcomp_reads:
-                fq.revcomp()
+        with open_compressed(self.reads) as handle:
+            for fq in parse_fastq_reads(handle):
+                fq.trim_length(self.trim_length, start=self.trim_start)
+                if self.revcomp_reads:
+                    fq.reverse_complement()
 
-            if self.read_quality_filter(fq):
-                mutations = self.count_variant(fq.sequence)
-                if mutations is None:  # too many mutations
-                    max_mut_variants += 1
-                    if self.report_filtered:
-                        self.report_filtered_variant(fq.sequence, 1)
-                else:
-                    try:
-                        df_dict[mutations] += 1
-                    except KeyError:
-                        df_dict[mutations] = 1
+                if self.read_quality_filter(fq):
+                    mutations = self.count_variant(fq.sequence)
+                    if mutations is None:  # too many mutations
+                        max_mut_variants += 1
+                        if self.report_filtered:
+                            self.report_filtered_variant(fq.sequence, 1)
+                    else:
+                        try:
+                            df_dict[mutations] += 1
+                        except KeyError:
+                            df_dict[mutations] = 1
 
         self.save_counts("variants", df_dict, raw=True)
         del df_dict
