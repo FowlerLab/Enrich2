@@ -25,5 +25,6 @@ setup(
         'statsmodels >= 0.6.1',
         'matplotlib >= 1.4.3',
         'tables >= 3.2.0',
+        'fqfa',
     ]
 )
