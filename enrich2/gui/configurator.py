@@ -253,6 +253,10 @@ class Configurator(tk.Tk):
             element.parent = parent_element
         elif isinstance(parent_element, SeqLib):
             # special case: creates a copy of the selected SeqLib as a sibling
+            # don't allow creation of a second orphan SeqLib
+            if parent_element.parent is None:
+                tkinter.messagebox.showerror(None, "Cannot create multiple orphan SeqLibs.")
+                return None
             element = type(parent_element)()
             element.configure(parent_element.serialize())
             element.parent = parent_element.parent
@@ -282,6 +286,8 @@ class Configurator(tk.Tk):
                 self.root_element = element
             else:
                 element = self.create_new_element()
+                if element is None:
+                    return
                 EditDialog(self, self, element)
 
             # refresh the treeview and re-assign treeview id's
