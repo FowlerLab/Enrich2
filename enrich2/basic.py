@@ -16,9 +16,9 @@ class BasicSeqLib(VariantSeqLib):
     def __init__(self):
         VariantSeqLib.__init__(self)
         self.reads = None
-        self.reverse_complement_reads = None
-        self.trim_start = None
-        self.trim_length = None
+        self.reverse_complement_reads = False
+        self.trim_start = 1
+        self.trim_length = sys.maxsize
         self.logger = logging.getLogger("{}.{}".format(__name__, self.__class__))
 
     def configure(self, cfg):
@@ -64,18 +64,12 @@ class BasicSeqLib(VariantSeqLib):
 
             if "reverse" in cfg["fastq"]:
                 self.reverse_complement_reads = cfg["fastq"]["reverse"]
-            else:
-                self.reverse_complement_reads = False
 
             if "start" in cfg["fastq"]:
                 self.trim_start = cfg["fastq"]["start"]
-            else:
-                self.trim_start = 1
 
             if "length" in cfg["fastq"]:
                 self.trim_length = cfg["fastq"]["length"]
-            else:
-                self.trim_length = sys.maxsize
 
             self.filters = cfg["fastq"]["filters"]
         except KeyError as key:

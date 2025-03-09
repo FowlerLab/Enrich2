@@ -204,8 +204,8 @@ class VariantSeqLib(SeqLib):
         self.wt = WildTypeSequence(self.name)
         self.aligner = None
         self.aligner_cache = None
-        self.variant_min_count = None
-        self.max_mutations = None
+        self.variant_min_count = 0
+        self.max_mutations = DEFAULT_MAX_MUTATIONS
         # 'synonymous' label may be added in configure() if wt is coding
         self.add_label("variants")
         self.logger = logging.getLogger("{}.{}".format(__name__, self.__class__))
@@ -234,13 +234,9 @@ class VariantSeqLib(SeqLib):
 
             if "min count" in cfg["variants"]:
                 self.variant_min_count = int(cfg["variants"]["min count"])
-            else:
-                self.variant_min_count = 0
 
             if "max mutations" in cfg["variants"]:
                 self.max_mutations = int(cfg["variants"]["max mutations"])
-            else:
-                self.max_mutations = DEFAULT_MAX_MUTATIONS
 
         except KeyError as key:
             raise KeyError(

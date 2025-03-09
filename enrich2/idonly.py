@@ -12,7 +12,7 @@ class IdOnlySeqLib(SeqLib):
 
     def __init__(self):
         SeqLib.__init__(self)
-        self.identifier_min_count = None
+        self.identifier_min_count = 0
         self.add_label("identifiers")
         self.logger = logging.getLogger("{}.{}".format(__name__, self.__class__))
 
@@ -28,8 +28,6 @@ class IdOnlySeqLib(SeqLib):
         try:
             if "min count" in cfg["identifiers"]:
                 self.identifier_min_count = int(cfg["identifiers"]["min count"])
-            else:
-                self.identifier_min_count = 0
         except KeyError as key:
             raise KeyError(
                 "Missing required config value {key} [{name}]"
