@@ -1,4 +1,5 @@
-[![DOI](https://zenodo.org/badge/69113902.svg)](https://zenodo.org/badge/latestdoi/69113902)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.14681278.svg)](https://doi.org/10.5281/zenodo.14681278)
+[![PyPI version](https://badge.fury.io/py/Enrich2.svg)](https://badge.fury.io/py/Enrich2)
 
 Enrich2
 =======
