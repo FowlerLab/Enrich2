@@ -20,10 +20,10 @@ class BarcodeSeqLib(SeqLib):
         if type(self).__name__ != "BcvSeqLib":
             SeqLib.__init__(self)
         self.reads = None
-        self.reverse_complement_reads = None
-        self.trim_start = None
-        self.trim_length = None
-        self.barcode_min_count = None
+        self.reverse_complement_reads = False
+        self.trim_start = 1
+        self.trim_length = sys.maxsize
+        self.barcode_min_count = 0
         self.add_label("barcodes")
         self.logger = logging.getLogger("{}.{}".format(__name__, self.__class__))
 
@@ -41,8 +41,6 @@ class BarcodeSeqLib(SeqLib):
         try:
             if "min count" in cfg["barcodes"]:
                 self.barcode_min_count = int(cfg["barcodes"]["min count"])
-            else:
-                self.barcode_min_count = 0
         except KeyError as key:
             raise KeyError("Missing required config value {}".format(key), self.name)
 
@@ -83,13 +81,9 @@ class BarcodeSeqLib(SeqLib):
 
             if "start" in cfg["fastq"]:
                 self.trim_start = cfg["fastq"]["start"]
-            else:
-                self.trim_start = 1
 
             if "length" in cfg["fastq"]:
                 self.trim_length = cfg["fastq"]["length"]
-            else:
-                self.trim_length = sys.maxsize
 
             self.filters = cfg["fastq"]["filters"]
         except KeyError as key:

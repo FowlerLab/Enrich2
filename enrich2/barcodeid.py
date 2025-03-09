@@ -26,7 +26,7 @@ class BcidSeqLib(BarcodeSeqLib):
     def __init__(self):
         BarcodeSeqLib.__init__(self)
         self.barcode_map = None
-        self.identifier_min_count = None
+        self.identifier_min_count = 0
         self.add_label("identifiers")
         self.logger = logging.getLogger("{}.{}".format(__name__, self.__class__))
 
@@ -42,8 +42,6 @@ class BcidSeqLib(BarcodeSeqLib):
         try:
             if "min count" in cfg["identifiers"]:
                 self.identifier_min_count = int(cfg["identifiers"]["min count"])
-            else:
-                self.identifier_min_count = 0
 
             if barcode_map is not None:
                 if barcode_map.filename == cfg["barcodes"]["map file"]:
