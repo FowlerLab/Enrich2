@@ -16,7 +16,7 @@ Thanks to the efforts of [Chris Macdonald](https://github.com/odcambc), Enrich2 
 Installation and dependencies
 -----------------------------
 
-Enrich2 runs on Python 3 (v2.0.0) and requires the following packages:
+Enrich2 runs on Python 3 (v2.0.0 and higher) and requires the following packages:
 
 * [NumPy](http://www.numpy.org/)
 * [SciPy](http://www.scipy.org/)
