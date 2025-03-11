@@ -124,16 +124,16 @@ class BarcodeSeqLib(SeqLib):
         # count all the barcodes
         self.logger.info("Counting barcodes")
         with open_compressed(self.reads) as handle:
-            for fqr in parse_fastq_reads(handle):
-                fqr.trim_length(self.trim_length, start=self.trim_start)
+            for fq in parse_fastq_reads(handle):
+                fq.trim(start=self.trim_start, end=self.trim_start + self.trim_length -1)
                 if self.reverse_complement_reads:
-                    fqr.reverse_complement()
+                    fq.reverse_complement()
 
-                if self.read_quality_filter(fqr):  # passed filtering
+                if self.read_quality_filter(fq):  # passed filtering
                     try:
-                        df_dict[fqr.sequence.upper()] += 1
+                        df_dict[fq.sequence.upper()] += 1
                     except KeyError:
-                        df_dict[fqr.sequence.upper()] = 1
+                        df_dict[fq.sequence.upper()] = 1
 
         self.save_counts("barcodes", df_dict, raw=True)
         del df_dict
