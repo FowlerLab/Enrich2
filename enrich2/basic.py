@@ -110,7 +110,7 @@ class BasicSeqLib(VariantSeqLib):
         max_mut_variants = 0
         with open_compressed(self.reads) as handle:
             for fq in parse_fastq_reads(handle):
-                fq.trim_length(self.trim_length, start=self.trim_start)
+                fq.trim(start=self.trim_start, end=self.trim_start + self.trim_length -1)
                 if self.reverse_complement_reads:
                     fq.reverse_complement()
 
