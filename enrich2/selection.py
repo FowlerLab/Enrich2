@@ -530,23 +530,19 @@ class Selection(StoreManager):
                 )
             shared_counts = shared_counts.values + 0.5
         elif self.logr_method == "complete":
+            counts_df = self.store.select(
+                "/main/{}/counts".format(label), "columns in ['c_0', c_last]"
+            )
             shared_counts = (
-                self.store.select(
-                    "/main/{}/counts".format(label), "columns in ['c_0', c_last]"
-                )
-                .sum(axis="index")
-                .values
-                + 0.5
+                counts_df.sum(axis="index").values + 0.5 * len(counts_df)
             )
         elif self.logr_method == "full":
+            counts_df = self.store.select(
+                "/main/{}/counts_unfiltered".format(label),
+                "columns in ['c_0', c_last]",
+            )
             shared_counts = (
-                self.store.select(
-                    "/main/{}/counts_unfiltered".format(label),
-                    "columns in ['c_0', c_last]",
-                )
-                .sum(axis="index", skipna=True)
-                .values
-                + 0.5
+                counts_df.sum(axis="index", skipna=True).values + 0.5 * len(counts_df)
             )
         else:
             raise ValueError(
@@ -612,20 +608,16 @@ class Selection(StoreManager):
                 )
             ratios = ratios - np.log(wt_counts.values + 0.5)
         elif self.logr_method == "complete":
+            counts_df = self.store.select("/main/{}/counts".format(label), "columns=c_n")
             ratios = ratios - np.log(
-                self.store.select("/main/{}/counts".format(label), "columns=c_n")
-                .sum(axis="index")
-                .values
-                + 0.5
+                counts_df.sum(axis="index").values + 0.5 * len(counts_df)
             )
         elif self.logr_method == "full":
+            counts_df = self.store.select(
+                "/main/{}/counts_unfiltered".format(label), "columns=c_n"
+            )
             ratios = ratios - np.log(
-                self.store.select(
-                    "/main/{}/counts_unfiltered".format(label), "columns=c_n"
-                )
-                .sum(axis="index", skipna=True)
-                .values
-                + 0.5
+                counts_df.sum(axis="index", skipna=True).values + 0.5 * len(counts_df)
             )
         else:
             raise ValueError(
@@ -682,20 +674,16 @@ class Selection(StoreManager):
                 )
             variances = variances + 1.0 / (wt_counts.values + 0.5)
         elif self.logr_method == "complete":
+            counts_df = self.store.select("/main/{}/counts".format(label), "columns=c_n")
             variances = variances + 1.0 / (
-                self.store.select("/main/{}/counts".format(label), "columns=c_n")
-                .sum(axis="index")
-                .values
-                + 0.5
+                counts_df.sum(axis="index").values + 0.5 * len(counts_df)
             )
         elif self.logr_method == "full":
+            counts_df = self.store.select(
+                "/main/{}/counts_unfiltered".format(label), "columns=c_n"
+            )
             variances = variances + 1.0 / (
-                self.store.select(
-                    "/main/{}/counts_unfiltered".format(label), "columns=c_n"
-                )
-                .sum(axis="index", skipna=True)
-                .values
-                + 0.5
+                counts_df.sum(axis="index", skipna=True).values + 0.5 * len(counts_df)
             )
         else:
             raise ValueError(
