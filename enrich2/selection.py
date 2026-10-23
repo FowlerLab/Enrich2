@@ -466,9 +466,7 @@ class Selection(StoreManager):
 
         self.logger.info("Calculating simple ratios ({})".format(label))
         c_last = "c_{}".format(self.timepoints[-1])
-        df = self.store.select(
-            "/main/{}/counts".format(label), "columns in ['c_0', c_last]"
-        )
+        df = self.store.select("/main/{}/counts".format(label), columns=["c_0", c_last])
 
         # perform operations on the numpy values of the data frame for easier broadcasting
         ratios = (df[c_last].values.astype("float") / df[c_last].sum(axis="index")) / (
@@ -503,9 +501,7 @@ class Selection(StoreManager):
 
         self.logger.info("Calculating ratios ({})".format(label))
         c_last = "c_{}".format(self.timepoints[-1])
-        df = self.store.select(
-            "/main/{}/counts".format(label), "columns in ['c_0', c_last]"
-        )
+        df = self.store.select("/main/{}/counts".format(label), columns=["c_0", c_last])
 
         if self.logr_method == "wt":
             if "variants" in self.labels:
@@ -520,7 +516,8 @@ class Selection(StoreManager):
                 )
             shared_counts = self.store.select(
                 "/main/{}/counts".format(wt_label),
-                "columns in ['c_0', c_last] & index='{}'".format(WILD_TYPE_VARIANT),
+                "index='{}'".format(WILD_TYPE_VARIANT),
+                columns=["c_0", c_last],
             )
             if len(shared_counts) == 0:  # wild type not found
                 raise ValueError(
@@ -532,7 +529,7 @@ class Selection(StoreManager):
         elif self.logr_method == "complete":
             shared_counts = (
                 self.store.select(
-                    "/main/{}/counts".format(label), "columns in ['c_0', c_last]"
+                    "/main/{}/counts".format(label), columns=["c_0", c_last]
                 )
                 .sum(axis="index")
                 .values
@@ -542,7 +539,7 @@ class Selection(StoreManager):
             shared_counts = (
                 self.store.select(
                     "/main/{}/counts_unfiltered".format(label),
-                    "columns in ['c_0', c_last]",
+                    columns=["c_0", c_last],
                 )
                 .sum(axis="index", skipna=True)
                 .values
